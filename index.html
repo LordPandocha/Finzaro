@@ -4,11 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Ledger — учёт прибыли</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Manrope:wght@400;600;800&family=Nunito:wght@400;700;800&family=Montserrat:wght@400;600;700&family=Lora:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+    <meta name="description" content="Ledger — учёт прибыли с продаж: площадки, комиссии, цели и графики." />
+    <meta name="theme-color" content="#0b0d14" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Ledger — учёт прибыли" />
+    <meta property="og:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💰%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
       :root {
@@ -1525,6 +1526,17 @@
       </form>
     </dialog>
 
+    <dialog id="dAsk">
+      <form method="dialog" id="askF">
+        <div class="sh"><b id="askT"></b></div>
+        <small id="askD" class="mut" style="display: block; margin: 8px 0"></small>
+        <input id="askI" inputmode="decimal" autocomplete="off" />
+        <div style="display: flex; gap: 10px; margin-top: 14px">
+          <button type="button" class="pill" id="askNo" style="flex: 1">Отмена</button>
+          <button type="submit" value="ok" class="main" style="flex: 1; margin: 0">OK</button>
+        </div>
+      </form>
+    </dialog>
     <script>
       /* Supabase: Project Settings → API. Пусто = демо-режим (данные только в этом браузере) */
       const SUPABASE_URL = "",
@@ -1536,6 +1548,25 @@
           return d;
         }
       };
+      /* своё окно вместо системных: ask({title,text,input,value}) возвращает строку, true или null */
+      function ask({ title, text = "", input = false, value = "" }) {
+        return new Promise((res) => {
+          const d = document.getElementById("dAsk"),
+            i = document.getElementById("askI");
+          document.getElementById("askT").textContent = title;
+          document.getElementById("askD").textContent = text;
+          i.hidden = !input;
+          i.value = value;
+          d.returnValue = "";
+          document.getElementById("askNo").onclick = () => d.close("no");
+          d.onclose = () => res(d.returnValue === "ok" ? (input ? i.value : true) : null);
+          d.showModal();
+          if (input) {
+            i.focus();
+            i.select();
+          }
+        });
+      }
       const IC = {
         ad: '<path d="M4 18l6-6 4 4 6-8M15 8h5v5"/>',
         trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
@@ -1732,6 +1763,23 @@
         "С засечками": "Lora,Georgia,serif",
         Моно: '"JetBrains Mono",monospace',
       };
+      const FONT_Q = {
+        Inter: "Inter:wght@400;600;700;800",
+        Manrope: "Manrope:wght@400;600;800",
+        Nunito: "Nunito:wght@400;700;800",
+        Montserrat: "Montserrat:wght@400;600;700",
+        Lora: "Lora:wght@400;600;700",
+        "JetBrains Mono": "JetBrains+Mono:wght@400;700",
+      };
+      const loadedF = new Set();
+      function loadFont(fam) {
+        if (!FONT_Q[fam] || loadedF.has(fam)) return;
+        loadedF.add(fam);
+        const l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.href = "https://fonts.googleapis.com/css2?family=" + FONT_Q[fam] + "&display=swap";
+        document.head.appendChild(l);
+      }
       const MN = [
         "Январь",
         "Февраль",
@@ -1843,6 +1891,8 @@
         s.style.setProperty("--fs", pref.fs + "px");
         s.style.setProperty("--r", pref.r + "px");
         s.style.setProperty("--font", FONTS[pref.font] || FONTS["Системный"]);
+        loadFont((FONTS[pref.font] || "").split(",")[0].replace(/["']/g, "").trim());
+        if (pref.theme === "peach") loadFont("Inter");
         accVars(s);
         localStorage.setItem("pref3", JSON.stringify(pref));
         if (lastFx !== pref.theme) {
@@ -2752,9 +2802,9 @@
           .join("");
         $("#dSet").showModal();
       };
-      $("#setBody").onclick = (e) => {
+      $("#setBody").onclick = async (e) => {
         const k = e.target.closest("[data-rm]")?.dataset.rm;
-        if (k && confirm("Убрать площадку " + k + "? Её записи останутся в данных.")) {
+        if (k && (await ask({ title: "Убрать площадку «" + k + "»?", text: "Её записи останутся в данных." }))) {
           delete custom[k];
           localStorage.setItem("cmps", JSON.stringify(custom));
           location.reload();
@@ -2802,7 +2852,7 @@
         try {
           const d = JSON.parse(await fl.text());
           if (!Array.isArray(d.ops)) throw 0;
-          if (!confirm("Заменить данные на этом устройстве данными из файла (" + d.ops.length + " записей)?"))
+          if (!(await ask({ title: "Заменить данные?", text: "Данные на этом устройстве будут заменены данными из файла (записей: " + d.ops.length + ")." })))
             return;
           localStorage.setItem("ops", JSON.stringify(d.ops));
           if (d.fees) localStorage.setItem("fees2", JSON.stringify(d.fees));
@@ -2826,10 +2876,10 @@
       $("#pHead").onclick = (e) => {
         if (e.target.closest("#pSet")) $("#bSet").click();
       };
-      $("#goal").onclick = () => {
-        const v = prompt("Цель по прибыли на месяц, ₽ (0 — убрать)", LS("goal", 0));
+      $("#goal").onclick = async () => {
+        const v = await ask({ title: "Цель по прибыли", text: "На месяц, ₽ (0 — убрать цель)", input: true, value: LS("goal", 0) });
         if (v !== null) {
-          localStorage.setItem("goal", +v.replace(",", ".") || 0);
+          localStorage.setItem("goal", +String(v).replace(",", ".") || 0);
           render();
         }
       };

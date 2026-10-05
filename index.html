@@ -12,6 +12,7 @@
         <meta property="og:image" content="https://finzaro.ru/assets/finzaro-og.svg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/svg+xml" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Finzaro — учёт прибыли" />
     <meta name="twitter:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
@@ -2207,21 +2208,29 @@
         return ops;
       }
       async function add(L) {
+        if (!Array.isArray(L) || !L.length) return null;
         if (sb) {
-          const { data, error } = await sb.from("operations").insert(L).select();
-          if (error)
-            return toast(
+          if (!user) {
+            toast("Войдите в аккаунт, чтобы сохранить запись.");
+            return null;
+          }
+          const payload = L.map((o) => ({ ...o, user_id: user.id }));
+          const { data, error } = await sb.from("operations").insert(payload).select();
+          if (error) {
+            toast(
               error.message.includes("game")
                 ? "В Supabase нет колонки game. Выполните: alter table operations add column game text;"
                 : "Не сохранилось: " + error.message,
             );
-          L = data || L;
+            return null;
+          }
+          L = Array.isArray(data) ? data : payload;
         } else {
           L.forEach((o, i) => (o.id = Date.now() + i));
           ops.push(...L);
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        load();
+        await load();
         return L;
       }
       async function upd(id, patch) {
@@ -2238,13 +2247,18 @@
         return true;
       }
       async function delMany(ids, silent) {
-        if (!silent) toTrash(ops.filter((o) => ids.includes(o.id)));
-        if (sb) await sb.from("operations").delete().in("id", ids);
-        else {
+        const rows = ops.filter((o) => ids.includes(o.id));
+        if (sb) {
+          if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
+          const { error } = await sb.from("operations").delete().in("id", ids).eq("user_id", user.id);
+          if (error) return toast("Не удалось удалить: " + error.message);
+        } else {
           ops = ops.filter((o) => !ids.includes(o.id));
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        load();
+        if (!silent) toTrash(rows);
+        await load();
+        return true;
       }
       async function del(id, silent) {
         const rows = ops.filter((o) => o.id == id);
@@ -2281,10 +2295,11 @@
       async function restoreOps(tids) {
         const t = trashGet(), items = t.filter((x) => tids.includes(x.tid));
         if (!items.length) return;
-        trashSave(t.filter((x) => !tids.includes(x.tid)));
         const L = items.map((x) => ({ ...x.op }));
         if (user) L.forEach((o) => (o.user_id = user.id));
-        await add(L);
+        const saved = await add(L);
+        if (!saved) return;
+        trashSave(t.filter((x) => !tids.includes(x.tid)));
         info(L.length > 1 ? `Восстановлено записей: ${L.length}` : "Запись восстановлена");
         renderTrash();
       }
@@ -3301,8 +3316,8 @@
          Неизвестные названия получают лёгкий локальный fallback. */
       const BRAND = {
         roblox:"roblox", steam:"steam", telegram:"telegram", discord:"discord",
-        youtube:"youtube", spotify:"spotify", netflix:"netflix", epicgames:"epicgames",
-        riotgames:"riotgames", playstation:"playstation", xbox:"xbox", nintendo:"nintendo",
+        youtube:"youtube", spotify:"spotify", netflix:"netflix", tiktok:"tiktok", apple:"apple", googleplay:"googleplay", epicgames:"epicgames",
+        riotgames:"riotgames", playstation:"playstation", xbox:"xbox", nintendo:"nintendo", github:"github", twitch:"twitch",
         minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant",
         "dota 2":"dota2", "brawl stars":"brawlstars", "genshin impact":"genshinimpact",
         "standoff 2":"standoff2", "league of legends":"leagueoflegends",

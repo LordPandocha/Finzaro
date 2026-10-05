@@ -1373,6 +1373,13 @@
         white-space: nowrap;
       }
 
+      .sh > div:last-child { flex: none; }
+      #repeatLast { font-size: .78rem; padding: 7px 10px; white-space: nowrap; }
+      @media (max-width: 520px) {
+        #repeatLast { font-size: .72rem; padding: 6px 8px; }
+        #lastBadge { display: none !important; }
+      }
+
       /* ===== Finzaro responsive polish & performance v2 ===== */
       .gi.brand { flex: 0 0 auto; }
       .gi.brand img { width: 100%; height: 100%; display: block; object-fit: contain; }
@@ -1563,14 +1570,20 @@
         </aside>
       </div>
     </div>
-    <button class="fab" id="bAdd"><span data-i="plus"></span>Добавить</button>
+    <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b><kbd class="fab-kbd">N</kbd></button>
     <div id="toast" role="alert"></div>
 
     <dialog id="dAdd">
       <form id="f">
         <div class="sh">
-          <b id="dTitle">Новая запись</b
-          ><button type="button" class="ic sm" id="cAdd" data-i="x" aria-label="Закрыть окно"></button>
+          <div style="min-width:0">
+            <b id="dTitle">Новая запись</b>
+            <small id="lastBadge" class="mut" hidden style="display:block;margin-top:2px">Быстрый ввод</small>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button type="button" class="pill" id="repeatLast" hidden title="Повторить последнюю запись">↻ Последняя</button>
+            <button type="button" class="ic sm" id="cAdd" data-i="x" aria-label="Закрыть окно"></button>
+          </div>
         </div>
         <div class="tgrid" id="types"></div>
         <label class="tbtn" id="adT" hidden><input type="radio" name="type" value="ad" />Поднятие лота</label>
@@ -3065,7 +3078,10 @@
         const f = $("#f");
         f.reset();
         editId = null;
+        const hasLast = !!LS("lastTxn", null);
         $("#dTitle").textContent = "Новая запись";
+        $("#repeatLast").hidden = !hasLast;
+        $("#lastBadge").hidden = !hasLast;
         $("#types").style.display = "";
         $("#tplW").hidden = false;
         $("#feeAdv").hidden = true;
@@ -3085,6 +3101,29 @@
       };
       $("#bAdd").onclick = openAdd;
       $("#cAdd").onclick = () => $("#dAdd").close();
+      $("#repeatLast").onclick = () => {
+        const x = LS("lastTxn", null), f = $("#f");
+        if (!x) return;
+        const setRadio = (group, value) => {
+          const el = [...group].find((q) => q.value === value);
+          if (el) el.checked = true;
+        };
+        setRadio(f.type, x.type);
+        setRadio(f.mp, x.mp);
+        setRadio(f.wm, x.wm);
+        if (x.amount != null) f.amount.value = x.amount;
+        if (x.game != null) f.game.value = x.game || "";
+        if (x.promo != null) $("#promo").value = x.promo || "";
+        if (x.date && /^d{4}-d{2}-d{2}$/.test(x.date)) f.date.value = x.date;
+        if (x.note != null) f.note.value = x.note || "";
+        if (x.rate != null) $("#rate").value = x.rate;
+        if (x.smode) $("#smode").value = x.smode;
+        rt = 1;
+        f.dispatchEvent(new Event("input", { bubbles: true }));
+        $("#amount").focus();
+        $("#amount").select?.();
+        toast("↻ Последняя запись подставлена");
+      };
       $("#f").onsubmit = (e) => {
         e.preventDefault();
         const f = e.target,
@@ -3107,6 +3146,11 @@
         const dup = ops.some((o) => o.type === t && o.marketplace === mp && o.date === f.date.value && (o.game || null) === game && Math.abs(+o.amount - r2(amt)) < 0.005);
         add(L);
         localStorage.setItem("lastAdd", JSON.stringify({ mp, date: f.date.value }));
+        localStorage.setItem("lastTxn", JSON.stringify({
+          mp, date: f.date.value, type: t, amount: r2(amt), fee: r2(fee),
+          game, promo: +$("#promo").value || 0, note: f.note.value || "",
+          rate: $("#rate").value, smode: $("#smode").value, wm: f.wm.value
+        }));
         if (dup) setTimeout(() => info(`Похожая запись уже есть: ${typeLabel(t)} · ${game || mp} · ${fmt(r2(amt))} за ${dm(f.date.value)}. Если это новая операция, всё в порядке.`), 60);
         if ($("#saveTpl").checked && +f.amount.value > 0) {
           tpls.push({
@@ -3258,6 +3302,18 @@
         ) {
           e.preventDefault();
           openAdd();
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() === "r" && e.shiftKey && !e.ctrlKey && !e.metaKey &&
+            !document.querySelector("dialog[open]") &&
+            !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) {
+          const last = LS("lastTxn", null);
+          if (!last) return;
+          e.preventDefault();
+          openAdd();
+          setTimeout(() => $("#repeatLast").click(), 0);
         }
       });
 

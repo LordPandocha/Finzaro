@@ -1440,6 +1440,42 @@
         .tbtn { min-height: 78px; padding: 13px 8px; }
       }
 
+      /* ===== Финальный mobile scroll/performance pass ===== */
+      @media (max-width: 700px) {
+        /* Три больших blur-круга дают лишнюю GPU-нагрузку на телефонах. */
+        #bg { display: none !important; }
+
+        /* Убираем вложенный горизонтальный скролл у вкладок: он часто перехватывает свайп
+           и создаёт ощущение, что страницу нельзя протащить чуть вверх/вниз. */
+        #tabs {
+          flex-wrap: wrap !important;
+          overflow: visible !important;
+          padding-bottom: 2px;
+          gap: 7px;
+          overscroll-behavior: auto;
+          -webkit-overflow-scrolling: auto;
+        }
+        #tabs .pill {
+          flex: 0 1 auto !important;
+          max-width: 100%;
+        }
+
+        /* На touch-экранах карточки не должны «залипать» в hover-состоянии. */
+        .card:hover {
+          transform: none !important;
+          border-color: color-mix(in srgb, var(--acc) 16%, var(--line)) !important;
+          box-shadow: 0 2px 10px rgba(40, 50, 70, .08) !important;
+        }
+
+        /* Вертикальный свайп должен оставаться у основного документа. */
+        html { overscroll-behavior-y: auto; }
+        body { overscroll-behavior-y: auto; }
+        dialog {
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+        }
+      }
+
       /* ===== Finzaro responsive polish & performance v2 ===== */
       .gi.brand { flex: 0 0 auto; }
       .gi.brand img { width: 100%; height: 100%; display: block; object-fit: contain; }

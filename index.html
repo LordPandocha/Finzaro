@@ -1262,7 +1262,7 @@
       #best { position: fixed; left: 50%; top: 18%; z-index: 100; transform: translateX(-50%); padding: 14px 26px; border-radius: 999px; font-weight: 900; font-size: 22px; color: #fff; background: linear-gradient(135deg, #ffb347, #f2682a); box-shadow: 0 12px 40px rgba(255,120,50,.6); pointer-events: none; animation: best 2.6s cubic-bezier(.2,1.4,.4,1) forwards; white-space: nowrap; }
       @keyframes best { 0% { opacity: 0; transform: translateX(-50%) scale(.3) rotate(-8deg); } 15% { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(3deg); } 25%, 80% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) translateY(-30px); } }
       /* иконки игр */
-      .gi { display: inline-grid; place-items: center; width: 1.55em; height: 1.55em; vertical-align: -.4em; margin-right: .45em; flex: none; transition: transform .3s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
+      .gi { display: inline-grid; place-items: center; width: 1.55em; height: 1.55em; min-width: 1.55em; vertical-align: -.4em; margin-right: .45em; flex: none; transition: transform .3s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
       .gi svg, .gi img { width:100%; height:100%; display:block; object-fit:contain; }
       .gi.brand svg { width:100%; height:100%; display:block; color:currentColor; }
       .gi.brand { width:1.45em; height:1.45em; vertical-align:-0.35em; filter:none; }
@@ -1389,9 +1389,24 @@
         html { font-size: clamp(15px, 4.1vw, 16px); }
         body { background-attachment: scroll; overflow-x: clip; }
         .wrap { padding: 14px 12px calc(92px + env(safe-area-inset-bottom)); }
-        .top { align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+        .top {
+          display: grid;
+          grid-template-columns: 1fr;
+          align-items: start;
+          gap: 10px;
+        }
+        .top .row {
+          display: flex;
+          width: 100%;
+          max-width: 100%;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+          gap: 6px;
+          overflow: visible;
+        }
+        .top .row .ic { flex: 0 0 38px; }
         .top h1 { font-size: 1.35rem; line-height: 1.1; }
-        .top .row { gap: 6px; flex-wrap: nowrap; }
+        .top .row { gap: 6px; flex-wrap: wrap; justify-content: flex-start; overflow: visible; }
         .top .ic { width: 38px; height: 38px; }
 
         /* На мобильном оставляем градиенты и форму, но отключаем только дорогие blur-эффекты. */
@@ -1842,8 +1857,10 @@
         refund: '<path d="M9 7L4 12l5 5M4 12h10a6 6 0 010 8"/>',
         withdraw: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/>',
       };
-      const ico = (n) =>
-        `<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+      const ico = (n) => {
+        const p = IC[n] || '<circle cx="12" cy="12" r="8"/>';
+        return `<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+      };
       document.querySelectorAll("[data-i]").forEach((e) => (e.innerHTML = ico(e.dataset.i)));
       const FP = '<a href="https://funpay.freshdesk.com/support/solutions/articles/103000273187" target="_blank" rel="noopener">Справка FunPay</a>', SV = '<a href="https://starvell.freshdesk.com/support/solutions/articles/203000052957" target="_blank" rel="noopener">Справка Starvell</a>';
       const BASE = {

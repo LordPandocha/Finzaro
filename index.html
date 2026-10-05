@@ -1713,7 +1713,7 @@
           <div id="feeAdv" hidden>
             <div class="lab">В этой операции комиссия, %</div>
             <input id="rate" type="number" step="0.1" min="0" /><small class="mut"
-              >Оставьте пустым — возьмётся процент из настроек площадки.</small
+              >Оставьте пустым — возьмётся тариф площадки. Если у тарифа есть фиксированная часть, она тоже учитывается.</small
             >
             <div id="smW">
               <div class="lab">Сумма сверху — это</div>
@@ -2865,6 +2865,16 @@
         if (customRate != null) return customRate + "% (пользовательская ставка)";
         return rule?.label || "не задана";
       };
+      const wdFormula = (mp, m, overrideRate = null) => {
+        const { rate, rule } = wEffective(mp, m);
+        const r = overrideRate != null && isFinite(overrideRate) ? +overrideRate : rate;
+        if (!rule && !(overrideRate != null && isFinite(overrideRate))) return "ставка не задана";
+        const parts = [];
+        if (isFinite(r)) parts.push(fmt(r) + "%");
+        if (rule?.fixed) parts.push("+ " + fmt(rule.fixed) + " ₽");
+        if (rule?.minFee) parts.push("(мин. " + fmt(rule.minFee) + " ₽)");
+        return parts.join(" ");
+      };
       const wdFee = (mp, m, amount, overrideRate = null) => {
         const { rate, rule } = wEffective(mp, m), r = overrideRate != null && isFinite(overrideRate) ? +overrideRate : rate;
         if (!rule && (overrideRate == null || !isFinite(overrideRate))) return 0;
@@ -3089,13 +3099,18 @@
         $("#gw").style.display = t === "withdraw" ? "none" : "";
         $("#wmW").style.display = t === "withdraw" ? "" : "none";
         if (!f.wm.value) f.wm.value = fees[mp]?.wdef || "ru";
-        document.querySelectorAll("[data-wl]").forEach((e) => (e.textContent = WM[e.dataset.wl] + " · " + (wraw(mp, e.dataset.wl) == null ? "укажите в настройках" : wraw(mp, e.dataset.wl) + "%")));
+        document.querySelectorAll("[data-wl]").forEach((e) => {
+          const key = e.dataset.wl, rule = wdRule(mp, key), customRate = wraw(mp, key);
+          e.textContent = WM[key] + " · " + (customRate != null ? customRate + "%" : rule?.label || "по тарифу");
+        });
         $("#promoW").style.display = sale && mp === "Playerok" && !editId ? "" : "none";
         $("#adv").style.display = sale || t === "refund" || t === "withdraw" ? "" : "none";
         $("#smW").style.display = t === "withdraw" ? "none" : "";
         $("#rate").placeholder = "сейчас " + (t === "withdraw" ? wtxt(mp, f.wm.value) : (fees[mp]?.sale ?? 0) + "%");
         $("#fml").textContent = t === "withdraw" ? "Комиссия за вывод · " + WM[f.wm.value] : "Комиссия " + mp;
-        $("#feeNow").textContent = r != null ? `${+(+r).toFixed(2)}% = ${fmt(fee)}` : "";
+        $("#feeNow").textContent = r != null
+          ? (t === "withdraw" ? wdFormula(mp, f.wm.value, $("#rate").value) + " = " + fmt(fee) : (+r).toFixed(2) + "% = " + fmt(fee))
+          : "";
         $("#hint").textContent = !amt
           ? "Введите сумму — здесь появится расчёт."
           : sale
@@ -3106,7 +3121,7 @@
             : t === "refund"
               ? `Вы вернули покупателю ${fmt(amt)}. Площадка вернёт вам комиссию ${fmt(fee)}.`
               : t === "withdraw"
-                ? `Вы выводите ${fmt(amt)}. Комиссия ${fmt(fee)}, на карту придёт ${fmt(amt - fee)}. На прибыль это не влияет.` + (wraw(mp, f.wm.value) == null && $("#rate").value === "" ? " ⚠️ Ставка этого способа не задана — комиссия сейчас 0%. Впишите её в «Комиссии и площадки» или в поле «Изменить»." : "")
+                ? `Вы выводите ${fmt(amt)}. Комиссия ${wdFormula(mp, f.wm.value, $("#rate").value)} = ${fmt(fee)}, на карту придёт ${fmt(amt - fee)}. На прибыль это не влияет.` + (!wdRule(mp, f.wm.value) && wraw(mp, f.wm.value) == null && $("#rate").value === "" ? " ⚠️ Ставка этого способа не задана — комиссия сейчас 0%. Впишите её в «Комиссии и площадки» или в поле «Изменить»." : "")
                 : t === "purchase"
                   ? `Закупка ${fmt(amt)} вычтется из прибыли.`
                   : `Расход ${fmt(amt)} вычтется из прибыли.`;
@@ -3254,7 +3269,7 @@
           .map((k) => {
             const f = fees[k],
               inp = (p, v) => `<input type="number" step="0.1" min="0" data-k="${esc(k)}" data-p="${p}" value="${v ?? ""}" placeholder="${p.startsWith("wm:") ? "укажите" : ""}">`;
-            return `<div class="pcard" style="--pc:${MPS[k].c}"><div class="pch"><b><i class="dt"></i>${esc(k)}</b>${custom[k] ? `<button class="x" type="button" data-rm="${esc(k)}" title="Убрать площадку">${ico("trash")}</button>` : ""}</div><div class="pgrid"><label>С продажи, %${inp("sale", f.sale)}</label></div>${MPS[k].src ? `<div class="src">${MPS[k].src}</div>` : ""}<div class="l2">Вывод — пользовательская ставка, %</div><div class="pgrid4">${Object.entries(WM).map(([m, n]) => `<label>${n}<span class="mut" style="display:block;font-size:.75rem;margin:3px 0 5px">${esc(wtxt(k,m))}</span>${inp("wm:" + m, f.wm[m])}</label>`).join("")}</div><label class="wdef">Обычно вывожу через<select data-k="${esc(k)}" data-p="wdef">${Object.entries(WM).map(([m, n]) => `<option value="${m}" ${f.wdef === m ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>`;
+            return `<div class="pcard" style="--pc:${MPS[k].c}"><div class="pch"><b><i class="dt"></i>${esc(k)}</b>${custom[k] ? `<button class="x" type="button" data-rm="${esc(k)}" title="Убрать площадку">${ico("trash")}</button>` : ""}</div><div class="pgrid"><label>С продажи, %${inp("sale", f.sale)}</label></div>${MPS[k].src ? `<div class="src">${MPS[k].src}</div>` : ""}<div class="l2">Вывод — пользовательская ставка, % (фиксированная часть тарифа сохраняется)</div><div class="pgrid4">${Object.entries(WM).map(([m, n]) => `<label>${n}<span class="mut" style="display:block;font-size:.75rem;margin:3px 0 5px">${esc(wtxt(k,m))}</span>${inp("wm:" + m, f.wm[m])}</label>`).join("")}</div><label class="wdef">Обычно вывожу через<select data-k="${esc(k)}" data-p="wdef">${Object.entries(WM).map(([m, n]) => `<option value="${m}" ${f.wdef === m ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>`;
           })
           .join("");
         $("#stBody").innerHTML = Object.keys(fees)

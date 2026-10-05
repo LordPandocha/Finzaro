@@ -1220,6 +1220,76 @@
       .top .row { flex-wrap: wrap; justify-content: flex-end; }
       @media (max-width: 400px) { .big { word-break: break-word; } #best { font-size: 18px; } }
       @media (prefers-reduced-motion: reduce) { #orbs i, body.boot *, .swp, .op.new, .op.gone, dialog[open], #best { animation: none !important; } .card, .pill, .tile { transition: none; } }
+      /* ===== МОБИЛЬНАЯ ОПТИМИЗАЦИЯ: без тяжёлых blur/анимаций ===== */
+      @media (max-width: 700px) {
+        :root { --sh: 0 4px 14px rgba(40, 50, 70, .10); }
+
+        /* Фоновые эффекты грузят GPU на слабых телефонах */
+        body::after, #fx, #orbs { display: none !important; }
+
+        /* Самый дорогой эффект — backdrop-filter */
+        .card, dialog, .seg, .pill, .ic {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+
+        /* Простые тени вместо больших blur-shadow */
+        .card {
+          box-shadow: 0 2px 10px rgba(40, 50, 70, .08) !important;
+          transition: none !important;
+        }
+        [data-theme="peach"] .card,
+        [data-theme="peach"] dialog,
+        [data-theme="peach"] .seg {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          box-shadow: 0 2px 10px rgba(120, 70, 40, .08), inset 0 1px 0 #fff !important;
+        }
+        [data-theme="peach"] .pill,
+        [data-theme="peach"] .ic {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+
+        /* Убираем бесконечные анимации интерфейса */
+        .hero,
+        .fab,
+        .quip,
+        .swp,
+        .op.new,
+        .op.gone,
+        dialog[open],
+        body.boot .top,
+        body.boot .pills,
+        body.boot .wrap .card,
+        body.boot .seg,
+        body.boot .kpi,
+        body.boot .bw {
+          animation: none !important;
+        }
+        [data-theme="peach"] .hero {
+          animation: none !important;
+          background-size: 100% 100% !important;
+        }
+
+        .card, .pill, .tile, .fab, .main, .ic, .gi {
+          transition: none !important;
+        }
+        .gi { filter: none !important; }
+
+        /* Меньше нагрузки от модальных окон */
+        dialog::backdrop {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+
+        /* Уменьшаем количество одновременно отрисовываемых декоративных элементов */
+        #best, .sp, .fly { display: none !important; }
+
+        /* Стабильнее скролл и ввод на мобильном */
+        html, body { overscroll-behavior-x: none; }
+        button, input, select { touch-action: manipulation; }
+      }
         </style>
   </head>
   <body>
@@ -1876,9 +1946,10 @@
       function fx() {
         const b = $("#fx");
         b.innerHTML = "";
+        if (matchMedia("(max-width: 700px)").matches) return;
         const e = FX[pref.theme];
         if (!e) return;
-        for (let i = 0; i < (innerWidth > 700 ? 28 : 14); i++) {
+        for (let i = 0; i < 28; i++) {
           const p = document.createElement("span");
           p.textContent = e;
           p.style.cssText = `left:${Math.random() * 100}%;font-size:${10 + Math.random() * 18}px;animation-duration:${9 + Math.random() * 14}s;animation-delay:-${Math.random() * 20}s;--dx:${(Math.random() - 0.5) * 180}px`;
@@ -3061,9 +3132,10 @@
       if (!localStorage.getItem("peach1")) { localStorage.setItem("peach1", "1"); if (pref.theme === "dark") { pref.theme = "peach"; pref.r = 24; } }
       /* шары на фоне */
       (() => {
+        if (innerWidth < 700 || RM) return;
         const o = document.createElement("div"); o.id = "orbs";
         const D = [[34,-8,8,"#ffe3cf","#ff9d63",26,40,3,30],[24,70,5,"#fff0e3","#ffb27d",-30,30,2,26],[18,80,60,"#ffd2b0","#ff8a4c",-24,-40,1,22],[28,-6,64,"#fff4ea","#ffc59a",30,-30,4,34],[12,45,38,"#ffe8d6","#ff9a5c",16,26,1,19],[9,22,86,"#fff","#ffb98a",20,-24,1,17]];
-        (innerWidth < 700 ? D.slice(0, 5) : D).forEach(([s,x,y,c,d,dx,dy,bl,t]) => { const i = document.createElement("i"); i.style.cssText = `--s:${s}vmax;--x:${x}%;--y:${y}%;--c:${c};--d:${d};--dx:${dx}px;--dy:${dy}px;--bl:${bl}px;--t:${t}s`; o.append(i); });
+        D.forEach(([s,x,y,c,d,dx,dy,bl,t]) => { const i = document.createElement("i"); i.style.cssText = `--s:${s}vmax;--x:${x}%;--y:${y}%;--c:${c};--d:${d};--dx:${dx}px;--dy:${dy}px;--bl:${bl}px;--t:${t}s`; o.append(i); });
         document.body.prepend(o);
       })();
 

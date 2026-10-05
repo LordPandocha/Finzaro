@@ -2123,7 +2123,7 @@
           const old = OLDWP[k] ?? 3, v = Object.values(f.wm);
           if (v.every((x) => x === old || x === null)) f.wm = { ru: null, sbp: null, foreign: null, other: null };
         }
-        f.wp = f.wm[f.wdef || "ru"] ?? wdRule(k, f.wdef || "ru")?.rate ?? null;
+        f.wp = f.wm[f.wdef || "ru"] ?? null;
         f.wdef = f.wdef || "ru";
       }
       if (migrate) { localStorage.setItem("fees2", JSON.stringify(fees)); localStorage.setItem("wmfix2", "1"); }
@@ -2755,6 +2755,7 @@
         Starpets: {}
       };
       const wdRule = (mp, m) => WD_RULES[mp]?.[m] || null;
+      for (const k in fees) fees[k].wp = fees[k].wm?.[fees[k].wdef || "ru"] ?? wdRule(k, fees[k].wdef || "ru")?.rate ?? null;
       const wraw = (mp, m) => {
         const fe = fees[mp] || {}, v = fe.wm?.[m || fe.wdef || "ru"];
         return v === "" || v == null ? null : +v;
@@ -3411,7 +3412,7 @@
         roblox:"roblox", steam:"steam", telegram:"telegram", discord:"discord",
         youtube:"youtube", spotify:"spotify", netflix:"netflix", tiktok:"tiktok", apple:"apple", googleplay:"googleplay", epicgames:"epicgames",
         riotgames:"riotgames", playstation:"playstation", xbox:"xbox", nintendo:"nintendo", github:"github", twitch:"twitch",
-        minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant", "cs2":"counterstrike", "counter-strike 2":"counterstrike",
+        minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant", "cs2":"counterstrike", "counter-strike 2":"counterstrike", "counterstrike 2":"counterstrike",
         "dota 2":"dota2", "brawl stars":"brawlstars", "genshin impact":"genshinimpact",
         "standoff 2":"standoff2", "league of legends":"leagueoflegends",
         "apex legends":"apexlegends", "world of warcraft":"worldofwarcraft",

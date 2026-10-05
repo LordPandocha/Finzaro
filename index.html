@@ -9,7 +9,14 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Finzaro — учёт прибыли" />
     <meta property="og:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💰%3C/text%3E%3C/svg%3E" />
+        <meta property="og:image" content="https://finzaro.ru/assets/finzaro-og.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Finzaro — учёт прибыли" />
+    <meta name="twitter:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
+    <meta name="twitter:image" content="https://finzaro.ru/assets/finzaro-og.svg" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💰%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
       :root {
@@ -976,6 +983,43 @@
           font-size: 0.7rem;
         }
       }
+
+      @media (max-width: 640px) {
+        .op {
+          grid-template-columns: 38px minmax(0,1fr) 28px 28px 28px !important;
+          gap: 5px 6px !important;
+          align-items: start;
+          padding: 11px 0 !important;
+        }
+        .op > :nth-child(1) { grid-column:1; grid-row:1 / span 2; padding-top:2px; }
+        .op > :nth-child(2) { grid-column:2; grid-row:1; min-width:0; }
+        .op > :nth-child(3) { grid-column:2; grid-row:2; text-align:left !important; padding-top:2px; min-width:0; }
+        .op > :nth-child(4) { grid-column:3; grid-row:1; }
+        .op > :nth-child(5) { grid-column:4; grid-row:1; }
+        .op > :nth-child(6) { grid-column:5; grid-row:1; }
+        .op .ell {
+          display:block;
+          min-width:0;
+          max-width:100%;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          overflow-wrap:normal;
+        }
+        .op .am { min-width:0; }
+        .op .am b, .op .am small { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .gn b.ell {
+          display:flex;
+          align-items:center;
+          gap:7px;
+          min-width:0;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        }
+        .gn b.ell .gi { flex:0 0 auto; margin-right:0; }
+      }
+
       .op { grid-template-columns: 42px minmax(0, 1fr) auto 28px 28px; }
       #toast.ok { background: var(--pop); color: var(--tx); border: var(--bw) solid var(--line); box-shadow: var(--sh); }
       #tpl { margin: 12px 0 0; }
@@ -1209,7 +1253,8 @@
       @keyframes best { 0% { opacity: 0; transform: translateX(-50%) scale(.3) rotate(-8deg); } 15% { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(3deg); } 25%, 80% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) translateY(-30px); } }
       /* иконки игр */
       .gi { display: inline-grid; place-items: center; width: 1.55em; height: 1.55em; vertical-align: -.4em; margin-right: .45em; flex: none; transition: transform .3s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
-      .gi svg { width: 100%; height: 100%; }
+      .gi svg, .gi img { width:100%; height:100%; display:block; object-fit:contain; }
+      .gi.brand { width:1.45em; height:1.45em; vertical-align:-0.35em; filter:none; }
       @media (hover: hover) { :hover > .gi, .gi:hover { transform: rotate(-9deg) scale(1.15); } }
       #gPrev { display: block; margin-top: 6px; min-height: 1.6em; font-size: .85em; color: var(--mut); }
       /* окно «Поделиться» и настройки */
@@ -1222,6 +1267,8 @@
       @media (prefers-reduced-motion: reduce) { #orbs i, body.boot *, .swp, .op.new, .op.gone, dialog[open], #best { animation: none !important; } .card, .pill, .tile { transition: none; } }
       /* ===== МОБИЛЬНАЯ ОПТИМИЗАЦИЯ: без тяжёлых blur/анимаций ===== */
       @media (max-width: 700px) {
+        .gi.brand { width:24px; height:24px; vertical-align:middle; }
+        .gi.brand img { width:24px; height:24px; }
         :root { --sh: 0 4px 14px rgba(40, 50, 70, .10); }
 
         /* Фоновые эффекты грузят GPU на слабых телефонах */
@@ -3139,13 +3186,30 @@
         document.body.prepend(o);
       })();
 
-      /* ---- иконки игр: SVG-бейдж, цвет и буквы из названия ---- */
-      const GK = { "dota 2": ["D2", 355], cs2: ["CS2", 36], "cs go": ["CS", 36], roblox: ["R", 212], "brawl stars": ["BS", 48], "genshin impact": ["GI", 265], steam: ["S", 205], telegram: ["T", 198], "adopt me": ["AM", 330], "blox fruits": ["BF", 188], "grow a garden": ["GG", 128], "pet simulator 99": ["PS", 295], "murder mystery 2": ["M2", 0], minecraft: ["MC", 110], fortnite: ["F", 270], "valorant": ["V", 350], "standoff 2": ["S2", 20] };
+      /* ---- Брендовые иконки игр/сервисов ----
+         Для известных брендов показываем брендовые SVG-иконки через Simple Icons.
+         Неизвестные названия получают лёгкий локальный fallback. */
+      const BRAND = {
+        roblox:"roblox", steam:"steam", telegram:"telegram", discord:"discord",
+        youtube:"youtube", spotify:"spotify", netflix:"netflix", epicgames:"epicgames",
+        riotgames:"riotgames", playstation:"playstation", xbox:"xbox", nintendo:"nintendo",
+        minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant",
+        "dota 2":"dota2", "brawl stars":"brawlstars", "genshin impact":"genshinimpact",
+        "standoff 2":"standoff2", "league of legends":"leagueoflegends",
+        "apex legends":"apexlegends", "world of warcraft":"worldofwarcraft",
+        "path of exile":"pathofexile", "path of exile 2":"pathofexile2"
+      };
+      const GK = { "dota 2":["D2",355], cs2:["CS2",36], "cs go":["CS",36], "adopt me":["AM",330], "blox fruits":["BF",188], "grow a garden":["GG",128], "pet simulator 99":["PS",295], "murder mystery 2":["M2",0] };
       const giC = {};
+      const normGame = (n) => String(n || "").trim().toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ");
       function gi(n) {
         n = String(n || "").trim(); if (!n) return "";
         if (giC[n]) return giC[n];
-        const k = n.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " "), w = k.split(" ").filter(Boolean);
+        const k = normGame(n), slug = BRAND[k];
+        if (slug) {
+          return (giC[n] = `<span class="gi brand" aria-hidden="true"><img width="24" height="24" loading="lazy" decoding="async" src="https://cdn.simpleicons.org/${slug}" alt="" /></span>`);
+        }
+        const w = k.split(" ").filter(Boolean);
         let h = 0; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0;
         let [ab, hue] = GK[k] || [null, h % 360];
         if (!ab) ab = (w.length > 1 ? w.map((x) => x[0]).slice(0, 2).join("") + (/^\d+$/.test(w.at(-1)) && w.length > 2 ? w.at(-1) : "") : k.slice(0, /\d/.test(k) ? 3 : 2)).toUpperCase();

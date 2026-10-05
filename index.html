@@ -144,7 +144,7 @@
       }
       .seg .on {
         background: var(--hero);
-        color: var(--herotx);
+        color: var(--acctx);
       }
       .gh {
         display: flex;
@@ -531,8 +531,12 @@
       .pill.on,
       label.pill:has(input:checked) {
         background: var(--hero);
-        color: var(--herotx);
+        color: var(--acctx);
         border-color: transparent;
+      }
+      .pill.on *,
+      label.pill:has(input:checked) * {
+        color: inherit !important;
       }
       [data-theme="minimal"] .pill.on,
       [data-theme="minimal"] label.pill:has(input:checked) {
@@ -1340,6 +1344,14 @@
         button, input, select { touch-action: manipulation; }
       }
     
+
+      body { overflow-wrap: normal; word-break: normal; }
+      p, small, label, .src, .pcard, .fcg, .hero, .pi, .st {
+        text-wrap: pretty;
+        hyphens: none;
+      }
+      .src, .pcard, .fcg { overflow-wrap: break-word; }
+
       /* ===== Finzaro responsive polish & performance v2 ===== */
       .gi.brand { flex: 0 0 auto; }
       .gi.brand img { width: 100%; height: 100%; display: block; object-fit: contain; }
@@ -1814,10 +1826,26 @@
       document.querySelectorAll("[data-i]").forEach((e) => (e.innerHTML = ico(e.dataset.i)));
       const FP = '<a href="https://funpay.freshdesk.com/support/solutions/articles/103000273187" target="_blank" rel="noopener">Справка FunPay</a>', SV = '<a href="https://starvell.freshdesk.com/support/solutions/articles/203000052957" target="_blank" rel="noopener">Справка Starvell</a>';
       const BASE = {
-        FunPay: { c: "#4f8cff", sale: 9, wp: null, wf: 0, tiers: [["Раздел с низкой комиссией", 3], ["Средний раздел", 9]], src: `✅ ${FP}: с продаж в среднем ~9%, во многих разделах 3%, в некоторых выше (укажите свой раздел чипом при добавлении). ⚠️ Вывод зависит от платёжной системы, точная цифра — в окне «Вывести» (видно даже при нулевом балансе). Впишите её ниже (пока не вписана, вывод считается без комиссии).` },
-        Playerok: { c: "#3ddc97", sale: 10, wp: null, wf: 0, tiers: [["Донат, пополнения, лицензии, подписки", 10], ["Все остальные товары", 20]], src: "✅ С продаж: 10% — донат, пополнения, лицензии и подписки; 20% — всё остальное. ⚠️ Вывод зависит от способа выплаты, цифра — в «Баланс → Выплата». Ставки вывода я не подставляю — впишите свои из окна выплаты." },
-        Starpets: { c: "#ffb84d", sale: 10, wp: null, wf: 0, src: "⚠️ Публичной таблицы комиссий не нашёл. Процент на вывод и срок показывает форма «Вывод средств» на сайте. Ставки вывода не заданы — впишите свои." },
-        Starvell: { c: "#ff6b81", sale: 9, wp: null, wf: 0, tiers: [["Раздел с низкой комиссией", 3], ["Средний раздел", 9]], src: `✅ ${SV}: с продаж в среднем ~9%, в некоторых разделах 3% или больше. ⚠️ Вывод зависит от платёжной системы, точная цифра — в окне «Вывести средства».` },
+        FunPay: {
+          c: "#4f8cff", sale: 9, wp: null, wf: 0,
+          tiers: [["Раздел с низкой комиссией", 3], ["Средний раздел", 9], ["Аккаунты/услуги · 10%", 10], ["Аккаунты/услуги · 15%", 15]],
+          src: `✅ ${FP}: средняя комиссия с продаж около 9%; во многих разделах 3%, в некоторых выше. ⚠️ Вывод зависит от платёжной системы; точные значения могут отличаться в кабинете.`
+        },
+        Playerok: {
+          c: "#3ddc97", sale: 10, wp: null, wf: 0,
+          tiers: [["Донат, пополнения, лицензии, подписки", 10], ["Все остальные товары", 20]],
+          src: "✅ Продажа: 10% — донат, пополнения, лицензии и подписки; 20% — остальные товары. ✅ Вывод: СБП 6%, минимум 60 ₽; банковская карта 6%, минимум 60 ₽; ЮMoney 6%, минимум 60 ₽; иностранная карта 10%, минимум 150 ₽; крипто-выплата 4% + 1 USDT, курс USDT для расчёта можно изменить."
+        },
+        Starpets: {
+          c: "#ffb84d", sale: 10, wp: null, wf: 0,
+          tiers: [["Обычная продажа · 10%", 10], ["Обычная продажа · 15%", 15], ["Моментальный выкуп · до 40%", 40]],
+          src: "✅ Продажа: обычная 10–15%; моментальный выкуп боту — до 40%. ⚠️ Вывод зависит от способа/региона. На вашем скриншоте видны отдельные тарифы для R$, Visa/MIR, СБП, GMPays, ЮMoney и криптовалют; используйте актуальную ставку из окна «Вывод средств» перед расчётом."
+        },
+        Starvell: {
+          c: "#ff6b81", sale: 10, wp: null, wf: 0,
+          tiers: [["Все категории", 10]],
+          src: `✅ Продажа: 10% по предоставленному тарифу. ⚠️ Вывод: 3%, но не менее 10 ₽; минимальная сумма вывода 100 ₽. Точную платёжную систему лучше сверять перед выплатой.`
+        },
       };
       const custom = LS("cmps", {}),
         MPS = { ...BASE, ...custom };
@@ -2073,12 +2101,12 @@
       const migrate = !localStorage.getItem("wmfix2");
       for (const k in fees) {
         const f = fees[k];
-        f.wm = { ru: null, sbp: null, foreign: null, other: null, ...f.wm };
+        f.wm = { ru: null, sbp: null, foreign: null, ym: null, crypto: null, other: null, ...f.wm };
         if (migrate) {
           const old = OLDWP[k] ?? 3, v = Object.values(f.wm);
           if (v.every((x) => x === old || x === null)) f.wm = { ru: null, sbp: null, foreign: null, other: null };
         }
-        f.wp = f.wm[f.wdef || "ru"];
+        f.wp = f.wm[f.wdef || "ru"] ?? wdRule(k, f.wdef || "ru")?.rate ?? null;
         f.wdef = f.wdef || "ru";
       }
       if (migrate) { localStorage.setItem("fees2", JSON.stringify(fees)); localStorage.setItem("wmfix2", "1"); }
@@ -2690,10 +2718,46 @@
         render();
       };
 
-      const WM = { ru: "Карта РФ", sbp: "СБП", foreign: "Иностр. карта", other: "Другое" };
-      const wraw = (mp, m) => { const fe = fees[mp] || {}, v = fe.wm?.[m || fe.wdef || "ru"]; return v === "" || v == null ? null : +v; };
-      const wrate = (mp, m) => wraw(mp, m) ?? 0;
-      const wtxt = (mp, m) => { const v = wraw(mp, m); return v == null ? "не задана" : v + "%"; };
+      const WM = { ru: "Карта РФ", sbp: "СБП", foreign: "Иностр. карта", ym: "ЮMoney", crypto: "USDT / крипто", other: "Другое" };
+      const WD_RULES = {
+        FunPay: {
+          ru: { rate: 3, fixed: 50, minFee: 0, minAmount: 500, label: "3% + 50 ₽ (от 500 ₽)" },
+          sbp: { rate: 3, fixed: 0, minFee: 30, minAmount: 100, label: "3%, минимум 30 ₽ (от 100 ₽)" },
+          ym: { rate: 4, fixed: 0, minFee: 0, minAmount: 100, label: "4% (от 100 ₽)" }
+        },
+        Playerok: {
+          ru: { rate: 6, fixed: 0, minFee: 60, label: "6%, минимум 60 ₽" },
+          sbp: { rate: 6, fixed: 0, minFee: 60, label: "6%, минимум 60 ₽" },
+          foreign: { rate: 10, fixed: 0, minFee: 150, minAmount: 1150, label: "10%, минимум 150 ₽ (от 1 150 ₽)" },
+          ym: { rate: 6, fixed: 0, minFee: 60, label: "6%, минимум 60 ₽" },
+          crypto: { rate: 4, fixed: 89.82, minFee: 0, label: "4% + 1 USDT (курс 89,82 ₽)" }
+        },
+        Starvell: {
+          ru: { rate: 3, fixed: 0, minFee: 10, minAmount: 100, label: "3%, минимум 10 ₽ (от 100 ₽)" }
+        },
+        Starpets: {}
+      };
+      const wdRule = (mp, m) => WD_RULES[mp]?.[m] || null;
+      const wraw = (mp, m) => {
+        const fe = fees[mp] || {}, v = fe.wm?.[m || fe.wdef || "ru"];
+        return v === "" || v == null ? null : +v;
+      };
+      const wEffective = (mp, m) => {
+        const key = m || fees[mp]?.wdef || "ru", rule = wdRule(mp, key), customRate = wraw(mp, key);
+        return { key, rule, rate: customRate ?? rule?.rate ?? 0 };
+      };
+      const wrate = (mp, m) => wEffective(mp, m).rate;
+      const wtxt = (mp, m) => {
+        const key = m || fees[mp]?.wdef || "ru", customRate = wraw(mp, key), rule = wdRule(mp, key);
+        if (customRate != null) return customRate + "% (пользовательская ставка)";
+        return rule?.label || "не задана";
+      };
+      const wdFee = (mp, m, amount, overrideRate = null) => {
+        const { rate, rule } = wEffective(mp, m), r = overrideRate != null && isFinite(overrideRate) ? +overrideRate : rate;
+        if (!rule && (overrideRate == null || !isFinite(overrideRate))) return 0;
+        const base = (+amount || 0) * r / 100 + +(rule?.fixed || 0);
+        return Math.max(base, +(rule?.minFee || 0));
+      };
       const calcFee = (t, mp, a, rv, sm, wm) => {
         const fe = fees[mp] || { sale: 0, wp: 0, wf: 0 },
           has = rv !== "" && rv != null;
@@ -2709,7 +2773,7 @@
         }
         if (t === "withdraw") {
           const r = has ? +rv : wrate(mp, wm);
-          return { amt: a, fee: (a * r) / 100 + +fe.wf, r };
+          return { amt: a, fee: wdFee(mp, wm, a, has ? r : null) + +fe.wf, r };
         }
         return { amt: a, fee: 0 };
       };
@@ -2763,26 +2827,38 @@
             : "");
       }
 
-      /* Калькулятор цены: цена = (закупка + прибыль + доп.) / ((1 − комиссия) × (1 − вывод)) */
+      /* Калькулятор цены: учитывает процентную, фиксированную и минимальную комиссию вывода. */
       function kCalc() {
         const mp = $("#kMp").value,
-          fe = fees[mp] || { sale: 0, wp: 0 },
+          fe = fees[mp] || { sale: 0 },
           c = +$("#kCost").value || 0,
           p = +$("#kProf").value || 0,
           x = +$("#kExtra").value || 0,
           r = $("#kRate").value !== "" ? +$("#kRate").value : +fe.sale,
-          w = $("#kWd").checked ? wrate(mp, $("#kWm").value) : 0,
+          wm = $("#kWm").value,
+          w = $("#kWd").checked ? wrate(mp, wm) : 0,
           o = $("#kRes");
         $("#kWmW").style.display = $("#kWd").checked ? "" : "none";
         if (!(c || p || x)) return (o.textContent = "Введите закупку и желаемую прибыль, здесь появится цена лота.");
-        if (!(r >= 0 && r < 100 && w >= 0 && w < 100)) return (o.textContent = "Комиссия должна быть от 0 до 99%.");
-        const k = (1 - r / 100) * (1 - w / 100),
-          exact = (c + p + x) / k,
-          price = Math.ceil(exact - 1e-9),
-          fee = (price * r) / 100,
-          get = price - fee,
-          profit = get * (1 - w / 100) - c - x;
-        o.innerHTML = `Выставляйте за <b>${fmt(price)}</b> <span class="mut">(точно ${fmt(exact)})</span>.<br>Комиссия ${esc(mp)} (${+r.toFixed(2)}%) — ${fmt(fee)}. На баланс придёт ${fmt(get)}${w ? `, на карту после вывода ${fmt(get * (1 - w / 100))}` : ""}. Прибыль — ${fmt(profit)}.`;
+        if (!(r >= 0 && r < 100)) return (o.textContent = "Комиссия продажи должна быть от 0 до 99%.");
+
+        const target = c + p + x;
+        const netAt = (price) => {
+          const saleFee = price * r / 100;
+          const balance = price - saleFee;
+          const outFee = $("#kWd").checked ? wdFee(mp, wm, balance) : 0;
+          return { saleFee, balance, outFee, net: balance - outFee };
+        };
+        let lo = 0, hi = Math.max(1, Math.ceil(target * 2 + 1000));
+        while (netAt(hi).net < target && hi < 1e12) hi *= 2;
+        for (let i = 0; i < 60; i++) {
+          const mid = Math.floor((lo + hi) / 2);
+          if (netAt(mid).net >= target) hi = mid; else lo = mid + 1;
+        }
+        const price = hi, exact = price, z = netAt(price);
+        if (z.net < target) return (o.textContent = "Не удалось подобрать цену при заданных комиссиях.");
+        const profit = z.net - c - x;
+        o.innerHTML = `Выставляйте за <b>${fmt(price)}</b>. <span class="mut">После продажи остаётся ${fmt(z.balance)}, комиссия вывода — ${fmt(z.outFee)}.</span><br>Прибыль — <b>${fmt(profit)}</b>.`;
       }
       $("#bCalc").onclick = () => {
         $("#kMp").innerHTML = Object.keys(MPS)
@@ -3034,7 +3110,7 @@
           .map((k) => {
             const f = fees[k],
               inp = (p, v) => `<input type="number" step="0.1" min="0" data-k="${esc(k)}" data-p="${p}" value="${v ?? ""}" placeholder="${p.startsWith("wm:") ? "укажите" : ""}">`;
-            return `<div class="pcard" style="--pc:${MPS[k].c}"><div class="pch"><b><i class="dt"></i>${esc(k)}</b>${custom[k] ? `<button class="x" type="button" data-rm="${esc(k)}" title="Убрать площадку">${ico("trash")}</button>` : ""}</div><div class="pgrid"><label>С продажи, %${inp("sale", f.sale)}</label></div>${MPS[k].src ? `<div class="src">${MPS[k].src}</div>` : ""}<div class="l2">Комиссия за вывод, %</div><div class="pgrid4">${Object.entries(WM).map(([m, n]) => `<label>${n}${inp("wm:" + m, f.wm[m])}</label>`).join("")}</div><label class="wdef">Обычно вывожу через<select data-k="${esc(k)}" data-p="wdef">${Object.entries(WM).map(([m, n]) => `<option value="${m}" ${f.wdef === m ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>`;
+            return `<div class="pcard" style="--pc:${MPS[k].c}"><div class="pch"><b><i class="dt"></i>${esc(k)}</b>${custom[k] ? `<button class="x" type="button" data-rm="${esc(k)}" title="Убрать площадку">${ico("trash")}</button>` : ""}</div><div class="pgrid"><label>С продажи, %${inp("sale", f.sale)}</label></div>${MPS[k].src ? `<div class="src">${MPS[k].src}</div>` : ""}<div class="l2">Вывод — пользовательская ставка, %</div><div class="pgrid4">${Object.entries(WM).map(([m, n]) => `<label>${n}<span class="mut" style="display:block;font-size:.75rem;margin:3px 0 5px">${esc(wtxt(k,m))}</span>${inp("wm:" + m, f.wm[m])}</label>`).join("")}</div><label class="wdef">Обычно вывожу через<select data-k="${esc(k)}" data-p="wdef">${Object.entries(WM).map(([m, n]) => `<option value="${m}" ${f.wdef === m ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>`;
           })
           .join("");
         $("#stBody").innerHTML = Object.keys(fees)
@@ -3069,7 +3145,7 @@
           else if (p.startsWith("wm:")) f.wm[p.slice(3)] = i.value === "" ? null : +i.value;
           else f[p] = +i.value || 0;
         });
-        for (const k in fees) fees[k].wp = fees[k].wm[fees[k].wdef] ?? null;
+        for (const k in fees) fees[k].wp = fees[k].wm[fees[k].wdef] ?? wdRule(k, fees[k].wdef)?.rate ?? null;
         document.querySelectorAll("#stBody input").forEach((i) => (fees[i.dataset.st].start = +i.value || 0));
         pref.wd = $("#wdOn").checked;
         applyPref();
@@ -3318,13 +3394,13 @@
         roblox:"roblox", steam:"steam", telegram:"telegram", discord:"discord",
         youtube:"youtube", spotify:"spotify", netflix:"netflix", tiktok:"tiktok", apple:"apple", googleplay:"googleplay", epicgames:"epicgames",
         riotgames:"riotgames", playstation:"playstation", xbox:"xbox", nintendo:"nintendo", github:"github", twitch:"twitch",
-        minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant",
+        minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant", "cs2":"counterstrike",
         "dota 2":"dota2", "brawl stars":"brawlstars", "genshin impact":"genshinimpact",
         "standoff 2":"standoff2", "league of legends":"leagueoflegends",
         "apex legends":"apexlegends", "world of warcraft":"worldofwarcraft",
         "path of exile":"pathofexile", "path of exile 2":"pathofexile2"
       };
-      const GK = { "dota 2":["D2",355], cs2:["CS2",36], "cs go":["CS",36], "adopt me":["AM",330], "blox fruits":["BF",188], "grow a garden":["GG",128], "pet simulator 99":["PS",295], "murder mystery 2":["M2",0] };
+      const GK = { "dota 2":["D2",355], "cs go":["CS",36], "adopt me":["AM",330], "blox fruits":["BF",188], "grow a garden":["GG",128], "pet simulator 99":["PS",295], "murder mystery 2":["M2",0] };
       const giC = {};
       const normGame = (n) => String(n || "").trim().toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ");
       function gi(n) {

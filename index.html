@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Ledger — учёт прибыли</title>
-    <meta name="description" content="Ledger — учёт прибыли с продаж: площадки, комиссии, цели и графики." />
+    <title>Finzaro — учёт прибыли</title>
+    <meta name="description" content="Finzaro — учёт прибыли с продаж: площадки, комиссии, цели и графики." />
     <meta name="theme-color" content="#0b0d14" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Ledger — учёт прибыли" />
+    <meta property="og:title" content="Finzaro — учёт прибыли" />
     <meta property="og:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💰%3C/text%3E%3C/svg%3E" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -1228,7 +1228,7 @@
     <div class="wrap">
       <div class="top">
         <div>
-          <h1><i class="logo"></i>Ledger</h1>
+          <h1><i class="logo"></i>Finzaro</h1>
           <small id="mode"></small><span id="streak"></span>
         </div>
         <div class="row">
@@ -1470,7 +1470,7 @@
       </div>
       <small class="mut pvl">Предпросмотр · меняется вживую</small>
       <div class="pv">
-        <div class="pv-top"><span>Ledger</span><span class="pv-lnk">Ссылка</span></div>
+        <div class="pv-top"><span>Finzaro</span><span class="pv-lnk">Ссылка</span></div>
         <div class="pv-hero"><small>Чистая прибыль · все площадки</small><div class="pv-big">+12 480 ₽</div></div>
         <div class="pv-card">
           <div class="pv-row"><span>Dota 2</span><b class="pos">+3 200 ₽</b></div>
@@ -1513,7 +1513,7 @@
     </dialog>
     <dialog id="dAuth">
       <form id="fa">
-        <div class="sh"><b>Вход в Ledger</b></div>
+        <div class="sh"><b>Вход в Finzaro</b></div>
         <div class="lab">Email</div>
         <input name="e" type="email" required />
         <div class="lab">Пароль (от 6 символов)</div>
@@ -2782,7 +2782,7 @@
         ];
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob(["\ufeff" + r.join("\n")], { type: "text/csv" }));
-        a.download = "ledger.csv";
+        a.download = "finzaro.csv";
         a.click();
       };
       $("#bSet").onclick = () => {
@@ -2843,7 +2843,7 @@
             type: "application/json",
           }),
         );
-        a.download = "ledger-" + today() + ".json";
+        a.download = "finzaro-" + today() + ".json";
         a.click();
       };
       $("#bkIn").onchange = async (e) => {
@@ -3208,7 +3208,7 @@
         c.globalAlpha = 1;
         c.save(); c.shadowColor = "rgba(255,120,50,.3)"; c.shadowBlur = 50; c.shadowOffsetY = 20; rr(c, 60, 110, 960, 1130, 64); c.fillStyle = "rgba(255,255,255,.62)"; c.fill(); c.restore(); rr(c, 60, 110, 960, 1130, 64); c.strokeStyle = "rgba(255,255,255,.95)"; c.lineWidth = 3; c.stroke();
         const per = allT ? "Всё время" : new Date(ym + "-01T12:00").toLocaleDateString("ru-RU", { month: "long", year: "numeric" }), pl = view === "all" ? "все площадки" : view;
-        c.fillStyle = "#3a2013"; c.font = `800 44px ${F}`; c.fillText("Ledger", 110, 190);
+        c.fillStyle = "#3a2013"; c.font = `800 44px ${F}`; c.fillText("Finzaro", 110, 190);
         c.fillStyle = "#8a5d44"; c.font = `600 34px ${F}`; c.fillText(per[0].toUpperCase() + per.slice(1) + " · " + pl, 110, 245);
         c.font = `600 32px ${F}`; c.fillText("Чистая прибыль", 110, 330);
         c.fillStyle = T.profit >= 0 ? "#e0561a" : "#cf2f63"; let fs = 120; c.font = `900 ${fs}px ${F}`; while (c.measureText(money(T.profit)).width > 860 && fs > 50) c.font = `900 ${--fs}px ${F}`; c.fillText(money(T.profit), 110, 450);
@@ -3220,15 +3220,15 @@
         if (!top.length) { c.fillStyle = "#8a5d44"; c.font = `600 30px ${F}`; c.fillText("Пока нет записей за период", 110, 800); }
         let acc = 0; const pts = series(list).map((d) => (acc += d.p)), n = pts.length, mx = Math.max(1, ...pts), mn = Math.min(0, ...pts), X = (i) => 110 + (i / Math.max(1, n - 1)) * 860, Y = (v) => 1190 - ((v - mn) / (mx - mn || 1)) * 190;
         if (n > 1) { const g = c.createLinearGradient(0, 1000, 0, 1190); g.addColorStop(0, "rgba(255,138,76,.5)"); g.addColorStop(1, "rgba(255,138,76,0)"); c.beginPath(); c.moveTo(X(0), 1190); pts.forEach((v, i) => c.lineTo(X(i), Y(v))); c.lineTo(X(n - 1), 1190); c.fillStyle = g; c.fill(); c.beginPath(); pts.forEach((v, i) => (i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v)))); c.strokeStyle = "#ff8a4c"; c.lineWidth = 8; c.lineJoin = c.lineCap = "round"; c.stroke(); }
-        c.fillStyle = "rgba(58,32,19,.55)"; c.font = `600 26px ${F}`; c.textAlign = "center"; c.fillText("Сделано в Ledger", W / 2, 1300); c.textAlign = "left";
+        c.fillStyle = "rgba(58,32,19,.55)"; c.font = `600 26px ${F}`; c.textAlign = "center"; c.fillText("Сделано в Finzaro", W / 2, 1300); c.textAlign = "left";
       }
       $("#bShare").onclick = () => { $("#dShare").showModal(); drawShare(); };
       $("#cShare").onclick = () => $("#dShare").close();
       $("#shHide").onchange = drawShare;
-      $("#shDl").onclick = () => { const a = document.createElement("a"); a.download = "ledger-itog.png"; a.href = $("#shC").toDataURL("image/png"); a.click(); };
+      $("#shDl").onclick = () => { const a = document.createElement("a"); a.download = "finzaro-itog.png"; a.href = $("#shC").toDataURL("image/png"); a.click(); };
       $("#shSh").onclick = () => $("#shC").toBlob(async (b) => {
-        const f = new File([b], "ledger-itog.png", { type: "image/png" });
-        try { if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: "Мой итог" }); else if (navigator.share) await navigator.share({ title: "Мой итог", text: "Мой итог в Ledger" }); else $("#shDl").click(); } catch (e) {}
+        const f = new File([b], "finzaro-itog.png", { type: "image/png" });
+        try { if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: "Мой итог" }); else if (navigator.share) await navigator.share({ title: "Мой итог", text: "Мой итог в Finzaro" }); else $("#shDl").click(); } catch (e) {}
       });
       applyPref();
       (async () => {

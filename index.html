@@ -16,7 +16,8 @@
     <meta name="twitter:title" content="Finzaro — учёт прибыли" />
     <meta name="twitter:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
     <meta name="twitter:image" content="https://finzaro.ru/assets/finzaro-og.svg" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💰%3C/text%3E%3C/svg%3E" />
+<link rel="icon" type="image/svg+xml" href="/assets/finzaro-icon.svg" />
+    <link rel="apple-touch-icon" href="/assets/finzaro-icon.svg" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
       :root {
@@ -1337,7 +1338,107 @@
         html, body { overscroll-behavior-x: none; }
         button, input, select { touch-action: manipulation; }
       }
-        </style>
+    
+      /* ===== Finzaro responsive polish & performance v2 ===== */
+      .gi.brand { flex: 0 0 auto; }
+      .gi.brand img { width: 100%; height: 100%; display: block; object-fit: contain; }
+
+      @media (max-width: 1100px) {
+        .wrap { padding-left: 18px; padding-right: 18px; }
+        .layout { gap: 20px; }
+        .card { padding: 16px; backdrop-filter: blur(9px) saturate(1.15); -webkit-backdrop-filter: blur(9px) saturate(1.15); }
+        .hero { background-size: 150% 150%; box-shadow: 0 18px 46px -24px var(--acc), inset 0 1px 0 #fff3; }
+        .kpi.k3 { gap: 9px; }
+      }
+
+      @media (max-width: 700px) {
+        html { font-size: clamp(15px, 4.1vw, 16px); }
+        body { background-attachment: scroll; overflow-x: clip; }
+        .wrap { padding: 14px 12px calc(92px + env(safe-area-inset-bottom)); }
+        .top { align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+        .top h1 { font-size: 1.35rem; line-height: 1.1; }
+        .top .row { gap: 6px; flex-wrap: nowrap; }
+        .top .ic { width: 38px; height: 38px; }
+
+        /* На мобильном оставляем градиенты и форму, но отключаем только дорогие blur-эффекты. */
+        .card, dialog, .seg, .pill, .ic { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+        .card { box-shadow: 0 3px 14px rgba(48,38,32,.08) !important; transition: none !important; }
+        [data-theme="peach"] .card,
+        [data-theme="peach"] dialog,
+        [data-theme="peach"] .seg { box-shadow: 0 3px 14px rgba(190,96,42,.10), inset 0 1px 0 #fff !important; }
+        [data-theme="peach"] .pill, [data-theme="peach"] .ic { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+        .hero { animation: none !important; background-size: 100% 100% !important; box-shadow: 0 12px 30px -20px var(--acc), inset 0 1px 0 #fff4 !important; }
+        .hero .big { text-shadow: none; font-size: clamp(2.15rem,12vw,3.25rem); line-height: 1.02; }
+
+        .fab {
+          left: 12px; right: 12px; width: calc(100% - 24px); justify-content: center;
+          bottom: max(12px,env(safe-area-inset-bottom)); transform: none;
+          box-shadow: 0 8px 20px rgba(75,44,28,.16) !important; animation: none !important;
+        }
+        .fab:hover { transform: none; }
+
+        .st3 { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .st3 .st:last-child { grid-column: 1 / -1; }
+        .kpi, .kpi.k3 { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .kpi.k3 > :last-child { grid-column: 1 / -1; }
+
+        .bar3 { align-items: stretch; flex-direction: column; gap: 8px; margin: 20px 0 10px; }
+        .bar3 input { max-width: none; }
+
+        .seg { grid-template-columns: 1fr 1fr; margin: 6px 0 14px; }
+        .pills, #tabs { gap: 7px; }
+        .pill { padding: 8px 11px; }
+        #tabs { padding-bottom: 6px; }
+
+        /* Строка операции: название и примечание имеют свою ширину, сумма не накладывается. */
+        .op {
+          grid-template-columns: 36px minmax(0,1fr) 28px 28px 28px !important;
+          grid-template-rows: auto auto auto;
+          column-gap: 5px !important; row-gap: 2px !important;
+          padding: 11px 0 !important; align-items: start;
+        }
+        .op > :nth-child(1) { grid-column:1; grid-row:1 / span 3; padding-top:2px; }
+        .op > :nth-child(2) { grid-column:2; grid-row:1 / span 2; min-width:0; }
+        .op > :nth-child(3) { grid-column:2; grid-row:3; min-width:0; text-align:left !important; padding-top:2px; }
+        .op > :nth-child(4) { grid-column:3; grid-row:1; }
+        .op > :nth-child(5) { grid-column:4; grid-row:1; }
+        .op > :nth-child(6) { grid-column:5; grid-row:1; }
+        .op .ell { min-width:0; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; overflow-wrap:normal; }
+        .op .am b, .op .am small { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+        .gn b.ell { display:flex; align-items:center; gap:7px; }
+        .gn b.ell .gi { flex:0 0 auto; margin-right:0; }
+        .gi.brand, .gi.brand img { width:23px; height:23px; }
+
+        .phead { padding:13px 14px; margin-bottom:12px; }
+        .pgrid4 { grid-template-columns:1fr 1fr; }
+        dialog { width:100%; padding:18px 14px calc(18px + env(safe-area-inset-bottom)); }
+        dialog::backdrop { backdrop-filter:none; -webkit-backdrop-filter:none; }
+        body::after, #fx, #orbs { display:none !important; }
+        .sp, .fly, #best { display:none !important; }
+      }
+
+      @media (max-width:380px) {
+        .wrap { padding-left:9px; padding-right:9px; }
+        .top h1 { font-size:1.22rem; }
+        .top .ic { width:36px; height:36px; }
+        .op { grid-template-columns:32px minmax(0,1fr) 26px 26px 26px !important; }
+        .op svg.i { width:15px; height:15px; margin-right:3px; }
+        .pill { padding-left:9px; padding-right:9px; }
+      }
+
+      @media (min-width:1200px) {
+        .wrap { max-width:1280px; }
+        .card { box-shadow:0 14px 40px -20px var(--acc), inset 0 1px 0 #fff2; }
+        .hero { box-shadow:0 28px 76px -28px var(--acc), inset 0 1px 0 #fff3; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .hero, .fab, .quip, .card, .pill, .tile, .ic, .gi, body::after, #fx span, #bg i, #orbs i {
+          animation:none !important; transition:none !important;
+        }
+      }
+
+    </style>
   </head>
   <body>
     <div id="bg"><i></i><i></i><i></i></div>
@@ -1728,6 +1829,7 @@
         ad: ["Поднятие лота", "Трата на продвижение"],
       };
       const PICK = ["sale", "purchase", "other", "withdraw"];
+      const typeLabel = (t) => TYPES[t]?.[0] || "Операция";
       const CATS = {
         Roblox: [
           "Roblox",
@@ -2096,11 +2198,13 @@
 
       async function load() {
         if (sb) {
-          const { data, error } = await sb.from("operations").select("*").order("date", { ascending: false });
-          if (error) return toast("Не удалось загрузить: " + error.message);
-          ops = data;
+          if (!user) { ops = []; render(); return []; }
+          const { data, error } = await sb.from("operations").select("*").eq("user_id", user.id).order("date", { ascending: false });
+          if (error) { toast("Не удалось загрузить: " + error.message); return null; }
+          ops = Array.isArray(data) ? data : [];
         } else ops = LS("ops", []);
         render();
+        return ops;
       }
       async function add(L) {
         if (sb) {
@@ -2122,15 +2226,16 @@
       }
       async function upd(id, patch) {
         if (sb) {
-          const { data, error } = await sb.from("operations").update(patch).eq("id", id).select();
+          if (!user) return toast("Войдите в аккаунт, чтобы изменить запись.");
+          const { data, error } = await sb.from("operations").update(patch).eq("id", id).eq("user_id", user.id).select();
           if (error) return toast("Не сохранилось: " + error.message);
-          if (!data || !data.length)
-            return toast("Не удалось сохранить. Проверьте в Supabase политику UPDATE для таблицы operations.");
+          if (!data || !data.length) return toast("Не удалось сохранить. Проверьте RLS UPDATE для таблицы operations.");
         } else {
           ops = ops.map((o) => (o.id == id ? { ...o, ...patch } : o));
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        load();
+        await load();
+        return true;
       }
       async function delMany(ids, silent) {
         if (!silent) toTrash(ops.filter((o) => ids.includes(o.id)));
@@ -2142,13 +2247,18 @@
         load();
       }
       async function del(id, silent) {
-        if (!silent) toTrash(ops.filter((o) => o.id == id));
-        if (sb) await sb.from("operations").delete().eq("id", id);
-        else {
+        const rows = ops.filter((o) => o.id == id);
+        if (sb) {
+          if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
+          const { error } = await sb.from("operations").delete().eq("id", id).eq("user_id", user.id);
+          if (error) return toast("Не удалось удалить: " + error.message);
+        } else {
           ops = ops.filter((o) => o.id != id);
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        load();
+        if (!silent) toTrash(rows);
+        await load();
+        return true;
       }
 
 
@@ -2182,7 +2292,7 @@
         const t = trashGet().reverse();
         $("#trashBox").innerHTML = `<label>Корзина</label><p class="mut">Удалённые записи лежат здесь 1 день, потом исчезают насовсем.</p>` +
           (t.length
-            ? t.map((x) => `<div class="trr"><span class="ell">${dm(x.op.date)} · ${TYPES[x.op.type][0]}${x.op.game ? " · " + esc(x.op.game) : ""} · ${fmt(+x.op.amount)}</span><button type="button" class="pill" data-tr="${x.tid}">Вернуть</button></div>`).join("") +
+            ? t.map((x) => `<div class="trr"><span class="ell">${dm(x.op.date)} · ${typeLabel(x.op.type)}${x.op.game ? " · " + esc(x.op.game) : ""} · ${fmt(+x.op.amount)}</span><button type="button" class="pill" data-tr="${x.tid}">Вернуть</button></div>`).join("") +
               (t.length > 1 ? `<div class="row" style="margin-top:8px"><button type="button" class="pill" data-trall="1">Вернуть все</button></div>` : "")
             : `<p class="mut">Корзина пуста.</p>`);
       }
@@ -2325,7 +2435,7 @@
       const col = (n) => `<span class="${n >= 0 ? "pos" : "neg"}">${n > 0 ? "+" : ""}${fmt(n)}</span>`;
       const dm = (d) => d.slice(8) + "." + d.slice(5, 7);
       const opRow = (o, sm, gm) =>
-        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${TYPES[o.type][0]}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${o.note ? `<small class="ell">${esc(o.note)}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${o.note ? `<small class="ell">${esc(o.note)}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
       const ORD = ["purchase", "withdraw", "other", "refund", "sale"],
         GL = {
           purchase: "Закупки",
@@ -2548,7 +2658,7 @@
           if (!o) return;
           const tids = toTrash([o]);
           del(o.id, true);
-          toast(`Удалено: ${TYPES[o.type][0]}${o.game ? " · " + o.game : ""} · ${fmt(+o.amount)}`, { l: "Вернуть", f: () => restoreOps(tids) });
+          toast(`Удалено: ${typeLabel(o.type)}${o.game ? " · " + o.game : ""} · ${fmt(+o.amount)}`, { l: "Вернуть", f: () => restoreOps(tids) });
         }
       });
       const shift = (n) => {
@@ -2695,7 +2805,7 @@
           `<div class="tph"><small class="mut">Быстро: один тап — запись за сегодня</small><button type="button" class="lnk" id="tplEd">${tplEdit ? "Готово" : "Править"}</button></div><div class="chips2">` +
           L.map(
             (t) =>
-              `<span class="tchip"><button type="button" class="pill" data-tp="${t.id}"><i class="dt" style="background:${MPS[t.mp].c}"></i>${esc(t.game || TYPES[t.type][0])} · ${esc(t.mp)} · <span class="tamt">${TS[t.type] || ""}${fmt(+t.amount)}</span></button>${tplEdit ? `<button type="button" class="x" data-tpd="${t.id}" title="Удалить шаблон">${ico("x")}</button>` : ""}</span>`,
+              `<span class="tchip"><button type="button" class="pill" data-tp="${t.id}"><i class="dt" style="background:${MPS[t.mp].c}"></i>${esc(t.game || typeLabel(t.type))} · ${esc(t.mp)} · <span class="tamt">${TS[t.type] || ""}${fmt(+t.amount)}</span></button>${tplEdit ? `<button type="button" class="x" data-tpd="${t.id}" title="Удалить шаблон">${ico("x")}</button>` : ""}</span>`,
           ).join("") +
           `</div>`;
       }
@@ -2713,7 +2823,7 @@
         if (user) o.user_id = user.id;
         const rows = await add([o]);
         if (rows)
-          toast(`Добавлено: ${t.game || TYPES[t.type][0]} · ${t.mp} · ${fmt(o.amount)}`, {
+          toast(`Добавлено: ${t.game || typeLabel(t.type)} · ${t.mp} · ${fmt(o.amount)}`, {
             l: "Отменить",
             f: () => delMany(rows.map((r) => r.id), true),
           });
@@ -2813,7 +2923,7 @@
       };
       $("#types").innerHTML = PICK.map(
         (k, i) =>
-          `<label class="tbtn"><input type="radio" name="type" value="${k}" ${i ? "" : "checked"}>${ico(k)}${TYPES[k][0]}</label>`,
+          `<label class="tbtn"><input type="radio" name="type" value="${k}" ${i ? "" : "checked"}>${ico(k)}${typeLabel(k)}</label>`,
       ).join("");
       $("#mpPick").innerHTML = Object.keys(MPS)
         .map(
@@ -2867,7 +2977,7 @@
         const dup = ops.some((o) => o.type === t && o.marketplace === mp && o.date === f.date.value && (o.game || null) === game && Math.abs(+o.amount - r2(amt)) < 0.005);
         add(L);
         localStorage.setItem("lastAdd", JSON.stringify({ mp, date: f.date.value }));
-        if (dup) setTimeout(() => info(`Похожая запись уже есть: ${TYPES[t][0]} · ${game || mp} · ${fmt(r2(amt))} за ${dm(f.date.value)}. Если это новая операция, всё в порядке.`), 60);
+        if (dup) setTimeout(() => info(`Похожая запись уже есть: ${typeLabel(t)} · ${game || mp} · ${fmt(r2(amt))} за ${dm(f.date.value)}. Если это новая операция, всё в порядке.`), 60);
         if ($("#saveTpl").checked && +f.amount.value > 0) {
           tpls.push({
             id: Date.now(),
@@ -2892,7 +3002,7 @@
             o.date,
             o.marketplace,
             '"' + (o.game || "").replace(/"/g, '""') + '"',
-            TYPES[o.type][0],
+            typeLabel(o.type),
             o.amount,
             o.fee,
             '"' + (o.note || "").replace(/"/g, '""') + '"',
@@ -3207,7 +3317,8 @@
         if (giC[n]) return giC[n];
         const k = normGame(n), slug = BRAND[k];
         if (slug) {
-          return (giC[n] = `<span class="gi brand" aria-hidden="true"><img width="24" height="24" loading="lazy" decoding="async" src="https://cdn.simpleicons.org/${slug}" alt="" /></span>`);
+          const initials = k.split(" ").filter(Boolean).map((x) => x[0]).slice(0, 2).join("").toUpperCase();
+          return (giC[n] = `<span class="gi brand" aria-hidden="true"><img width="24" height="24" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="https://cdn.simpleicons.org/${slug}" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false" /><span hidden style="font-weight:800;font-size:11px">${initials}</span></span>`);
         }
         const w = k.split(" ").filter(Boolean);
         let h = 0; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0;

@@ -2850,6 +2850,17 @@
         Starpets: {}
       };
       const wdRule = (mp, m) => WD_RULES[mp]?.[m] || null;
+      if (!localStorage.getItem("wmfix3")) {
+        for (const k in WD_RULES) {
+          if (!fees[k]) continue;
+          for (const m in WD_RULES[k]) {
+            if (fees[k].wm?.[m] != null && +fees[k].wm[m] === 0) fees[k].wm[m] = null;
+          }
+          fees[k].wp = fees[k].wm?.[fees[k].wdef || "ru"] ?? WD_RULES[k][fees[k].wdef || "ru"]?.rate ?? null;
+        }
+        localStorage.setItem("fees2", JSON.stringify(fees));
+        localStorage.setItem("wmfix3", "1");
+      }
       for (const k in fees) fees[k].wp = fees[k].wm?.[fees[k].wdef || "ru"] ?? wdRule(k, fees[k].wdef || "ru")?.rate ?? null;
       const wraw = (mp, m) => {
         const fe = fees[mp] || {}, v = fe.wm?.[m || fe.wdef || "ru"];
@@ -2870,10 +2881,11 @@
         const hasOverride = overrideRate !== "" && overrideRate != null && isFinite(+overrideRate);
         const r = hasOverride ? +overrideRate : rate;
         if (!rule && !hasOverride) return "ставка не задана";
+        const pct = (v) => isFinite(v) ? (+v).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) : "";
         const parts = [];
-        if (isFinite(r)) parts.push(fmt(r) + "%");
-        if (rule?.fixed) parts.push("+ " + fmt(rule.fixed) + " ₽");
-        if (rule?.minFee) parts.push("(мин. " + fmt(rule.minFee) + " ₽)");
+        if (isFinite(r)) parts.push(pct(r) + "%");
+        if (rule?.fixed) parts.push("+ " + fmt(rule.fixed));
+        if (rule?.minFee) parts.push("(мин. " + fmt(rule.minFee) + ")");
         return parts.join(" ");
       };
       const wdFee = (mp, m, amount, overrideRate = null) => {

@@ -428,6 +428,7 @@
         text-transform: uppercase;
         letter-spacing: 0.04em;
       }
+      [data-theme="maximal"] h1 .brand-name { text-transform: none; }
       [data-theme="maximal"] {
         font-weight: 600;
       }
@@ -1346,11 +1347,27 @@
     
 
       body { overflow-wrap: normal; word-break: normal; }
-      p, small, label, .src, .pcard, .fcg, .hero, .pi, .st {
+      p, small, label, .src, .pcard, .fcg, .hero, .pi, .st, .lab, .hint, .sum {
         text-wrap: pretty;
         hyphens: none;
       }
       .src, .pcard, .fcg { overflow-wrap: break-word; }
+
+
+      .fab {
+        width: max-content;
+        max-width: min(420px, calc(100vw - 24px));
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .fab span { flex: 0 0 28px; }
+      .seg button {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
       /* ===== Finzaro responsive polish & performance v2 ===== */
       .gi.brand { flex: 0 0 auto; }
@@ -1384,7 +1401,7 @@
         .hero .big { text-shadow: none; font-size: clamp(2.15rem,12vw,3.25rem); line-height: 1.02; }
 
         .fab {
-          left: 12px; right: 12px; width: calc(100% - 24px); justify-content: center;
+          left: 12px; right: 12px; width: max-content; max-width: calc(100% - 24px); justify-content: center;
           bottom: max(12px,env(safe-area-inset-bottom)); transform: none;
           box-shadow: 0 8px 20px rgba(75,44,28,.16) !important; animation: none !important;
         }
@@ -1459,16 +1476,16 @@
     <div class="wrap">
       <div class="top">
         <div>
-          <h1><i class="logo"></i>Finzaro</h1>
+          <h1><i class="logo"></i><span class="brand-name">Finzaro</span></h1>
           <small id="mode"></small><span id="streak"></span>
         </div>
         <div class="row">
-          <button class="ic" id="bEye" data-i="eye" title="Скрыть суммы"></button
-          ><button class="ic" id="bView" data-i="pal" title="Темы и оформление"></button
-          ><button class="ic" id="bShare" title="Поделиться итогом"></button
-          ><button class="ic" id="bCalc" data-i="calc" title="Калькулятор цены"></button
-          ><button class="ic" id="bSet" data-i="set" title="Комиссии и площадки"></button
-          ><button class="ic" id="bCsv" data-i="dl" title="Скачать таблицу"></button
+          <button class="ic" id="bEye" data-i="eye" title="Скрыть суммы" aria-label="Скрыть суммы"></button
+          ><button class="ic" id="bView" data-i="pal" title="Темы и оформление" aria-label="Темы и оформление"></button
+          ><button class="ic" id="bShare" title="Поделиться итогом" aria-label="Поделиться итогом"></button
+          ><button class="ic" id="bCalc" data-i="calc" title="Калькулятор цены" aria-label="Калькулятор цены"></button
+          ><button class="ic" id="bSet" data-i="set" title="Комиссии и площадки" aria-label="Комиссии и площадки"></button
+          ><button class="ic" id="bCsv" data-i="dl" title="Скачать таблицу" aria-label="Скачать таблицу"></button
           ><button class="ic" id="bOut" data-i="out" title="Выйти" hidden></button>
         </div>
       </div>
@@ -1534,7 +1551,7 @@
       <form id="f">
         <div class="sh">
           <b id="dTitle">Новая запись</b
-          ><button type="button" class="ic sm" id="cAdd" data-i="x" aria-label="Закрыть"></button>
+          ><button type="button" class="ic sm" id="cAdd" data-i="x" aria-label="Закрыть окно"></button>
         </div>
         <div class="tgrid" id="types"></div>
         <label class="tbtn" id="adT" hidden><input type="radio" name="type" value="ad" />Поднятие лота</label>
@@ -1839,7 +1856,7 @@
         Starpets: {
           c: "#ffb84d", sale: 10, wp: null, wf: 0,
           tiers: [["Обычная продажа · 10%", 10], ["Обычная продажа · 15%", 15], ["Моментальный выкуп · до 40%", 40]],
-          src: "✅ Продажа: обычная 10–15%; моментальный выкуп боту — до 40%. ⚠️ Вывод зависит от способа/региона. На вашем скриншоте видны отдельные тарифы для R$, Visa/MIR, СБП, GMPays, ЮMoney и криптовалют; используйте актуальную ставку из окна «Вывод средств» перед расчётом."
+          src: "✅ Продажа: обычная 10–15%; моментальный выкуп боту — до 40%. ⚠️ По вашему скриншоту вывод зависит от выбранного способа: видны R$, Visa/MIR, СБП, GMPays, ЮMoney и криптовалюты с разными фиксированными/процентными ставками. В приложении вывод StarPets оставлен без жёсткой автоподстановки — перед расчётом укажите актуальный процент/ставку из окна «Вывод средств»."
         },
         Starvell: {
           c: "#ff6b81", sale: 10, wp: null, wf: 0,
@@ -3394,7 +3411,7 @@
         roblox:"roblox", steam:"steam", telegram:"telegram", discord:"discord",
         youtube:"youtube", spotify:"spotify", netflix:"netflix", tiktok:"tiktok", apple:"apple", googleplay:"googleplay", epicgames:"epicgames",
         riotgames:"riotgames", playstation:"playstation", xbox:"xbox", nintendo:"nintendo", github:"github", twitch:"twitch",
-        minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant", "cs2":"counterstrike",
+        minecraft:"minecraft", fortnite:"fortnite", valorant:"valorant", "cs2":"counterstrike", "counter-strike 2":"counterstrike",
         "dota 2":"dota2", "brawl stars":"brawlstars", "genshin impact":"genshinimpact",
         "standoff 2":"standoff2", "league of legends":"leagueoflegends",
         "apex legends":"apexlegends", "world of warcraft":"worldofwarcraft",

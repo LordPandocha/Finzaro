@@ -17,6 +17,7 @@
     <meta name="twitter:title" content="Finzaro — учёт прибыли" />
     <meta name="twitter:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
     <meta name="twitter:image" content="https://finzaro.ru/assets/finzaro-og.svg" />
+    <meta name="google-site-verification" content="e-XHxRdrDXNJ0EvfEzdm4AGAMalDm8ONzL6K-7McPIs" />
 <link rel="icon" type="image/svg+xml" href="/assets/finzaro-icon.svg" />
     <link rel="apple-touch-icon" href="/assets/finzaro-icon.svg" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -428,7 +429,8 @@
         text-transform: uppercase;
         letter-spacing: 0.04em;
       }
-      [data-theme="maximal"] h1 .brand-name { text-transform: none; }
+      [data-theme="maximal"] h1 .brand-name { text-transform: none !important; }
+      h1 .brand-name { text-transform: none !important; }
       [data-theme="maximal"] {
         font-weight: 600;
       }
@@ -1382,6 +1384,59 @@
       @media (max-width: 520px) {
         #repeatLast { font-size: .72rem; padding: 6px 8px; }
         #lastBadge { display: none !important; }
+      }
+
+
+      /* ===== Universal selected-state contrast guard ===== */
+      .pill.on,
+      label.pill:has(input:checked),
+      .tbtn:has(input:checked),
+      .seg .on {
+        background: var(--acc) !important;
+        color: var(--acctx) !important;
+        border-color: var(--acc) !important;
+        -webkit-text-fill-color: var(--acctx);
+      }
+      .pill.on *,
+      label.pill:has(input:checked) *,
+      .tbtn:has(input:checked) *,
+      .seg .on * {
+        color: var(--acctx) !important;
+        fill: currentColor;
+        stroke: currentColor;
+      }
+      .tbtn:has(input:checked) .i,
+      .pill.on .i {
+        color: var(--acctx) !important;
+      }
+      [data-theme="minimal"] .pill.on,
+      [data-theme="minimal"] label.pill:has(input:checked),
+      [data-theme="minimal"] .tbtn:has(input:checked),
+      [data-theme="minimal"] .seg .on {
+        color: var(--acctx) !important;
+        -webkit-text-fill-color: var(--acctx);
+      }
+
+
+      .tbtn { position: relative; isolation: isolate; }
+      .tbtn:has(input:checked)::after {
+        content: "✓";
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font: 900 11px/1 system-ui, sans-serif;
+        color: var(--acctx);
+        background: color-mix(in srgb, var(--acctx) 18%, transparent);
+      }
+      .tbtn:has(input:checked) .i { color: var(--acctx); }
+      @media (max-width: 640px) {
+        .tgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tbtn { min-height: 78px; padding: 13px 8px; }
       }
 
       /* ===== Finzaro responsive polish & performance v2 ===== */

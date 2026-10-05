@@ -2867,8 +2867,9 @@
       };
       const wdFormula = (mp, m, overrideRate = null) => {
         const { rate, rule } = wEffective(mp, m);
-        const r = overrideRate != null && isFinite(overrideRate) ? +overrideRate : rate;
-        if (!rule && !(overrideRate != null && isFinite(overrideRate))) return "ставка не задана";
+        const hasOverride = overrideRate !== "" && overrideRate != null && isFinite(+overrideRate);
+        const r = hasOverride ? +overrideRate : rate;
+        if (!rule && !hasOverride) return "ставка не задана";
         const parts = [];
         if (isFinite(r)) parts.push(fmt(r) + "%");
         if (rule?.fixed) parts.push("+ " + fmt(rule.fixed) + " ₽");

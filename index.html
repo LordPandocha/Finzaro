@@ -3512,7 +3512,7 @@
         _net = 0;
       const chartRangeSaved = LS("chartRange2", {});
       const chartModes = ["week", "fortnight", "month", "all", "custom"];
-      const isoDay = /^\\d{4}-\\d{2}-\\d{2}$/;
+      const isoDay = /^\d{4}-\d{2}-\d{2}$/;
       const shiftIso = (value, delta) => {
         const d = new Date((value || today()) + "T12:00:00");
         d.setDate(d.getDate() + delta);

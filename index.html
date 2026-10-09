@@ -1926,67 +1926,25 @@
         <b>Оформление</b
         ><button type="button" class="ic sm" id="cView" data-i="x" aria-label="Закрыть"></button>
       </div>
-      <small class="mut pvl">Предпросмотр · меняется вживую</small>
+            <small class="mut pvl">Предпросмотр · меняется вживую</small>
       <div class="pv">
         <div class="pv-top"><span>Finzaro</span><span class="pv-lnk">Ссылка</span></div>
         <div class="pv-hero"><small>Чистая прибыль · все площадки</small><div class="pv-big">+12 480 ₽</div></div>
-        <div class="pv-card">
-          <div class="pv-row"><span>Dota 2</span><b class="pos">+3 200 ₽</b></div>
-          <div class="pv-row"><span>CS2</span><b class="neg">−450 ₽</b></div>
-        </div>
+        <div class="pv-card"><div class="pv-row"><span>Dota 2</span><b class="pos">+3 200 ₽</b></div><div class="pv-row"><span>CS2</span><b class="neg">−450 ₽</b></div></div>
         <div class="pv-act"><button type="button" class="pv-btn">Добавить</button><span class="pill on">Выбрано</span><span class="pill">Обычная</span></div>
-      </div>
-      <div class="set" style="border-top: 0; padding-top: 0">
-        <label>Тема</label>
-        <div class="tiles" id="pTheme"></div>
-      </div>
-      <div class="set">
-        <label>Цвет акцента</label>
-        <div class="row" id="pAcc" style="flex-wrap: wrap"></div>
-      </div>
-      <div class="set">
-        <label>Шрифт</label>
-        <div class="row" id="pFont" style="flex-wrap: wrap"></div>
-      </div>
-      <div class="set">
-        <label>Размер текста: <span id="vFs"></span></label
-        ><input type="range" id="rFs" min="13" max="22" step="1" />
-      </div>
-      <div class="set">
-        <label>Скругление: <span id="vR"></span></label
-        ><input type="range" id="rR" min="2" max="28" step="1" />
       </div>
       <p class="settings-intro">Подстрой цвета, плотность оформления и характер обратной связи под себя. Изменения применяются сразу и сохраняются в браузере.</p>
       <div class="settings-group-title"><span>◈</span> Цвет и типографика</div>
-      <div class="set" style="border-top: 0; padding-top: 0">
-        <label>Тема</label>
-        <div class="tiles" id="pTheme"></div>
-      </div>
-      <div class="set">
-        <label>Цвет акцента</label>
-        <div class="row" id="pAcc" style="flex-wrap: wrap"></div>
-      </div>
-      <div class="set">
-        <label>Шрифт</label>
-        <div class="row" id="pFont" style="flex-wrap: wrap"></div>
-      </div>
-      <div class="set">
-        <label>Размер текста: <span id="vFs"></span></label>
-        <input type="range" id="rFs" min="13" max="22" step="1" />
-      </div>
-      <div class="set">
-        <label>Скругление: <span id="vR"></span></label>
-        <input type="range" id="rR" min="2" max="28" step="1" />
-      </div>
+      <div class="set" style="border-top: 0; padding-top: 0"><label>Тема</label><div class="tiles" id="pTheme"></div></div>
+      <div class="set"><label>Цвет акцента</label><div class="row" id="pAcc" style="flex-wrap: wrap"></div></div>
+      <div class="set"><label>Шрифт</label><div class="row" id="pFont" style="flex-wrap: wrap"></div></div>
+      <div class="set"><label>Размер текста: <span id="vFs"></span></label><input type="range" id="rFs" min="13" max="22" step="1" /></div>
+      <div class="set"><label>Скругление: <span id="vR"></span></label><input type="range" id="rR" min="2" max="28" step="1" /></div>
       <div class="settings-group-title"><span>✦</span> Тематические украшения</div>
       <div class="set">
         <label class="chk"><input type="checkbox" id="decorOn" />Анимированные частицы и фоновые эффекты</label>
         <label for="decorLevel">Интенсивность украшений</label>
-        <select id="decorLevel" aria-label="Интенсивность тематических украшений">
-          <option value="soft">Мягко · минимум движения</option>
-          <option value="normal">Баланс · по умолчанию</option>
-          <option value="rich">Ярко · больше деталей</option>
-        </select>
+        <select id="decorLevel" aria-label="Интенсивность тематических украшений"><option value="soft">Мягко · минимум движения</option><option value="normal">Баланс · по умолчанию</option><option value="rich">Ярко · больше деталей</option></select>
         <p>На телефонах количество частиц автоматически уменьшается. Системная настройка «Уменьшить движение» также учитывается.</p>
       </div>
       <div class="settings-group-title"><span>♫</span> Звуки и вибрация</div>
@@ -1994,16 +1952,7 @@
         <label class="chk"><input type="checkbox" id="sOn" />Звуки интерфейса</label>
         <label for="sPreset">Звуковой набор</label>
         <select id="sPreset" aria-label="Выберите набор звуков">
-          <option value="standard">Классика</option>
-          <option value="soft">Мягкий</option>
-          <option value="glass">Стекло</option>
-          <option value="pop">Pop</option>
-          <option value="arcade">Аркада</option>
-          <option value="retro">Ретро</option>
-          <option value="sharp">Чёткий</option>
-          <option value="navigation">Навигация</option>
-          <option value="calm">Спокойный</option>
-          <option value="vivid">Яркий</option>
+          <option value="standard">Классика</option><option value="soft">Мягкий</option><option value="glass">Стекло</option><option value="pop">Pop</option><option value="arcade">Аркада</option><option value="retro">Ретро</option><option value="sharp">Чёткий</option><option value="navigation">Навигация</option><option value="calm">Спокойный</option><option value="vivid">Яркий</option>
         </select>
         <button type="button" class="pill" id="sPreview">▶ Прослушать набор</button>
         <label class="chk"><input type="checkbox" id="sVib" />Вибрация (на поддерживаемых устройствах)</label>
@@ -4190,19 +4139,19 @@
 
       /* ---- звуки (Web Audio) и вибрация ---- */
       const SOUND_ASSETS = {
-        "button-1": "/assets/sounds/buttons-and-navigation/button-1.m4a", "button-2": "/assets/sounds/buttons-and-navigation/button-2.m4a",
-        "button-3": "/assets/sounds/buttons-and-navigation/button-3.m4a", "button-4": "/assets/sounds/buttons-and-navigation/button-4.m4a",
-        "button-5": "/assets/sounds/buttons-and-navigation/button-5.m4a", "button-6": "/assets/sounds/buttons-and-navigation/button-6.m4a",
-        "button-7": "/assets/sounds/buttons-and-navigation/button-7.m4a", "tab-1": "/assets/sounds/buttons-and-navigation/tab-1.m4a",
-        "tab-2": "/assets/sounds/buttons-and-navigation/tab-2.m4a", "tab-3": "/assets/sounds/buttons-and-navigation/tab-3.m4a",
-        expand: "/assets/sounds/buttons-and-navigation/expand.m4a", collapse: "/assets/sounds/buttons-and-navigation/collapse.m4a",
-        "success-1": "/assets/sounds/complete-and-success/success-1.m4a", "success-2": "/assets/sounds/complete-and-success/success-2.m4a",
-        "success-3": "/assets/sounds/complete-and-success/success-3.m4a", "complete-1": "/assets/sounds/complete-and-success/complete-1.m4a",
-        "error-1": "/assets/sounds/errors-and-cancel/error-1.m4a", "error-2": "/assets/sounds/errors-and-cancel/error-2.m4a",
-        "error-3": "/assets/sounds/errors-and-cancel/error-3.m4a", "cancel-1": "/assets/sounds/errors-and-cancel/cancel-1.m4a",
-        "cancel-2": "/assets/sounds/errors-and-cancel/cancel-2.m4a", "notification-1": "/assets/sounds/notifications-and-alerts/notification-1.m4a",
-        "notification-4": "/assets/sounds/notifications-and-alerts/notification-4.m4a", "alert-1": "/assets/sounds/notifications-and-alerts/alert-1.m4a",
-        "alert-3": "/assets/sounds/notifications-and-alerts/alert-3.m4a"
+        "button-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-1.m4a", "button-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-2.m4a",
+        "button-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-3.m4a", "button-4": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-4.m4a",
+        "button-5": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-5.m4a", "button-6": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-6.m4a",
+        "button-7": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-7.m4a", "tab-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/tab-1.m4a",
+        "tab-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/tab-2.m4a", "tab-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/tab-3.m4a",
+        expand: "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/expand.m4a", collapse: "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/collapse.m4a",
+        "success-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/success-1.m4a", "success-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/success-2.m4a",
+        "success-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/success-3.m4a", "complete-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/complete-1.m4a",
+        "error-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/error-1.m4a", "error-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/error-2.m4a",
+        "error-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/error-3.m4a", "cancel-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/cancel-1.m4a",
+        "cancel-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/cancel-2.m4a", "notification-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/notification-1.m4a",
+        "notification-4": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/notification-4.m4a", "alert-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/alert-1.m4a",
+        "alert-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/alert-3.m4a"
       };
       const SOUND_PRESETS = {
         standard: { label: "Классика", click: "button-1", tab: "tab-1", success: "success-1", complete: "complete-1", error: "error-1", cancel: "cancel-1", notification: "notification-1", alert: "alert-1", expand: "expand", collapse: "collapse" },

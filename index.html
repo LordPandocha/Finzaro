@@ -1259,6 +1259,7 @@
       #chart2 [data-chart-hitbox]:focus-visible { outline: none; fill: color-mix(in srgb, var(--acc) 18%, transparent) !important; stroke: var(--acc); stroke-width: 1.5; }
       #chart2 [data-chart-hitbox].chart-brush-selected { fill: color-mix(in srgb, var(--acc) 18%, transparent) !important; stroke: var(--acc); stroke-width: 1; }
       #chart2 [data-chart-item].chart-brush-selected:not([data-chart-hitbox]) { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent)); }
+      #chart2.chart-picking { touch-action: none; }
       .chart-filter-actions { gap: 8px; }
       .chart-filter-actions .pill { min-height: 36px; }
       .chart-day-chip { min-height: 44px; }
@@ -3993,6 +3994,7 @@
         $("#chartDateStart").max = today();
         $("#chartDateEnd").max = today();
         $("#chartPickToggle").classList.toggle("on", chartRange.pickDays);
+        $("#chart2").classList.toggle("chart-picking", chartRange.pickDays);
         $("#chartPickToggle").setAttribute("aria-pressed", String(chartRange.pickDays));
         $("#chartPickToggle").textContent = chartRange.pickDays ? "Выбирай дни на графике" : "Выбрать несколько дней";
         $("#chartClearDays").hidden = chartRange.selectedDates.size === 0;
@@ -4204,7 +4206,7 @@
         }
       };
       $("#chart2").addEventListener("pointerdown", (e) => {
-        if (!chartRange.pickDays || e.button !== 0 || e.pointerType === "touch" || !e.isPrimary) return;
+        if (!chartRange.pickDays || e.button !== 0 || !e.isPrimary) return;
         const item = e.target.closest?.("[data-chart-item]"), date = item?.dataset.chartKey;
         if (!isoDay.test(date || "")) return;
         const byDate = new Map();

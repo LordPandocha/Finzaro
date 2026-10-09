@@ -2548,6 +2548,7 @@
         if (!Array.isArray(L) || !L.length) return null;
         if (sb) {
           if (!user) {
+            pendingFocusOperation = null;
             toast("Войдите в аккаунт, чтобы сохранить запись.");
             return null;
           }
@@ -2559,6 +2560,7 @@
                 ? "В Supabase нет колонки game. Выполните: alter table operations add column game text;"
                 : "Не сохранилось: " + error.message,
             );
+            pendingFocusOperation = null;
             return null;
           }
           L = Array.isArray(data) ? data : payload;

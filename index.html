@@ -1186,8 +1186,30 @@
       .cf { position: fixed; z-index: 99; font-style: normal; font-size: 22px; pointer-events: none; animation: cfl 1.7s cubic-bezier(.15,.8,.3,1) forwards; }
       @keyframes cfl { to { transform: translate(var(--x), var(--y)) rotate(540deg); opacity: 0; } }
       #chart2 svg text { font-family: inherit; }
+      #chart2 [data-chart-item] { cursor: crosshair; outline: none; }
+      #chart2 [data-chart-item]:hover { filter: brightness(1.22) drop-shadow(0 0 2px color-mix(in srgb, var(--acc) 55%, transparent)); }
+      #chart2 [data-chart-item]:focus-visible { filter: drop-shadow(0 0 4px var(--acc)); }
+      #chart2 rect.chart-selected { stroke: var(--tx); stroke-width: 1.5; }
+      #chart2 circle.chart-selected { stroke: var(--tx) !important; stroke-width: 2 !important; }
+      #chart2 .dnl-item { display: flex; align-items: center; gap: 7px; width: 100%; min-width: 0; padding: 5px; border: 1px solid transparent; border-radius: 9px; color: var(--tx); background: transparent; text-align: left; cursor: pointer; }
+      #chart2 .dnl-item:hover { background: var(--c2); }
+      #chart2 .dnl-item.chart-selected { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 12%, transparent); }
+      #chart2 .dnl-item b { flex: 1; min-width: 0; }
+      #chart2 .dnl-item span { font-variant-numeric: tabular-nums; color: var(--mut); }
+      .chart-hover-tooltip { position: fixed; z-index: 1200; display: grid; gap: 3px; width: max-content; max-width: min(260px, calc(100vw - 24px)); padding: 10px 12px; border-radius: 11px; border: 1px solid color-mix(in srgb, var(--acc) 42%, var(--line)); background: var(--pop); color: var(--tx); box-shadow: 0 12px 32px #0003; pointer-events: none; }
+      #chartHoverLabel { font-size: .76rem; font-weight: 700; overflow-wrap: anywhere; }
+      #chartHoverValue { font-size: 1.05rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+      #chartHoverMeta { color: var(--mut); font-size: .74rem; overflow-wrap: anywhere; }
+      .chart-detail { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 12px; border: 1px solid color-mix(in srgb, var(--acc) 26%, var(--line)); border-radius: 13px; background: color-mix(in srgb, var(--acc) 7%, var(--c2)); }
+      .chart-detail-copy { display: grid; gap: 3px; min-width: 0; }
+      #chartDetailState { color: var(--acl); font-size: .68rem; font-weight: 800; letter-spacing: .08em; }
+      #chartDetailLabel { overflow-wrap: anywhere; font-size: .9rem; }
+      #chartDetailValue { font-size: 1.16rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+      #chartDetailMeta { color: var(--mut); font-size: .78rem; line-height: 1.35; }
+      #chartDetailClear { flex: 0 0 auto; padding: 7px 9px; font-size: .8rem; }
+      @media (max-width: 640px) { .chart-detail { align-items: flex-start; flex-direction: column; } #chartDetailClear { align-self: flex-start; } }
       .dnl { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px 10px; font-size: 12.5px; margin-top: 8px; }
-      .dnl span { display: flex; gap: 6px; align-items: center; } .dnl i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+      .dnl i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
       #chT, #chC { margin: 8px 0 4px; }
 
       /* ===== новые фишки ===== */
@@ -1348,8 +1370,10 @@
           -webkit-backdrop-filter: none !important;
         }
 
-        /* Уменьшаем количество одновременно отрисовываемых декоративных элементов */
-        #best, .sp, .fly { display: none !important; }
+        /* Лёгкие искры и серия остаются видимыми на телефонах; тяжёлый перелёт суммы отключён. */
+        .fly { display: none !important; }
+        .sp { width: 6px; height: 6px; }
+        #best { max-width: calc(100vw - 24px); font-size: clamp(16px, 5vw, 22px); padding: 12px 18px; }
 
         /* Стабильнее скролл и ввод на мобильном */
         html, body { overscroll-behavior-x: none; }
@@ -1663,7 +1687,7 @@
           <div class="card" id="kpi"></div>
           <div class="card" id="plb"></div>
           <div class="card" id="bal"></div>
-          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chart2"></div><div id="chart" hidden></div></div>
+          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
       </div>
     </div>
@@ -2519,20 +2543,24 @@
         hint();
       });
 
-      /* Серия дней на сайте */
+      /* Серия огоньков: уникальные локальные календарные дни, один визит в день. */
       (() => {
         const key = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-        let v = LS("visits", []);
-        const t = today();
-        if (!v.includes(t)) { v.push(t); v = v.slice(-400); localStorage.setItem("visits", JSON.stringify(v)); }
-        const S = new Set(v), c = new Date();
+        const t = today(), saved = LS("visits", []);
+        const days = Array.isArray(saved) ? [...new Set(saved.filter((x) => typeof x === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x)))].sort() : [];
+        if (!days.includes(t)) days.push(t);
+        const clean = [...new Set(days)].sort().slice(-400);
+        localStorage.setItem("visits", JSON.stringify(clean));
+        const S = new Set(clean), c = new Date();
+        c.setHours(12, 0, 0, 0);
         let n = 0;
         while (S.has(key(c))) { n++; c.setDate(c.getDate() - 1); }
-        let best = +LS("bestStreak", 0);
-        if (n > best) { best = n; localStorage.setItem("bestStreak", best); }
+        const oldBest = Number(LS("bestStreak", 0)) || 0, best = Math.max(n, oldBest);
+        if (best !== oldBest) localStorage.setItem("bestStreak", String(best));
         const el = $("#streak");
-        el.title = "Сколько дней подряд вы заходили на сайт";
-        el.innerHTML = `<span class="fl">🔥</span>` + (n < 2 ? "Серия началась, загляните завтра" : `${n} ${pl(n, ["день", "дня", "дней"])} подряд${best > n ? " · рекорд " + best : " · это рекорд"}`);
+        el.title = "Серия дней, когда вы открывали Finzaro. Считается в этом браузере.";
+        el.setAttribute("aria-label", `${n} ${pl(n, ["день", "дня", "дней"])} подряд`);
+        el.innerHTML = `<span class="fl" aria-hidden="true">🔥</span><span class="streak-count">${n} ${pl(n, ["день", "дня", "дней"])} подряд</span><small>${n < 2 ? "Загляни завтра, чтобы продолжить" : best > n ? "Рекорд: " + best : "Личный рекорд!"}</small>`;
       })();
 
       /* Лучшая и худшая игра */
@@ -3487,7 +3515,11 @@
           Y = (v) => 10 + ((mx - v) / (mx - mn || 1)) * (H - 36), z = Y(0), k = Math.ceil(n / 8);
         return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">` +
           `<line x1="8" x2="${W - 8}" y1="${z}" y2="${z}" stroke="var(--line)"/>` +
-          it.map((i, x) => `<rect x="${8 + x * bw + bw * .12}" y="${Math.min(z, Y(i.v))}" width="${bw * .76}" height="${Math.max(1.5, Math.abs(Y(i.v) - z))}" rx="3" fill="${i.v < 0 ? "var(--neg)" : i.c || "var(--acc)"}"><title>${esc(i.l)}: ${fmt(i.v)}</title></rect>` + (x % k === 0 ? `<text x="${8 + x * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--mut)">${esc(i.l)}</text>` : "")).join("") + `</svg>`;
+          it.map((i, x) => {
+            const key = i.key ?? i.l, label = i.label ?? i.l, meta = i.meta || "", aria = `${label}: ${fmt(i.v)}${meta ? "; " + meta : ""}`;
+            return `<rect x="${8 + x * bw + bw * .12}" y="${Math.min(z, Y(i.v))}" width="${bw * .76}" height="${Math.max(1.5, Math.abs(Y(i.v) - z))}" rx="3" fill="${i.v < 0 ? "var(--neg)" : i.c || "var(--acc)"}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
+              (x % k === 0 ? `<text x="${8 + x * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--mut)">${esc(i.l)}</text>` : "");
+          }).join("") + `</svg>`;
       }
       function drawCh() {
         const { list } = cur(), cats = [...new Set(list.filter((o) => o.type !== "withdraw").map((o) => catOf(o.game)))];
@@ -3506,16 +3538,22 @@
             X = (i) => 10 + (i / Math.max(N - 1, 1)) * (W - 20), Y = (v) => 12 + ((mx - v) / (mx - mn || 1)) * (H - 34),
             pts = c.map((v, i) => X(i) + "," + Y(v)).join(" ");
           el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%"><defs><linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".5"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)" stroke-dasharray="4"/><polygon points="${X(0)},${Y(0)} ${pts} ${X(N - 1)},${Y(0)}" fill="url(#gA)"/><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` +
-            c.map((v, i) => (S[i].p ? `<circle cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--acc)"><title>${S[i].d.slice(8)}.${S[i].d.slice(5, 7)}: за день ${fmt(S[i].p)}, всего ${fmt(v)}</title></circle>` : "")).join("") +
+            c.map((v, i) => {
+              const label = `${S[i].d.slice(8)}.${S[i].d.slice(5, 7)}.${S[i].d.slice(0, 4)}`,
+                meta = `Накопленная прибыль: ${fmt(v)}`,
+                aria = `${label}: за день ${fmt(S[i].p)}, накоплено ${fmt(v)}`;
+              return `<circle cx="${X(i)}" cy="${Y(v)}" r="10" fill="transparent" stroke="transparent" stroke-width="14" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${S[i].p}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></circle>` +
+                (S[i].p ? `<circle class="chart-dot" data-chart-key="${S[i].d}" cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--acc)" pointer-events="none"/>` : "");
+            }).join("") +
             `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Итого ${fmt(c[N - 1])} · пик ${fmt(mx)}</text></svg>`;
         } else if (ch.t === "bar") {
-          el.innerHTML = vbars(S.map((x) => ({ l: x.d.slice(8), v: x.p }))) + '<small class="mut">Прибыль по дням (красные — убыточные)</small>';
+          el.innerHTML = vbars(S.map((x) => ({ l: x.d.slice(8), key: x.d, label: `${x.d.slice(8)}.${x.d.slice(5, 7)}.${x.d.slice(0, 4)}`, v: x.p, meta: "Прибыль за этот день" }))) + '<small class="mut">Наведи курсор или нажми на столбец — увидишь точную сумму и дату</small>';
         } else if (ch.t === "wk") {
           const W7 = Array.from({ length: 7 }, () => []);
           L.forEach((o) => W7[(new Date(o.date + "T12:00:00").getDay() + 6) % 7].push(o));
-          el.innerHTML = vbars(["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((l, i) => ({ l, v: agg(W7[i]).profit, c: "var(--acc2)" }))) + '<small class="mut">В какие дни вы зарабатываете больше всего</small>';
+          el.innerHTML = vbars(["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((l, i) => ({ l, key: "weekday-" + i, label: l, v: agg(W7[i]).profit, c: "var(--acc2)", meta: "Суммарная прибыль за выбранный период" }))) + '<small class="mut">Наведи курсор или нажми на столбец, чтобы сравнить дни</small>';
         } else if (ch.t === "mp") {
-          const R = Object.keys(MPS).map((k) => ({ l: k.slice(0, 7), v: agg(L.filter((o) => o.marketplace === k)).profit, c: MPS[k].c }));
+          const R = Object.keys(MPS).map((k) => ({ l: k.slice(0, 7), key: "market-" + k, label: k, v: agg(L.filter((o) => o.marketplace === k)).profit, c: MPS[k].c, meta: "Прибыль за выбранный период" }));
           el.innerHTML = vbars(R) + '<small class="mut">Прибыль по площадкам</small>';
         } else {
           const G = {};
@@ -3526,17 +3564,85 @@
           if (!tot) return (el.innerHTML = '<span class="mut">Нет прибыльных игр 😅</span>');
           let acc = 0;
           el.innerHTML = `<svg viewBox="0 0 42 42" style="width:70%;max-width:230px;display:block;margin:auto"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--line)" stroke-width="5"/>` +
-            R.map((x, i) => { const pc = (x[1] / tot) * 100, o = `<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${PAL[i % 8]}" stroke-width="5" stroke-dasharray="${Math.max(pc - .6, .1)} ${100 - pc + .6}" stroke-dashoffset="${25 - acc}"><title>${esc(x[0])}: ${fmt(x[1])}</title></circle>`; acc += pc; return o; }).join("") +
+            R.map((x, i) => {
+              const pc = (x[1] / tot) * 100, key = "game:" + x[0], meta = `${pc.toFixed(1)}% от положительной прибыли по играм`, aria = `${x[0]}: ${fmt(x[1])}, ${pc.toFixed(1)}%`;
+              const o = `<circle class="chart-slice" cx="21" cy="21" r="15.9155" fill="none" stroke="${PAL[i % 8]}" stroke-width="5" stroke-dasharray="${Math.max(pc - .6, .1)} ${100 - pc + .6}" stroke-dashoffset="${25 - acc}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(x[0])}" data-chart-value="${x[1]}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></circle>`;
+              acc += pc;
+              return o;
+            }).join("") +
             `<text x="21" y="22.5" text-anchor="middle" font-size="4.2" font-weight="700" fill="var(--tx)">${fmt(tot)}</text></svg><div class="dnl">` +
-            R.map((x, i) => `<span><i style="background:${PAL[i % 8]}"></i><b class="ell">${esc(x[0])}</b> ${Math.round((x[1] / tot) * 100)}%</span>`).join("") + `</div>`;
+            R.map((x, i) => {
+              const pc = (x[1] / tot) * 100, key = "game:" + x[0], meta = `${pc.toFixed(1)}% от положительной прибыли по играм`;
+              return `<button type="button" class="dnl-item" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(x[0])}" data-chart-value="${x[1]}" data-chart-meta="${esc(meta)}" aria-label="${esc(x[0] + ": " + fmt(x[1]) + ", " + pc.toFixed(1) + "%")}" title="${esc(x[0] + ": " + fmt(x[1]))}"><i style="background:${PAL[i % 8]}"></i><b class="ell">${esc(x[0])}</b><span>${Math.round(pc)}%</span></button>`;
+            }).join("") + `</div>`;
         }
       }
+      let chartPin = null;
+      const readChartItem = (el) => ({ key: el.dataset.chartKey || el.dataset.chartLabel || "", label: el.dataset.chartLabel || "Значение", value: Number(el.dataset.chartValue), meta: el.dataset.chartMeta || "" });
+      function setChartDetail(item, pinned = false) {
+        $("#chartDetailState").textContent = item ? (pinned ? "ЗАКРЕПЛЕНО · НАЖМИ ЕЩЁ РАЗ ДЛЯ СБРОСА" : "НАВЕДЕНИЕ · НАЖМИ ДЛЯ ЗАКРЕПЛЕНИЯ") : "ИНТЕРАКТИВНЫЙ ГРАФИК";
+        $("#chartDetailLabel").textContent = item ? item.label : "Наведи на точку, столбец или сектор";
+        $("#chartDetailValue").textContent = item && Number.isFinite(item.value) ? fmt(item.value) : "Сумма появится здесь";
+        $("#chartDetailMeta").textContent = item ? item.meta || "Значение за выбранный период" : "Нажми на элемент, чтобы закрепить его значение.";
+        $("#chartDetailClear").hidden = !chartPin;
+      }
+      function positionChartTooltip(e) {
+        const tip = $("#chartHover");
+        if (tip.style.display === "none") return;
+        const w = tip.offsetWidth || 220, h = tip.offsetHeight || 72, gap = 14;
+        tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, e.clientX + gap)) + "px";
+        tip.style.top = Math.max(8, Math.min(window.innerHeight - h - 8, e.clientY + gap)) + "px";
+      }
+      function showChartTooltip(item, e) {
+        const tip = $("#chartHover");
+        $("#chartHoverLabel").textContent = item.label;
+        $("#chartHoverValue").textContent = Number.isFinite(item.value) ? fmt(item.value) : "—";
+        $("#chartHoverMeta").textContent = item.meta || "";
+        tip.style.display = "grid";
+        tip.setAttribute("aria-hidden", "false");
+        positionChartTooltip(e);
+        if (!chartPin) setChartDetail(item, false);
+      }
+      function hideChartTooltip() { $("#chartHover").style.display = "none"; $("#chartHover").setAttribute("aria-hidden", "true"); }
+      function paintChartSelection() {
+        $("#chart2").querySelectorAll("[data-chart-key]").forEach((el) => el.classList.toggle("chart-selected", !!chartPin && el.dataset.chartKey === chartPin.key));
+        $("#chartDetailClear").hidden = !chartPin;
+      }
+      function resetChartInteraction() {
+        chartPin = null;
+        hideChartTooltip();
+        setChartDetail(null, false);
+        paintChartSelection();
+      }
+      $("#chart2").addEventListener("pointerover", (e) => {
+        const el = e.target.closest("[data-chart-item]");
+        if (el && !chartPin) showChartTooltip(readChartItem(el), e);
+      });
+      $("#chart2").addEventListener("pointermove", (e) => {
+        const el = e.target.closest("[data-chart-item]");
+        if (el && !chartPin) showChartTooltip(readChartItem(el), e);
+        else if (chartPin) hideChartTooltip();
+      });
+      $("#chart2").addEventListener("pointerleave", () => { hideChartTooltip(); if (!chartPin) setChartDetail(null, false); });
+      $("#chart2").addEventListener("focusin", (e) => { const el = e.target.closest("[data-chart-item]"); if (el && !chartPin) setChartDetail(readChartItem(el), false); });
+      $("#chart2").addEventListener("keydown", (e) => {
+        if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-chart-item]")) { e.preventDefault(); e.target.closest("[data-chart-item]").click(); }
+      });
       $("#chCard").onclick = (e) => {
+        const item = e.target.closest("#chart2 [data-chart-item]");
+        if (item) {
+          const next = readChartItem(item);
+          if (chartPin && chartPin.key === next.key) resetChartInteraction();
+          else { chartPin = next; hideChartTooltip(); setChartDetail(next, true); paintChartSelection(); }
+          return;
+        }
+        if (e.target.closest("#chartDetailClear")) { resetChartInteraction(); return; }
         const t = e.target.closest("[data-ct]")?.dataset.ct, c = e.target.closest("[data-cc]")?.dataset.cc;
         if (t) ch.t = t;
         if (c) ch.c = c;
-        if (t || c) drawCh();
+        if (t || c) { resetChartInteraction(); drawCh(); }
       };
+      $("#chartDetailClear").onclick = resetChartInteraction;
       const QP = [["Пока тишина… самое время что-нибудь продать 🦗", "Пустой кошелёк — чистый холст 🎨"], ["Минус — это просто платный урок 📉", "Все великие селлеры начинали с минуса 🫡"], ["Первые рублики — самые вкусные 🍪", "Разгон начался, держим темп 🚲"], ["Деньги делают деньги 💸", "Кофе сегодня за счёт площадки ☕"], ["Налоговая уже поглядывает в вашу сторону 👀", "Копилка стонет от счастья 🐷"], ["Илон, это ты? 🚀", "Пора присматривать остров 🏝️"]];
       const quip = (T) => QP[!T.sales && !T.profit ? 0 : T.profit < 0 ? 1 : T.profit < 1000 ? 2 : T.profit < 10000 ? 3 : T.profit < 50000 ? 4 : 5][new Date().getDate() % 2];
       function cnt(to) {
@@ -3566,6 +3672,7 @@
         $("#quip").textContent = quip(T);
         cnt(T.profit);
         drawCh();
+        resetChartInteraction();
       };
       const _add = add;
       add = async function (L) {

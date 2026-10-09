@@ -2714,7 +2714,7 @@
         if (m) m.checked = true;
         f.amount.value = o.amount;
         f.game.value = o.game || "";
-        f.note.value = o.note === "Поднятие лота" ? "" : o.note || "";
+        f.note.value = o.note === "Поднятие лота" ? "" : visibleNote(o.note) || "";
         f.date.value = today();
         if (a > 0 && ["sale", "refund", "withdraw"].includes(o.type)) {
           let r = r2(((+o.fee || 0) / a) * 100);
@@ -3338,7 +3338,7 @@
         if (m) m.checked = true;
         f.game.value = o.game || "";
         f.date.value = o.date;
-        f.note.value = o.note || "";
+        f.note.value = visibleNote(o.note) || "";
         // Saved operations store the buyer-paid (gross) amount.
         $("#smode").value = "gross";
         if (a > 0 && ["sale", "refund", "withdraw"].includes(o.type)) {
@@ -3660,7 +3660,7 @@
       async function fpReadZip(file) {
         const buffer = await file.arrayBuffer(), view = new DataView(buffer), bytes = new Uint8Array(buffer);
         let eocd = -1;
-        for (let i = Math.max(0, bytes.length - 65557); i <= bytes.length - 22; i++) { if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; } }
+        for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) { if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; } }
         if (eocd < 0) throw new Error("Не удалось прочитать структуру ZIP-архива.");
         const count = view.getUint16(eocd + 10, true), centralOffset = view.getUint32(eocd + 16, true);
         let at = centralOffset; const parts = [];

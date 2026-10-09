@@ -1218,6 +1218,8 @@
       #streak { display: flex; width: fit-content; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 12px 4px 9px; border-radius: 99px; font-size: .78rem; font-weight: 700; background: color-mix(in srgb, var(--acc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--acc) 32%, transparent); }
       #streak:empty { display: none; }
       #streak .fl { display: inline-block; animation: flick 1.8s ease-in-out infinite; }
+      #streak small { font-weight: 500; opacity: .78; }
+      @media (max-width: 640px) { #streak { flex-wrap: wrap; gap: 4px 7px; } }
       @keyframes flick { 50% { transform: scale(1.2) rotate(-5deg); } }
       .fc { margin-top: 14px; overflow: hidden; }
       .fc:empty, .bw:empty { display: none; }
@@ -3540,9 +3542,9 @@
           el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%"><defs><linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".5"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)" stroke-dasharray="4"/><polygon points="${X(0)},${Y(0)} ${pts} ${X(N - 1)},${Y(0)}" fill="url(#gA)"/><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` +
             c.map((v, i) => {
               const label = `${S[i].d.slice(8)}.${S[i].d.slice(5, 7)}.${S[i].d.slice(0, 4)}`,
-                meta = `Накопленная прибыль: ${fmt(v)}`,
-                aria = `${label}: за день ${fmt(S[i].p)}, накоплено ${fmt(v)}`;
-              return `<circle cx="${X(i)}" cy="${Y(v)}" r="10" fill="transparent" stroke="transparent" stroke-width="14" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${S[i].p}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></circle>` +
+                meta = `Прибыль за день: ${fmt(S[i].p)}`,
+                aria = `${label}: накопленная прибыль ${fmt(v)}, за день ${fmt(S[i].p)}`;
+              return `<circle cx="${X(i)}" cy="${Y(v)}" r="10" fill="transparent" stroke="transparent" stroke-width="14" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></circle>` +
                 (S[i].p ? `<circle class="chart-dot" data-chart-key="${S[i].d}" cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--acc)" pointer-events="none"/>` : "");
             }).join("") +
             `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Итого ${fmt(c[N - 1])} · пик ${fmt(mx)}</text></svg>`;
@@ -3578,6 +3580,8 @@
         }
       }
       let chartPin = null;
+      // The dashboard cards transform on hover; moving the fixed tooltip to body prevents offset/clipping.
+      document.body.append($("#chartHover"));
       const readChartItem = (el) => ({ key: el.dataset.chartKey || el.dataset.chartLabel || "", label: el.dataset.chartLabel || "Значение", value: Number(el.dataset.chartValue), meta: el.dataset.chartMeta || "" });
       function setChartDetail(item, pinned = false) {
         $("#chartDetailState").textContent = item ? (pinned ? "ЗАКРЕПЛЕНО · НАЖМИ ЕЩЁ РАЗ ДЛЯ СБРОСА" : "НАВЕДЕНИЕ · НАЖМИ ДЛЯ ЗАКРЕПЛЕНИЯ") : "ИНТЕРАКТИВНЫЙ ГРАФИК";

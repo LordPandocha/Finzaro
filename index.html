@@ -1926,7 +1926,7 @@
         </div>
       </div>
       <section class="fp-import-box" id="fpImportBox">
-        <div class="fp-import-head"><span class="fp-import-icon" aria-hidden="true">⇅</span><div><div class="fp-import-title">Импорт FunPay</div><p class="fp-import-desc">Загрузи исходный CSV или ZIP-архив из FunPay. Сначала покажу предпросмотр, затем можно импортировать новые операции или удалить все операции, созданные именно из этого файла.</p></div></div>
+        <div class="fp-import-head"><span class="fp-import-icon" aria-hidden="true">⇅</span><div><div class="fp-import-title">Импорт FunPay</div><p class="fp-import-desc">Загрузи исходный CSV или ZIP-архив из FunPay. Возвраты закупок и продажи с будущей датой отсеются автоматически. Сначала покажу предпросмотр, затем можно импортировать новые операции или удалить все операции, созданные именно из этого файла.</p></div></div>
         <label for="fpRoleMode">Какие записи загружать</label>
         <select id="fpRoleMode" aria-label="Тип заказов для импорта"><option value="auto">Автоматически по role в файле</option><option value="buyer">Только покупки (buyer)</option><option value="seller">Только продажи (seller)</option></select>
         <input type="file" id="fpFile" accept=".csv,.zip,text/csv,application/zip,application/x-zip-compressed" hidden />

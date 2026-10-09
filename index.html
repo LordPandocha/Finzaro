@@ -3543,11 +3543,30 @@
         $("#dAdd").close();
       };
 
-      function downloadBackupCopy() {
+      async function readAllCloudOperations() {
+        if (!sb || !user) return [];
+        const rows = [], pageSize = 1000;
+        for (let offset = 0; ; offset += pageSize) {
+          const { data, error } = await sb.from("operations").select("*").eq("user_id", user.id)
+            .order("date", { ascending: false }).order("id", { ascending: true }).range(offset, offset + pageSize - 1);
+          if (error) throw new Error(error.message);
+          const page = Array.isArray(data) ? data : [];
+          rows.push(...page);
+          if (page.length < pageSize) break;
+        }
+        return rows;
+      }
+      async function downloadBackupCopy() {
+        if (sb && !user) { toast("Войдите в аккаунт, чтобы скачать все облачные данные."); return; }
+        let backupOps = ops;
+        if (sb) {
+          try { backupOps = await readAllCloudOperations(); }
+          catch (err) { toast("Не удалось собрать копию: " + (err?.message || "ошибка загрузки")); return; }
+        }
         const payload = {
           format: "finzaro-backup", v: 2, createdAt: new Date().toISOString(),
-          ops: ops.map((o) => ({ date: o.date, marketplace: o.marketplace, game: o.game || "", type: o.type, amount: Number(o.amount), fee: Number(o.fee) || 0, note: String(o.note || "") })),
-          fees, custom, tpls, goal: LS("goal", 0), pref, chartRange: LS("chartRange2", null)
+          ops: backupOps.map((o) => ({ date: o.date, marketplace: o.marketplace, game: o.game || "", type: o.type, amount: Number(o.amount), fee: Number(o.fee) || 0, note: String(o.note || "") })),
+          fees, custom, tpls, goal: LS("goal", 0), pref, hideAmounts: LS("hide", false), chartRange: LS("chartRange2", null)
         };
         const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
         const a = document.createElement("a");
@@ -3641,7 +3660,9 @@
           return;
         }
         if (!user) throw new Error("Сначала войди в аккаунт, чтобы заменить облачные данные.");
-        const oldRows = ops.map((o) => normalizeBackupOperation(o));
+        let oldRows;
+        try { oldRows = (await readAllCloudOperations()).map(normalizeBackupOperation); }
+        catch (err) { throw new Error("Не удалось прочитать текущие операции для безопасной замены: " + (err?.message || "ошибка загрузки")); }
         const { error: deleteError } = await sb.from("operations").delete().eq("user_id", user.id);
         if (deleteError) throw new Error("Не удалось заменить облачные записи: " + deleteError.message);
         const insertBatches = async (items) => {
@@ -3678,6 +3699,7 @@
           if (Object.prototype.hasOwnProperty.call(d, "goal")) localStorage.setItem("goal", JSON.stringify(d.goal));
           if (d.pref && typeof d.pref === "object") localStorage.setItem("pref3", JSON.stringify(d.pref));
           if (Object.prototype.hasOwnProperty.call(d, "chartRange")) localStorage.setItem("chartRange2", JSON.stringify(d.chartRange));
+          if (Object.prototype.hasOwnProperty.call(d, "hideAmounts")) localStorage.setItem("hide", JSON.stringify(!!d.hideAmounts));
           toast("Копия загружена. Обновляю Finzaro…");
           location.reload();
         } catch (err) {

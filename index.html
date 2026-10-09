@@ -3619,7 +3619,7 @@
           it.map((i, x) => {
             const key = i.key ?? i.l, label = i.label ?? i.l, meta = i.meta || "", isDay = isoDay.test(String(key)), aria = `${label}: ${fmt(i.v)}${meta ? "; " + meta : ""}`;
             const bar = `<rect x="${8 + x * bw + bw * .12}" y="${Math.min(z, Y(i.v))}" width="${bw * .76}" height="${Math.max(1.5, Math.abs(Y(i.v) - z))}" rx="3" fill="${i.v < 0 ? "var(--neg)" : i.c || "var(--acc)"}" opacity="${i.selected === false ? 0.24 : 1}" stroke="${i.selected && i.hasSelection ? "var(--tx)" : "none"}" stroke-width="${i.selected && i.hasSelection ? 1.5 : 0}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="${isDay ? "-1" : "0"}" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>`;
-            const hitbox = isDay ? `<rect class="chart-hitbox" x="${8 + x * bw}" y="8" width="${bw}" height="${H - 31}" rx="2" fill="transparent" pointer-events="all" data-chart-item data-chart-hitbox data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` : "";
+            const hitbox = `<rect class="chart-hitbox" x="${8 + x * bw}" y="8" width="${bw}" height="${H - 31}" rx="2" fill="transparent" pointer-events="all" data-chart-item data-chart-hitbox data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="${isDay ? "0" : "-1"}" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>`;
             return bar + hitbox + (x % k === 0 ? `<text x="${8 + x * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--mut)" pointer-events="none">${esc(i.l)}</text>` : "");
           }).join("") + `</svg>`;
       }
@@ -3746,8 +3746,10 @@
       };
       const brushMarkDate = (date) => {
         if (!isoDay.test(date)) return;
+        const isNew = !chartBrush.visited.has(date);
         chartBrush.visited.add(date);
         chartRange.selectedDates.add(date);
+        if (!isNew) return;
         document.querySelectorAll("#chart2 [data-chart-key]").forEach((el) => {
           if (el.dataset.chartKey === date) el.classList.add("chart-brush-selected");
         });
@@ -3775,7 +3777,7 @@
         const brush = chartBrush;
         chartBrush = null;
         chartBrushSuppressClick = true;
-        setTimeout(() => { chartBrushSuppressClick = false; }, 500);
+        setTimeout(() => { chartBrushSuppressClick = false; }, 150);
         if (brush.moved) {
           brush.visited.forEach((date) => chartRange.selectedDates.add(date));
           chartRange.pickerOpen = true;

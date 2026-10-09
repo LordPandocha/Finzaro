@@ -1185,6 +1185,20 @@
       details.g { animation: pop .4s ease both; } details.g[open] { border-color: var(--acc); }
       .cf { position: fixed; z-index: 99; font-style: normal; font-size: 22px; pointer-events: none; animation: cfl 1.7s cubic-bezier(.15,.8,.3,1) forwards; }
       @keyframes cfl { to { transform: translate(var(--x), var(--y)) rotate(540deg); opacity: 0; } }
+      .chart-filters { display: grid; gap: 8px; margin: 10px 0; }
+      .chart-presets, .chart-filter-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+      .chart-presets .pill { padding: 6px 9px; font-size: .8rem; white-space: nowrap; }
+      .chart-custom-range { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+      .chart-custom-range label { display: grid; gap: 4px; color: var(--mut); font-size: .76rem; }
+      .chart-custom-range input { width: 100%; min-width: 0; padding: 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--c2); color: var(--tx); font: inherit; font-size: .82rem; }
+      .chart-range-summary { color: var(--mut); font-size: .76rem; line-height: 1.4; }
+      .chart-day-picker { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--c2); }
+      .chart-day-chips { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 5px; max-height: 190px; overflow: auto; }
+      .chart-day-chip { position: relative; display: grid; gap: 2px; justify-items: center; min-width: 0; padding: 6px 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--c1); color: var(--tx); cursor: pointer; font: inherit; }
+      .chart-day-chip b { font-size: .8rem; }
+      .chart-day-chip small { font-size: .64rem; color: var(--mut); }
+      .chart-day-chip.has-data::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--acc); position: absolute; top: 4px; right: 4px; }
+      .chart-day-chip.selected { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 17%, var(--c1)); box-shadow: inset 0 0 0 1px var(--acc); }
       #chart2 svg text { font-family: inherit; }
       #chart2 [data-chart-item] { cursor: crosshair; outline: none; }
       #chart2 [data-chart-item]:hover { filter: brightness(1.22) drop-shadow(0 0 2px color-mix(in srgb, var(--acc) 55%, transparent)); }
@@ -1689,7 +1703,7 @@
           <div class="card" id="kpi"></div>
           <div class="card" id="plb"></div>
           <div class="card" id="bal"></div>
-          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
+          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartPickToggle" aria-pressed="false">Выбрать несколько дней</button><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выбор</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div id="chartDayPicker" class="chart-day-picker" hidden><small id="chartDayPickerHint" class="mut"></small><div id="chartDayChips" class="chart-day-chips"></div></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
       </div>
     </div>
@@ -3496,6 +3510,70 @@
         GR = LS("gr", {}),
         rt = 0,
         _net = 0;
+      const chartRangeSaved = LS("chartRange2", {});
+      const chartModes = ["week", "fortnight", "month", "all", "custom"];
+      const isoDay = /^\\d{4}-\\d{2}-\\d{2}$/;
+      const shiftIso = (value, delta) => {
+        const d = new Date((value || today()) + "T12:00:00");
+        d.setDate(d.getDate() + delta);
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      };
+      let chartRange = {
+        mode: chartModes.includes(chartRangeSaved.mode) ? chartRangeSaved.mode : "month",
+        start: typeof chartRangeSaved.start === "string" && isoDay.test(chartRangeSaved.start) ? chartRangeSaved.start : shiftIso(today(), -29),
+        end: typeof chartRangeSaved.end === "string" && isoDay.test(chartRangeSaved.end) ? chartRangeSaved.end : today(),
+        selectedDates: new Set(Array.isArray(chartRangeSaved.selectedDates) ? chartRangeSaved.selectedDates.filter((d) => typeof d === "string" && isoDay.test(d)) : []),
+        pickDays: false,
+        pickerOpen: false,
+      };
+      const saveChartRange = () => localStorage.setItem("chartRange2", JSON.stringify({ mode: chartRange.mode, start: chartRange.start, end: chartRange.end, selectedDates: [...chartRange.selectedDates] }));
+      const chartBaseOps = () => ops.filter((o) => view === "all" || o.marketplace === view);
+      const chartWindow = (base) => {
+        const now = today();
+        let start, end = now;
+        if (chartRange.mode === "week") start = shiftIso(now, -6);
+        else if (chartRange.mode === "fortnight") start = shiftIso(now, -13);
+        else if (chartRange.mode === "month") start = shiftIso(now, -29);
+        else if (chartRange.mode === "all") {
+          const dates = base.map((o) => o.date).filter((d) => typeof d === "string" && isoDay.test(d)).sort();
+          start = dates[0] || now;
+          if (dates.length && dates[dates.length - 1] > end) end = dates[dates.length - 1];
+        } else {
+          start = chartRange.start || shiftIso(now, -29);
+          end = chartRange.end || now;
+          if (start > end) [start, end] = [end, start];
+        }
+        return { start, end, span: Math.max(1, Math.floor((new Date(end + "T12:00:00") - new Date(start + "T12:00:00")) / 86400000) + 1) };
+      };
+      const chartDateList = (base, w) => {
+        if (w.span <= 90) return Array.from({ length: w.span }, (_, i) => shiftIso(w.start, i));
+        return [...new Set(base.filter((o) => o.date >= w.start && o.date <= w.end).map((o) => o.date))].sort();
+      };
+      const chartSeries = (base, w, selected) => {
+        const by = {};
+        base.forEach((o) => (by[o.date] ??= []).push(o));
+        return chartDateList(base, w).map((d) => ({ d, ...(({ profit, sales }) => ({ p: profit, s: sales }))(agg(by[d] || [])), selected: !selected.size || selected.has(d) }));
+      };
+      function renderChartFilters(base, w) {
+        const labels = { week: "Последние 7 дней", fortnight: "Последние 14 дней", month: "Последние 30 дней", all: "Всё время", custom: "Свой диапазон" };
+        $("#chartFilters").querySelectorAll("[data-chart-preset]").forEach((b) => b.classList.toggle("on", b.dataset.chartPreset === chartRange.mode));
+        $("#chartDateStart").value = w.start;
+        $("#chartDateEnd").value = w.end;
+        $("#chartDateStart").max = today();
+        $("#chartDateEnd").max = today();
+        $("#chartPickToggle").classList.toggle("on", chartRange.pickDays);
+        $("#chartPickToggle").setAttribute("aria-pressed", String(chartRange.pickDays));
+        $("#chartPickToggle").textContent = chartRange.pickDays ? "Выбирай дни на графике" : "Выбрать несколько дней";
+        $("#chartClearDays").hidden = chartRange.selectedDates.size === 0;
+        $("#chartRangeSummary").textContent = labels[chartRange.mode] + ": " + w.start.split("-").reverse().join(".") + " — " + w.end.split("-").reverse().join(".") + (chartRange.selectedDates.size ? " · выбрано дней: " + chartRange.selectedDates.size : "");
+        $("#chartDayPicker").hidden = !chartRange.pickerOpen;
+        const days = chartDateList(base, w), visible = days.length > 180 ? days.slice(-180) : days;
+        $("#chartDayPickerHint").textContent = w.span > 90 ? "Показаны последние даты с операциями. Чтобы выбрать более ранние дни, задай свой диапазон." : chartRange.pickDays ? "Нажимай на несколько дат или на столбцы/дни графика. Выбор применяется ко всем диаграммам." : "Можно отметить несколько дней — все графики пересчитаются по выбранным датам.";
+        $("#chartDayChips").innerHTML = visible.slice().reverse().map((d) => {
+          const count = base.filter((o) => o.date === d).length, selected = chartRange.selectedDates.has(d);
+          return `<button type="button" class="chart-day-chip ${selected ? "selected" : ""} ${count ? "has-data" : ""}" data-chart-day="${d}" aria-pressed="${selected}" title="${d.split("-").reverse().join(".")}${count ? " · операций: " + count : ""}"><small>${["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][new Date(d + "T12:00:00").getDay()]}</small><b>${d.slice(8)}</b><small>${d.slice(5, 7)}.${d.slice(2, 4)}</small></button>`;
+        }).join("");
+      }
       const cur = () => {
         const inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym));
         return { inP, list: view === "all" ? inP : inP.filter((o) => o.marketplace === view) };
@@ -3519,23 +3597,30 @@
           `<line x1="8" x2="${W - 8}" y1="${z}" y2="${z}" stroke="var(--line)"/>` +
           it.map((i, x) => {
             const key = i.key ?? i.l, label = i.label ?? i.l, meta = i.meta || "", aria = `${label}: ${fmt(i.v)}${meta ? "; " + meta : ""}`;
-            return `<rect x="${8 + x * bw + bw * .12}" y="${Math.min(z, Y(i.v))}" width="${bw * .76}" height="${Math.max(1.5, Math.abs(Y(i.v) - z))}" rx="3" fill="${i.v < 0 ? "var(--neg)" : i.c || "var(--acc)"}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
+            return `<rect x="${8 + x * bw + bw * .12}" y="${Math.min(z, Y(i.v))}" width="${bw * .76}" height="${Math.max(1.5, Math.abs(Y(i.v) - z))}" rx="3" fill="${i.v < 0 ? "var(--neg)" : i.c || "var(--acc)"}" opacity="${i.selected === false ? 0.24 : 1}" stroke="${i.selected && i.hasSelection ? "var(--tx)" : "none"}" stroke-width="${i.selected && i.hasSelection ? 1.5 : 0}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
               (x % k === 0 ? `<text x="${8 + x * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--mut)">${esc(i.l)}</text>` : "");
           }).join("") + `</svg>`;
       }
       function drawCh() {
-        const { list } = cur(), cats = [...new Set(list.filter((o) => o.type !== "withdraw").map((o) => catOf(o.game)))];
+        const base = chartBaseOps(), w = chartWindow(base), rangeOps = base.filter((o) => o.date >= w.start && o.date <= w.end);
+        const selectedBefore = chartRange.selectedDates.size;
+        chartRange.selectedDates = new Set([...chartRange.selectedDates].filter((d) => d >= w.start && d <= w.end));
+        if (chartRange.selectedDates.size !== selectedBefore) saveChartRange();
+        const selectedDates = chartRange.selectedDates, cats = [...new Set(rangeOps.filter((o) => o.type !== "withdraw").map((o) => catOf(o.game)))];
         if (ch.c !== "all" && !cats.includes(ch.c)) ch.c = "all";
-        const L = ch.c === "all" ? list : list.filter((o) => o.type !== "withdraw" && catOf(o.game) === ch.c),
+        const allL = ch.c === "all" ? rangeOps : rangeOps.filter((o) => o.type !== "withdraw" && catOf(o.game) === ch.c),
+          L = selectedDates.size ? allL.filter((o) => selectedDates.has(o.date)) : allL,
           B = (k, l, v, a) => `<button type="button" class="pill ${v === a ? "on" : ""}" data-${k}="${esc(l[0])}">${l[1]}</button>`;
+        renderChartFilters(base, w);
         $("#chT").innerHTML = [["cum", "📈 Рост"], ["bar", "📊 По дням"], ["don", "🍩 По играм"], ["mp", "🏪 Площадки"], ["wk", "📅 Дни недели"]].map((l) => B("ct", l, l[0], ch.t)).join("");
         $("#chC").innerHTML = cats.length > 1 ? [["all", "Все категории"], ...cats.map((c) => [c, (CE[c] || "") + " " + c])].map((l) => B("cc", l, l[0], ch.c)).join("") : "";
         const el = $("#chart2");
-        if (!L.length) return (el.innerHTML = '<span class="mut">Нет данных для графика 🦗</span>');
-        const S = series(L);
+        if (!rangeOps.length) return (el.innerHTML = '<span class="mut">Нет операций за этот период. Попробуй изменить даты.</span>');
+        if (!L.length && !["cum", "bar"].includes(ch.t)) return (el.innerHTML = '<span class="mut">Нет операций в выбранные дни. Отметь другие даты.</span>');
+        const S = chartSeries(allL, w, selectedDates);
         if (ch.t === "cum") {
           let a = 0;
-          const c = S.map((x) => (a += x.p)), N = S.length, W = 320, H = 170,
+          const c = S.map((x) => (a += selectedDates.size && !selectedDates.has(x.d) ? 0 : x.p)), N = S.length, W = 320, H = 170,
             mn = Math.min(0, ...c), mx = Math.max(1, ...c),
             X = (i) => 10 + (i / Math.max(N - 1, 1)) * (W - 20), Y = (v) => 12 + ((mx - v) / (mx - mn || 1)) * (H - 34),
             step = (W - 20) / Math.max(N - 1, 1),
@@ -3546,12 +3631,12 @@
                 meta = `Прибыль за день: ${fmt(S[i].p)}`,
                 aria = `${label}: накопленная прибыль ${fmt(v)}, за день ${fmt(S[i].p)}`;
               const left = i === 0 ? 10 : X(i) - step / 2, right = i === N - 1 ? W - 10 : X(i) + step / 2;
-              return `<rect x="${left}" y="12" width="${Math.max(1, right - left)}" height="${H - 34}" fill="transparent" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
+              return `<rect x="${left}" y="12" width="${Math.max(1, right - left)}" height="${H - 34}" fill="${selectedDates.has(S[i].d) ? "var(--acc)" : "transparent"}" fill-opacity="${selectedDates.has(S[i].d) ? 0.14 : 0}" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
                 (S[i].p ? `<circle class="chart-dot" data-chart-key="${S[i].d}" cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--acc)" pointer-events="none"/>` : "");
             }).join("") +
             `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Итого ${fmt(c[N - 1])} · пик ${fmt(mx)}</text></svg>`;
         } else if (ch.t === "bar") {
-          el.innerHTML = vbars(S.map((x) => ({ l: x.d.slice(8), key: x.d, label: `${x.d.slice(8)}.${x.d.slice(5, 7)}.${x.d.slice(0, 4)}`, v: x.p, meta: "Прибыль за этот день" }))) + '<small class="mut">Наведи курсор или нажми на столбец — увидишь точную сумму и дату</small>';
+          el.innerHTML = vbars(S.map((x) => ({ l: x.d.slice(8), key: x.d, label: `${x.d.slice(8)}.${x.d.slice(5, 7)}.${x.d.slice(0, 4)}`, v: x.p, selected: x.selected, hasSelection: selectedDates.size > 0, meta: "Прибыль за этот день" }))) + '<small class="mut">Наведи курсор или нажми на столбец — увидишь точную сумму и дату</small>';
         } else if (ch.t === "wk") {
           const W7 = Array.from({ length: 7 }, () => []);
           L.forEach((o) => W7[(new Date(o.date + "T12:00:00").getDay() + 6) % 7].push(o));
@@ -3638,6 +3723,7 @@
         const item = e.target.closest("#chart2 [data-chart-item]");
         if (item) {
           const next = readChartItem(item);
+          if (chartRange.pickDays && isoDay.test(next.key)) { toggleChartDate(next.key); return; }
           if (chartPin && chartPin.key === next.key) resetChartInteraction();
           else { chartPin = next; hideChartTooltip(); setChartDetail(next, true); paintChartSelection(); }
           return;
@@ -3649,6 +3735,58 @@
         if (t || c) { resetChartInteraction(); drawCh(); }
       };
       $("#chartDetailClear").onclick = resetChartInteraction;
+      function toggleChartDate(date) {
+        if (!isoDay.test(date)) return;
+        if (chartRange.selectedDates.has(date)) chartRange.selectedDates.delete(date);
+        else chartRange.selectedDates.add(date);
+        chartRange.pickerOpen = true;
+        saveChartRange();
+        resetChartInteraction();
+        drawCh();
+      }
+      $("#chartFilters").addEventListener("click", (e) => {
+        const preset = e.target.closest("[data-chart-preset]")?.dataset.chartPreset;
+        if (preset) {
+          if (preset === "custom") {
+            chartRange.start = $("#chartDateStart").value || chartRange.start || shiftIso(today(), -29);
+            chartRange.end = $("#chartDateEnd").value || chartRange.end || today();
+          }
+          chartRange.mode = preset;
+          chartRange.selectedDates.clear();
+          saveChartRange();
+          resetChartInteraction();
+          drawCh();
+          return;
+        }
+        if (e.target.closest("#chartPickToggle")) {
+          chartRange.pickDays = !chartRange.pickDays;
+          chartRange.pickerOpen = chartRange.pickDays || !chartRange.pickerOpen;
+          drawCh();
+          return;
+        }
+        if (e.target.closest("#chartClearDays")) {
+          chartRange.selectedDates.clear();
+          saveChartRange();
+          resetChartInteraction();
+          drawCh();
+          return;
+        }
+        const day = e.target.closest("[data-chart-day]")?.dataset.chartDay;
+        if (day) toggleChartDate(day);
+      });
+      $("#chartFilters").addEventListener("change", (e) => {
+        if (!["chartDateStart", "chartDateEnd"].includes(e.target.id)) return;
+        let start = $("#chartDateStart").value, end = $("#chartDateEnd").value;
+        if (!start || !end) return;
+        if (start > end) [start, end] = [end, start];
+        chartRange.mode = "custom";
+        chartRange.start = start;
+        chartRange.end = end;
+        chartRange.selectedDates.clear();
+        saveChartRange();
+        resetChartInteraction();
+        drawCh();
+      });
       const QP = [["Пока тишина… самое время что-нибудь продать 🦗", "Пустой кошелёк — чистый холст 🎨"], ["Минус — это просто платный урок 📉", "Все великие селлеры начинали с минуса 🫡"], ["Первые рублики — самые вкусные 🍪", "Разгон начался, держим темп 🚲"], ["Деньги делают деньги 💸", "Кофе сегодня за счёт площадки ☕"], ["Налоговая уже поглядывает в вашу сторону 👀", "Копилка стонет от счастья 🐷"], ["Илон, это ты? 🚀", "Пора присматривать остров 🏝️"]];
       const quip = (T) => QP[!T.sales && !T.profit ? 0 : T.profit < 0 ? 1 : T.profit < 1000 ? 2 : T.profit < 10000 ? 3 : T.profit < 50000 ? 4 : 5][new Date().getDate() % 2];
       function cnt(to) {

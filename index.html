@@ -3566,7 +3566,7 @@
         const payload = {
           format: "finzaro-backup", v: 2, createdAt: new Date().toISOString(),
           ops: backupOps.map((o) => ({ date: o.date, marketplace: o.marketplace, game: o.game || "", type: o.type, amount: Number(o.amount), fee: Number(o.fee) || 0, note: String(o.note || "") })),
-          fees, custom, tpls, goal: LS("goal", 0), pref, hideAmounts: LS("hide", false), chartRange: LS("chartRange2", null)
+          fees, custom, tpls, goal: LS("goal", 0), pref, hideAmounts: LS("hide", false), chartRange: LS("chartRange2", {}) || {}
         };
         const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
         const a = document.createElement("a");
@@ -3676,7 +3676,8 @@
         } catch (err) {
           let restored = false;
           try {
-            await sb.from("operations").delete().eq("user_id", user.id);
+            const { error: rollbackDeleteError } = await sb.from("operations").delete().eq("user_id", user.id);
+            if (rollbackDeleteError) throw new Error(rollbackDeleteError.message);
             await insertBatches(oldRows);
             restored = true;
           } catch (_) {}
@@ -3698,7 +3699,8 @@
           if (d.tpls && typeof d.tpls === "object") localStorage.setItem("tpls", JSON.stringify(d.tpls));
           if (Object.prototype.hasOwnProperty.call(d, "goal")) localStorage.setItem("goal", JSON.stringify(d.goal));
           if (d.pref && typeof d.pref === "object") localStorage.setItem("pref3", JSON.stringify(d.pref));
-          if (Object.prototype.hasOwnProperty.call(d, "chartRange")) localStorage.setItem("chartRange2", JSON.stringify(d.chartRange));
+          if (d.chartRange && typeof d.chartRange === "object") localStorage.setItem("chartRange2", JSON.stringify(d.chartRange));
+          else if (Object.prototype.hasOwnProperty.call(d, "chartRange")) localStorage.removeItem("chartRange2");
           if (Object.prototype.hasOwnProperty.call(d, "hideAmounts")) localStorage.setItem("hide", JSON.stringify(!!d.hideAmounts));
           toast("Копия загружена. Обновляю Finzaro…");
           location.reload();

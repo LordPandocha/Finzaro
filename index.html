@@ -1198,7 +1198,7 @@
       .chart-day-chip b { font-size: .8rem; }
       .chart-day-chip small { font-size: .64rem; color: var(--mut); }
       .chart-day-chip.has-data::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--acc); position: absolute; top: 4px; right: 4px; }
-      .chart-day-chip.selected { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 17%, var(--c1)); box-shadow: inset 0 0 0 1px var(--acc); }
+      .chart-day-chip.selected { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 17%, var(--card)); box-shadow: inset 0 0 0 1px var(--acc); }
       #chart2 svg text { font-family: inherit; }
       #chart2 [data-chart-item] { cursor: crosshair; outline: none; }
       #chart2 [data-chart-item]:hover { filter: brightness(1.22) drop-shadow(0 0 2px color-mix(in srgb, var(--acc) 55%, transparent)); }
@@ -3761,6 +3761,7 @@
         if (e.target.closest("#chartPickToggle")) {
           chartRange.pickDays = !chartRange.pickDays;
           chartRange.pickerOpen = chartRange.pickDays || !chartRange.pickerOpen;
+          resetChartInteraction();
           drawCh();
           return;
         }

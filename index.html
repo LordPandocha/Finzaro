@@ -772,6 +772,33 @@
         display: grid;
         place-items: center;
       }
+      .undo-fab { position: fixed; left: 50%; bottom: 88px; transform: translateX(-50%) translateY(8px); z-index: 6; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 16px; border: 1px solid color-mix(in srgb, var(--acc) 36%, var(--line)); border-radius: 999px; background: var(--card); color: var(--tx); box-shadow: var(--sh), 0 8px 28px #0002; backdrop-filter: blur(18px); opacity: 0; animation: undoEnter .24s cubic-bezier(.2,.8,.2,1) forwards; }
+      .undo-fab[hidden] { display: none !important; }
+      .undo-fab:not([hidden]) { display: flex; }
+      .undo-fab > span { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--acc) 16%, var(--c2)); color: var(--acl); font-size: 20px; }
+      .undo-fab b { white-space: nowrap; }
+      .undo-fab small { white-space: nowrap; color: var(--mut); font-size: .72rem; }
+      .undo-fab:hover { border-color: var(--acc); transform: translateX(-50%) translateY(-1px); }
+      .undo-fab:disabled { opacity: .55; cursor: progress; }
+      @keyframes undoEnter { to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+      .just-added { animation: addedPulse .95s ease-in-out 2; border-color: var(--acc) !important; }
+      @keyframes addedPulse { 50% { box-shadow: var(--sh), 0 0 0 4px color-mix(in srgb, var(--acc) 18%, transparent); } }
+      [data-decor="off"] #bg, [data-decor="off"] #fx { display: none !important; }
+      [data-decor-level="soft"] #fx { opacity: .36; }
+      [data-decor-level="rich"] #fx { opacity: .95; }
+      #bg i { opacity: var(--fx-intensity, var(--bo, .5)); }
+      #dView .settings-intro { margin: 3px 0 14px; color: var(--mut); font-size: .82rem; line-height: 1.5; }
+      #dView .settings-group-title { display: flex; align-items: center; gap: 8px; margin: 20px 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: .85rem; font-weight: 850; letter-spacing: .02em; }
+      #dView .settings-group-title:first-of-type { margin-top: 8px; }
+      #dView .settings-group-title span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: color-mix(in srgb, var(--acc) 12%, var(--c2)); }
+      #dView .set { padding: 13px; border: 1px solid var(--line); background: color-mix(in srgb, var(--card) 72%, transparent); border-radius: 17px; margin: 10px 0; }
+      #dView .set > label { margin-bottom: 9px; }
+      #dView .set p, #dView .settings-note { color: var(--mut); font-size: .76rem; line-height: 1.45; }
+      #dView #sPreset, #dView #decorLevel { min-height: 42px; }
+      #dView #sPreview { width: 100%; justify-content: center; min-height: 40px; margin: 9px 0; }
+      #dView .sound-credit { margin: 8px 0 0; font-size: .74rem; line-height: 1.45; color: var(--mut); }
+      #dView .sound-credit a { color: var(--acl); text-underline-offset: 3px; }
+      @media (max-width: 640px) { .undo-fab { bottom: 86px; gap: 7px; padding: 9px 13px; } .undo-fab small { display: none; } }
       dialog {
         background: var(--pop);
         color: var(--tx);
@@ -1719,6 +1746,7 @@
         </aside>
       </div>
     </div>
+    <button type="button" class="undo-fab" id="bUndo" hidden aria-label="Отменить последнее действие" aria-keyshortcuts="Control+Z Meta+Z"><span aria-hidden="true">↶</span><b>Отменить</b><small id="undoMeta">Последнее действие</small></button>
     <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b></button>
     <div id="toast" role="alert"></div>
 
@@ -1928,19 +1956,60 @@
         <label>Скругление: <span id="vR"></span></label
         ><input type="range" id="rR" min="2" max="28" step="1" />
       </div>
-      <div class="set"><label>Звуки и вибрация</label>
-        <label class="chk"><input type="checkbox" id="sOn" />Звуки</label>
-        <label for="sPreset">Набор звуков</label>
+      <p class="settings-intro">Подстрой цвета, плотность оформления и характер обратной связи под себя. Изменения применяются сразу и сохраняются в браузере.</p>
+      <div class="settings-group-title"><span>◈</span> Цвет и типографика</div>
+      <div class="set" style="border-top: 0; padding-top: 0">
+        <label>Тема</label>
+        <div class="tiles" id="pTheme"></div>
+      </div>
+      <div class="set">
+        <label>Цвет акцента</label>
+        <div class="row" id="pAcc" style="flex-wrap: wrap"></div>
+      </div>
+      <div class="set">
+        <label>Шрифт</label>
+        <div class="row" id="pFont" style="flex-wrap: wrap"></div>
+      </div>
+      <div class="set">
+        <label>Размер текста: <span id="vFs"></span></label>
+        <input type="range" id="rFs" min="13" max="22" step="1" />
+      </div>
+      <div class="set">
+        <label>Скругление: <span id="vR"></span></label>
+        <input type="range" id="rR" min="2" max="28" step="1" />
+      </div>
+      <div class="settings-group-title"><span>✦</span> Тематические украшения</div>
+      <div class="set">
+        <label class="chk"><input type="checkbox" id="decorOn" />Анимированные частицы и фоновые эффекты</label>
+        <label for="decorLevel">Интенсивность украшений</label>
+        <select id="decorLevel" aria-label="Интенсивность тематических украшений">
+          <option value="soft">Мягко · минимум движения</option>
+          <option value="normal">Баланс · по умолчанию</option>
+          <option value="rich">Ярко · больше деталей</option>
+        </select>
+        <p>На телефонах количество частиц автоматически уменьшается. Системная настройка «Уменьшить движение» также учитывается.</p>
+      </div>
+      <div class="settings-group-title"><span>♫</span> Звуки и вибрация</div>
+      <div class="set">
+        <label class="chk"><input type="checkbox" id="sOn" />Звуки интерфейса</label>
+        <label for="sPreset">Звуковой набор</label>
         <select id="sPreset" aria-label="Выберите набор звуков">
-          <option value="standard">Стандартный</option>
+          <option value="standard">Классика</option>
           <option value="soft">Мягкий</option>
-          <option value="glass">Стеклянный</option>
+          <option value="glass">Стекло</option>
+          <option value="pop">Pop</option>
           <option value="arcade">Аркада</option>
           <option value="retro">Ретро</option>
+          <option value="sharp">Чёткий</option>
+          <option value="navigation">Навигация</option>
+          <option value="calm">Спокойный</option>
+          <option value="vivid">Яркий</option>
         </select>
-        <button type="button" class="pill" id="sPreview">▶ Прослушать</button>
-        <label class="chk"><input type="checkbox" id="sVib" />Вибрация</label>
-        <label>Громкость: <span id="vVol"></span></label><input type="range" id="sVol" min="0" max="100" step="5" /></div>
+        <button type="button" class="pill" id="sPreview">▶ Прослушать набор</button>
+        <label class="chk"><input type="checkbox" id="sVib" />Вибрация (на поддерживаемых устройствах)</label>
+        <label>Громкость: <span id="vVol"></span></label><input type="range" id="sVol" min="0" max="100" step="5" />
+        <p class="sound-credit">Используются реальные UI-сэмплы Sound Kit — MIT License. <a href="https://github.com/thisuxhq/soundkit" target="_blank" rel="noopener">Исходный набор</a> · <a href="https://github.com/thisuxhq/soundkit/blob/main/LICENSE" target="_blank" rel="noopener">лицензия</a>.</p>
+      </div>
       <button class="pill" id="pReset" type="button">Сбросить</button>
     </dialog>
 
@@ -2292,7 +2361,7 @@
           String(d.getDate()).padStart(2, "0")
         );
       };
-      const DEF = { theme: "peach", acc: null, font: "Системный", fs: 16, r: 20, wd: false };
+      const DEF = { theme: "peach", acc: null, font: "Системный", fs: 16, r: 20, wd: false, decor: true, decorLevel: "normal" };
       let sec = "games",
         tf = "all",
         so = "new",
@@ -2334,19 +2403,24 @@
       function fx() {
         const b = $("#fx");
         b.innerHTML = "";
-        if (matchMedia("(max-width: 700px)").matches) return;
+        if (pref.decor === false || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         const e = FX[pref.theme];
         if (!e) return;
-        for (let i = 0; i < 28; i++) {
+        const compact = matchMedia("(max-width: 700px)").matches;
+        const count = Math.round(({ soft: 8, normal: 22, rich: 36 }[pref.decorLevel] || 22) * (compact ? .42 : 1));
+        for (let i = 0; i < count; i++) {
           const p = document.createElement("span");
           p.textContent = e;
-          p.style.cssText = `left:${Math.random() * 100}%;font-size:${10 + Math.random() * 18}px;animation-duration:${9 + Math.random() * 14}s;animation-delay:-${Math.random() * 20}s;--dx:${(Math.random() - 0.5) * 180}px`;
+          p.style.cssText = `left:${Math.random() * 100}%;font-size:${(compact ? 8 : 10) + Math.random() * (compact ? 8 : 18)}px;animation-duration:${9 + Math.random() * 14}s;animation-delay:-${Math.random() * 20}s;--dx:${(Math.random() - 0.5) * (compact ? 90 : 180)}px`;
           b.append(p);
         }
       }
       function applyPref() {
         const s = document.documentElement;
         s.dataset.theme = pref.theme;
+        s.dataset.decor = pref.decor === false ? "off" : "on";
+        s.dataset.decorLevel = ["soft", "normal", "rich"].includes(pref.decorLevel) ? pref.decorLevel : "normal";
+        s.style.setProperty("--fx-intensity", pref.decor === false ? "0" : ({ soft: ".22", normal: ".45", rich: ".68" }[s.dataset.decorLevel] || ".45"));
         s.style.setProperty("--fs", pref.fs + "px");
         s.style.setProperty("--r", pref.r + "px");
         s.style.setProperty("--font", FONTS[pref.font] || FONTS["Системный"]);
@@ -2354,8 +2428,9 @@
         if (pref.theme === "peach") loadFont("Inter");
         accVars(s);
         localStorage.setItem("pref3", JSON.stringify(pref));
-        if (lastFx !== pref.theme) {
-          lastFx = pref.theme;
+        const fxKey = [pref.theme, pref.decor !== false, pref.decorLevel || "normal"].join("|");
+        if (lastFx !== fxKey) {
+          lastFx = fxKey;
           fx();
         }
       }
@@ -2431,10 +2506,79 @@
       };
       $("#bView").onclick = () => {
         drawView();
+        paintSnd();
         $("#dView").showModal();
       };
       $("#cView").onclick = () => $("#dView").close();
 
+      const undoStack = [];
+      let undoBusy = false, undoing = false, pendingFocusOperation = null;
+      function refreshUndoButton() {
+        const b = $("#bUndo");
+        b.hidden = !undoStack.length;
+        b.disabled = undoBusy;
+        const last = undoStack[undoStack.length - 1];
+        $("#undoMeta").textContent = undoStack.length > 1 ? `${undoStack.length} действий в истории` : (last?.label || "Последнее действие");
+        b.title = last ? "Отменить: " + last.label : "Нет действий для отмены";
+      }
+      function trackUndo(action) {
+        if (undoing || !action) return;
+        undoStack.push(action);
+        if (undoStack.length > 25) undoStack.shift();
+        refreshUndoButton();
+      }
+      function requestOperationFocus(operation) { pendingFocusOperation = operation ? { ...operation } : null; }
+      function applyPendingOperationFocus() {
+        const o = pendingFocusOperation;
+        if (!o) return;
+        if (MPS[o.marketplace]) view = o.marketplace;
+        if (typeof o.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.date)) { ym = o.date.slice(0, 7); allT = false; }
+        sec = "games";
+        $("#q").value = "";
+        if (o.game) opened.add("g|" + o.game);
+      }
+      function finishPendingOperationFocus() {
+        const o = pendingFocusOperation;
+        pendingFocusOperation = null;
+        if (!o) return;
+        const jump = () => {
+          const group = o.game ? [...document.querySelectorAll("details.g")].find((d) => d.dataset.id === "g|" + o.game) : null;
+          const target = group || $("#tabs") || $("#pHead");
+          if (!target) return;
+          if (group) { group.classList.remove("just-added"); void group.offsetWidth; group.classList.add("just-added"); }
+          const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+          target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: group ? "center" : "start" });
+          if (group) window.setTimeout(() => group.classList.remove("just-added"), 2400);
+        };
+        requestAnimationFrame(() => requestAnimationFrame(jump));
+      }
+      async function undoLastAction() {
+        if (undoBusy || !undoStack.length) return;
+        const action = undoStack.pop(); undoBusy = true; undoing = true; refreshUndoButton();
+        let success = false;
+        try {
+          if (action.type === "add") { success = !!(await delMany(action.ids, true)); }
+          else if (action.type === "update") {
+            const patch = Object.fromEntries(Object.entries(action.row).filter(([k]) => !["id", "user_id", "created_at", "updated_at"].includes(k)));
+            success = !!(await upd(action.row.id, patch));
+          } else if (action.type === "delete") {
+            const rows = action.rows.map((o) => { const { id, user_id, created_at, updated_at, ...rest } = o; return user ? { ...rest, user_id: user.id } : rest; });
+            success = !!(await add(rows));
+          }
+        } catch (_) { success = false; }
+        undoing = false; undoBusy = false;
+        if (!success) { undoStack.push(action); toast("Не удалось отменить действие. Попробуйте ещё раз."); }
+        else { toast("Отменено: " + action.label); snd("cancel"); }
+        refreshUndoButton();
+      }
+      $("#bUndo").addEventListener("click", undoLastAction);
+      document.addEventListener("keydown", (e) => {
+        if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z" || e.shiftKey || e.altKey) return;
+        const active = document.activeElement;
+        if (active && (active.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) return;
+        if (!undoStack.length || undoBusy) return;
+        e.preventDefault(); undoLastAction();
+      });
       async function load() {
         if (sb) {
           if (!user) { ops = []; render(); return []; }
@@ -2468,10 +2612,14 @@
           ops.push(...L);
           localStorage.setItem("ops", JSON.stringify(ops));
         }
+        if (L.every((o) => o.id != null)) trackUndo({ type: "add", ids: L.map((o) => o.id), label: "добавление" });
+        applyPendingOperationFocus();
         await load();
+        finishPendingOperationFocus();
         return L;
       }
       async function upd(id, patch) {
+        const before = ops.find((o) => o.id == id);
         if (sb) {
           if (!user) return toast("Войдите в аккаунт, чтобы изменить запись.");
           const { data, error } = await sb.from("operations").update(patch).eq("id", id).eq("user_id", user.id).select();
@@ -2481,7 +2629,10 @@
           ops = ops.map((o) => (o.id == id ? { ...o, ...patch } : o));
           localStorage.setItem("ops", JSON.stringify(ops));
         }
+        if (before) trackUndo({ type: "update", row: { ...before }, label: "изменение" });
+        applyPendingOperationFocus();
         await load();
+        finishPendingOperationFocus();
         return true;
       }
       async function delMany(ids, silent) {
@@ -2495,6 +2646,7 @@
           localStorage.setItem("ops", JSON.stringify(ops));
         }
         if (!silent) toTrash(rows);
+        if (rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), label: "удаление" });
         await load();
         return true;
       }
@@ -2509,6 +2661,7 @@
           localStorage.setItem("ops", JSON.stringify(ops));
         }
         if (!silent) toTrash(rows);
+        if (rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), label: "удаление" });
         await load();
         return true;
       }
@@ -3150,6 +3303,7 @@
             note: t.note || (t.type === "withdraw" && t.wm ? WM[t.wm] : ""),
           };
         if (user) o.user_id = user.id;
+        requestOperationFocus(o);
         const rows = await add([o]);
         if (rows)
           toast(`Добавлено: ${t.game || typeLabel(t.type)} · ${t.mp} · ${fmt(o.amount)}`, {
@@ -3325,7 +3479,7 @@
         $("#amount").select?.();
         toast("↻ Последняя запись подставлена");
       };
-      $("#f").onsubmit = (e) => {
+      $("#f").onsubmit = async (e) => {
         e.preventDefault();
         const f = e.target,
           t = f.type.value,
@@ -3341,16 +3495,20 @@
           return;
         }
         if (editId) {
-          upd(editId, { marketplace: mp, date: f.date.value, game, type: t, amount: r2(amt), fee: r2(fee), note: f.note.value });
-          if (game) opened.add("g|" + game);
-          return $("#dAdd").close();
+          requestOperationFocus({ marketplace: mp, date: f.date.value, game });
+          const updated = await upd(editId, { marketplace: mp, date: f.date.value, game, type: t, amount: r2(amt), fee: r2(fee), note: f.note.value });
+          if (updated) return $("#dAdd").close();
+          pendingFocusOperation = null;
+          return;
         }
         if (t === "sale" && mp === "Playerok" && pr > 0)
           L.push({ ...b, type: "ad", amount: r2(pr), fee: 0, note: "Поднятие лота" });
         if (user) L.forEach((o) => (o.user_id = user.id));
         if (game) opened.add("g|" + game);
         const dup = ops.some((o) => o.type === t && o.marketplace === mp && o.date === f.date.value && (o.game || null) === game && Math.abs(+o.amount - r2(amt)) < 0.005);
-        add(L);
+        requestOperationFocus(L[0]);
+        const saved = await add(L);
+        if (!saved) { pendingFocusOperation = null; return; }
         localStorage.setItem("lastAdd", JSON.stringify({ mp, date: f.date.value }));
         localStorage.setItem("lastTxn", JSON.stringify({
           mp, date: f.date.value, type: t, amount: r2(amt), inputAmount: r2(+f.amount.value), fee: r2(fee),
@@ -4031,47 +4189,76 @@
       $("#bAdd").addEventListener("click", () => setTimeout(gPrev, 30));
 
       /* ---- звуки (Web Audio) и вибрация ---- */
+      const SOUND_ASSETS = {
+        "button-1": "/assets/sounds/buttons-and-navigation/button-1.m4a", "button-2": "/assets/sounds/buttons-and-navigation/button-2.m4a",
+        "button-3": "/assets/sounds/buttons-and-navigation/button-3.m4a", "button-4": "/assets/sounds/buttons-and-navigation/button-4.m4a",
+        "button-5": "/assets/sounds/buttons-and-navigation/button-5.m4a", "button-6": "/assets/sounds/buttons-and-navigation/button-6.m4a",
+        "button-7": "/assets/sounds/buttons-and-navigation/button-7.m4a", "tab-1": "/assets/sounds/buttons-and-navigation/tab-1.m4a",
+        "tab-2": "/assets/sounds/buttons-and-navigation/tab-2.m4a", "tab-3": "/assets/sounds/buttons-and-navigation/tab-3.m4a",
+        expand: "/assets/sounds/buttons-and-navigation/expand.m4a", collapse: "/assets/sounds/buttons-and-navigation/collapse.m4a",
+        "success-1": "/assets/sounds/complete-and-success/success-1.m4a", "success-2": "/assets/sounds/complete-and-success/success-2.m4a",
+        "success-3": "/assets/sounds/complete-and-success/success-3.m4a", "complete-1": "/assets/sounds/complete-and-success/complete-1.m4a",
+        "error-1": "/assets/sounds/errors-and-cancel/error-1.m4a", "error-2": "/assets/sounds/errors-and-cancel/error-2.m4a",
+        "error-3": "/assets/sounds/errors-and-cancel/error-3.m4a", "cancel-1": "/assets/sounds/errors-and-cancel/cancel-1.m4a",
+        "cancel-2": "/assets/sounds/errors-and-cancel/cancel-2.m4a", "notification-1": "/assets/sounds/notifications-and-alerts/notification-1.m4a",
+        "notification-4": "/assets/sounds/notifications-and-alerts/notification-4.m4a", "alert-1": "/assets/sounds/notifications-and-alerts/alert-1.m4a",
+        "alert-3": "/assets/sounds/notifications-and-alerts/alert-3.m4a"
+      };
       const SOUND_PRESETS = {
-        standard: { label: "Стандартный", pitch: 1, duration: 1, gain: 1, waves: { add: "sine", click: "triangle", low: ["triangle", "sine"], fan: "triangle", preview: "triangle" } },
-        soft: { label: "Мягкий", pitch: .82, duration: 1.18, gain: .65, wave: "sine" },
-        glass: { label: "Стеклянный", pitch: 1.22, duration: 1.04, gain: .76, wave: "triangle" },
-        arcade: { label: "Аркада", pitch: 1.15, duration: .72, gain: .48, wave: "square" },
-        retro: { label: "Ретро", pitch: .9, duration: .88, gain: .45, wave: "sawtooth" },
+        standard: { label: "Классика", click: "button-1", tab: "tab-1", success: "success-1", complete: "complete-1", error: "error-1", cancel: "cancel-1", notification: "notification-1", alert: "alert-1", expand: "expand", collapse: "collapse" },
+        soft: { label: "Мягкий", click: "button-2", tab: "tab-2", success: "success-2", complete: "complete-1", error: "error-2", cancel: "cancel-2", notification: "notification-4", alert: "alert-1", expand: "expand", collapse: "collapse" },
+        glass: { label: "Стекло", click: "button-3", tab: "tab-3", success: "success-3", complete: "complete-1", error: "error-3", cancel: "cancel-1", notification: "notification-1", alert: "alert-1", expand: "expand", collapse: "collapse" },
+        pop: { label: "Pop", click: "button-4", tab: "tab-1", success: "success-1", complete: "complete-1", error: "error-2", cancel: "cancel-2", notification: "notification-4", alert: "alert-3", expand: "expand", collapse: "collapse" },
+        arcade: { label: "Аркада", click: "button-5", tab: "tab-2", success: "success-2", complete: "complete-1", error: "error-3", cancel: "cancel-1", notification: "notification-1", alert: "alert-3", expand: "expand", collapse: "collapse" },
+        retro: { label: "Ретро", click: "button-6", tab: "tab-3", success: "success-3", complete: "complete-1", error: "error-1", cancel: "cancel-2", notification: "notification-4", alert: "alert-1", expand: "expand", collapse: "collapse" },
+        sharp: { label: "Чёткий", click: "button-7", tab: "tab-1", success: "success-1", complete: "complete-1", error: "error-3", cancel: "cancel-1", notification: "notification-4", alert: "alert-3", expand: "expand", collapse: "collapse" },
+        navigation: { label: "Навигация", click: "tab-1", tab: "tab-2", success: "success-2", complete: "complete-1", error: "error-2", cancel: "cancel-1", notification: "notification-1", alert: "alert-1", expand: "expand", collapse: "collapse" },
+        calm: { label: "Спокойный", click: "button-2", tab: "tab-3", success: "success-3", complete: "complete-1", error: "error-1", cancel: "cancel-2", notification: "notification-1", alert: "alert-1", expand: "expand", collapse: "collapse" },
+        vivid: { label: "Яркий", click: "button-5", tab: "tab-3", success: "success-3", complete: "complete-1", error: "error-3", cancel: "cancel-2", notification: "notification-4", alert: "alert-3", expand: "expand", collapse: "collapse" }
       };
       const SND = { on: true, vib: true, vol: .6, preset: "standard", ...LS("snd1", {}) };
       if (!SOUND_PRESETS[SND.preset]) SND.preset = "standard";
       SND.vol = Number.isFinite(Number(SND.vol)) ? Math.max(0, Math.min(1, Number(SND.vol))) : .6;
       const saveSnd = () => localStorage.setItem("snd1", JSON.stringify(SND));
-      let AC;
-      function tone(f, at, d, type = "sine", g = .25) {
-        const o = AC.createOscillator(), a = AC.createGain(), t = AC.currentTime + at;
-        o.type = type; o.frequency.value = f;
-        a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g * SND.vol, t + .01); a.gain.exponentialRampToValueAtTime(.0001, t + Math.max(.025, d));
-        o.connect(a).connect(AC.destination); o.start(t); o.stop(t + Math.max(.025, d) + .02);
+      const soundPool = new Map();
+      function playSoundClip(key, delay = 0, force = false) {
+        if (!SND.on && !force) return;
+        const url = SOUND_ASSETS[key];
+        if (!url) return;
+        const play = () => {
+          let audio = soundPool.get(key);
+          if (!audio) { audio = new Audio(url); audio.preload = "auto"; soundPool.set(key, audio); }
+          if (!audio.paused && !audio.ended) audio = audio.cloneNode();
+          audio.volume = SND.vol;
+          try { audio.currentTime = 0; } catch (_) {}
+          const result = audio.play();
+          if (result && typeof result.catch === "function") result.catch(() => {});
+        };
+        if (delay > 0) window.setTimeout(play, delay); else play();
       }
       function snd(k, force = false) {
         if (!SND.on && !force) return;
-        try {
-          AC ||= new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
-          const preset = SOUND_PRESETS[SND.preset] || SOUND_PRESETS.standard;
-          const wave = (kind, index = 0, fallback = "sine") => {
-            const chosen = preset.waves?.[kind] ?? preset.wave ?? fallback;
-            return Array.isArray(chosen) ? (chosen[index] || fallback) : chosen;
-          };
-          const play = (f, at, d, kind, g, index = 0) => tone(f * preset.pitch, at, d * preset.duration, wave(kind, index), g * preset.gain);
-          if (k === "add") { play(1568, 0, .5, "add", .3); play(2349, .07, .6, "add", .2); }
-          else if (k === "click") play(720, 0, .06, "click", .12);
-          else if (k === "low") { play(170, 0, .28, "low", .35, 0); play(120, .08, .3, "low", .3, 1); }
-          else if (k === "fan") [523, 659, 784, 1047, 1319].forEach((f, i) => play(f, i * .1, .45, "fan", .28));
-          else if (k === "preview") [523, 659, 784].forEach((f, i) => play(f, i * .11, .22, "preview", .24));
-        } catch (e) {}
+        const p = SOUND_PRESETS[SND.preset] || SOUND_PRESETS.standard;
+        if (k === "click") playSoundClip(p.click, 0, force);
+        else if (k === "add") playSoundClip(p.success, 0, force);
+        else if (k === "low") playSoundClip(p.notification, 0, force);
+        else if (k === "fan") playSoundClip(p.complete, 0, force);
+        else if (k === "error") playSoundClip(p.error, 0, force);
+        else if (k === "cancel") playSoundClip(p.cancel, 0, force);
+        else if (k === "tab") playSoundClip(p.tab, 0, force);
+        else if (k === "expand") playSoundClip(p.expand, 0, force);
+        else if (k === "collapse") playSoundClip(p.collapse, 0, force);
+        else if (k === "alert") playSoundClip(p.alert, 0, force);
+        else if (k === "preview") { playSoundClip(p.click, 0, true); playSoundClip(p.success, 260, true); playSoundClip(p.notification, 560, true); }
       }
       const vib = (p) => { if (SND.vib && navigator.vibrate) try { navigator.vibrate(p); } catch (e) {} };
       document.addEventListener("click", (e) => { if (e.target.closest("#sPreview")) return; if (e.target.closest("button,.pill,.tile,summary,.tbtn")) snd("click"); }, true);
-      const paintSnd = () => { $("#sOn").checked = SND.on; $("#sVib").checked = SND.vib; $("#sVol").value = SND.vol * 100; $("#vVol").textContent = Math.round(SND.vol * 100) + "%"; $("#sPreset").value = SND.preset; };
-      $("#sOn").onchange = (e) => { SND.on = e.target.checked; saveSnd(); snd("add"); };
+      const paintSnd = () => { $("#sOn").checked = SND.on; $("#sVib").checked = SND.vib; $("#sVol").value = SND.vol * 100; $("#vVol").textContent = Math.round(SND.vol * 100) + "%"; $("#sPreset").value = SND.preset; $("#decorOn").checked = pref.decor !== false; $("#decorLevel").value = ["soft", "normal", "rich"].includes(pref.decorLevel) ? pref.decorLevel : "normal"; };
+      $("#sOn").onchange = (e) => { SND.on = e.target.checked; saveSnd(); if (SND.on) snd("add"); };
       $("#sPreset").onchange = (e) => { SND.preset = SOUND_PRESETS[e.target.value] ? e.target.value : "standard"; saveSnd(); snd("preview", true); };
       $("#sPreview").onclick = () => snd("preview", true);
+      $("#decorOn").onchange = (e) => { pref.decor = e.target.checked; applyPref(); };
+      $("#decorLevel").onchange = (e) => { pref.decorLevel = ["soft", "normal", "rich"].includes(e.target.value) ? e.target.value : "normal"; applyPref(); };
       $("#sVib").onchange = (e) => { SND.vib = e.target.checked; saveSnd(); vib(40); };
       $("#sVol").oninput = (e) => { SND.vol = e.target.value / 100; $("#vVol").textContent = e.target.value + "%"; saveSnd(); };
       $("#sVol").onchange = () => snd("add");

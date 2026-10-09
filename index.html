@@ -3799,7 +3799,7 @@
           const r = el.getBoundingClientRect(), x = r.left + r.width / 2;
           if (!byDate.has(key) || el.hasAttribute("data-chart-hitbox")) byDate.set(key, { key, x, el });
         });
-        chartBrush = { pointerId: e.pointerId, startDate: date, lastX: e.clientX, moved: false, visited: new Set([date]), cells: [...byDate.values()].sort((a, b) => a.x - b.x) };
+        chartBrush = { pointerId: e.pointerId, startDate: date, lastX: e.clientX, moved: false, visited: new Set(), cells: [...byDate.values()].sort((a, b) => a.x - b.x) };
         try { $("#chart2").setPointerCapture(e.pointerId); } catch (_) {}
         e.preventDefault();
       });

@@ -798,6 +798,23 @@
       #dView #sPreview { width: 100%; justify-content: center; min-height: 40px; margin: 9px 0; }
       #dView .sound-credit { margin: 8px 0 0; font-size: .74rem; line-height: 1.45; color: var(--mut); }
       #dView .sound-credit a { color: var(--acl); text-underline-offset: 3px; }
+      #dSet { overflow-y: auto; }
+      .fp-import-box { padding: 14px; margin: 14px 0; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--card) 78%, transparent); }
+      .fp-import-head { display:flex; gap:10px; align-items:flex-start; }
+      .fp-import-icon { display:grid; place-items:center; width:38px; height:38px; flex:none; border-radius:12px; background:color-mix(in srgb,var(--acc) 14%,var(--c2)); font-size:19px; }
+      .fp-import-title { font-weight:850; }
+      .fp-import-desc { color:var(--mut); font-size:.8rem; line-height:1.45; margin:4px 0 12px; }
+      .fp-import-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+      .fp-import-actions .pill { flex:1 1 150px; justify-content:center; }
+      .fp-import-preview { display:grid; gap:9px; margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+      .fp-import-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+      .fp-import-stat { padding:10px; border-radius:12px; background:var(--c2); min-width:0; }
+      .fp-import-stat b { display:block; font-size:1.12rem; font-variant-numeric:tabular-nums; }
+      .fp-import-stat small { display:block; color:var(--mut); font-size:.72rem; }
+      .fp-import-warn { color:var(--mut); font-size:.76rem; line-height:1.45; }
+      .fp-import-status { margin-top:7px; color:var(--mut); font-size:.76rem; overflow-wrap:anywhere; }
+      #fpDeleteFile { color:var(--neg); border-color:color-mix(in srgb,var(--neg) 36%,var(--line)); }
+      @media (max-width:640px) { .fp-import-box { padding:12px; } .fp-import-actions { display:grid; grid-template-columns:1fr; } }
       @media (max-width: 640px) { .undo-fab { bottom: 86px; gap: 7px; padding: 9px 13px; } .undo-fab small { display: none; } }
       dialog {
         background: var(--pop);
@@ -1895,6 +1912,19 @@
           ><input type="file" id="bkIn" accept=".json,application/json" hidden />
         </div>
       </div>
+      <section class="fp-import-box" id="fpImportBox">
+        <div class="fp-import-head"><span class="fp-import-icon" aria-hidden="true">⇅</span><div><div class="fp-import-title">Импорт FunPay</div><p class="fp-import-desc">Загрузи исходный CSV или ZIP-архив из FunPay. Сначала покажу предпросмотр, затем можно импортировать новые операции или удалить все операции, созданные именно из этого файла.</p></div></div>
+        <label for="fpRoleMode">Какие записи загружать</label>
+        <select id="fpRoleMode" aria-label="Тип заказов для импорта"><option value="auto">Автоматически по role в файле</option><option value="buyer">Только покупки (buyer)</option><option value="seller">Только продажи (seller)</option></select>
+        <input type="file" id="fpFile" accept=".csv,.zip,text/csv,application/zip,application/x-zip-compressed" hidden />
+        <div class="fp-import-actions"><button class="pill on" type="button" id="fpChoose">Выбрать CSV / ZIP</button><button class="pill" type="button" id="fpRecheck" hidden>Пересчитать предпросмотр</button></div>
+        <div class="fp-import-status" id="fpStatus" aria-live="polite">Файлы не выбраны</div>
+        <div class="fp-import-preview" id="fpPreview" hidden>
+          <div class="fp-import-stats" id="fpStats"></div>
+          <p class="fp-import-warn" id="fpWarnings"></p>
+          <div class="fp-import-actions"><button class="pill on" type="button" id="fpImportConfirm">Импортировать новые</button><button class="pill" type="button" id="fpDeleteFile">Удалить записи этого файла</button></div>
+        </div>
+      </section>
       <div class="set" id="trashBox"></div>
       <button class="main" id="sSet" type="button">Сохранить</button>
     </dialog>
@@ -2577,6 +2607,11 @@
       }
       async function upd(id, patch) {
         const before = ops.find((o) => o.id == id);
+        if (before && hasFPMarker(before.note)) {
+          const markers = String(before.note).match(FP_MARK_RE) || [];
+          const clean = visibleNote(patch.note ?? before.note);
+          patch = { ...patch, note: [clean, ...markers].filter(Boolean).join(" ") };
+        }
         if (sb) {
           if (!user) return toast("Войдите в аккаунт, чтобы изменить запись.");
           const { data, error } = await sb.from("operations").update(patch).eq("id", id).eq("user_id", user.id).select();
@@ -2801,8 +2836,11 @@
       };
       const col = (n) => `<span class="${n >= 0 ? "pos" : "neg"}">${n > 0 ? "+" : ""}${fmt(n)}</span>`;
       const dm = (d) => d.slice(8) + "." + d.slice(5, 7);
+      const FP_MARK_RE = /\[\[FZFP:([a-f0-9]{8,64}):([^:\]]+):([a-z-]+)\]\]/g;
+      const visibleNote = (note) => String(note || "").replace(FP_MARK_RE, "").replace(/\s{2,}/g, " ").trim();
+      const hasFPMarker = (note) => /\[\[FZFP:[a-f0-9]{8,64}:[^:\]]+:[a-z-]+\]\]/.test(String(note || ""));
       const opRow = (o, sm, gm) =>
-        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${o.note ? `<small class="ell">${esc(o.note)}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
       const ORD = ["purchase", "withdraw", "other", "refund", "sale"],
         GL = {
           purchase: "Закупки",
@@ -3500,7 +3538,7 @@
             typeLabel(o.type),
             o.amount,
             o.fee,
-            '"' + (o.note || "").replace(/"/g, '""') + '"',
+            '"' + (visibleNote(o.note) || "").replace(/"/g, '""') + '"',
           ]),
         ];
         const a = document.createElement("a");
@@ -3587,7 +3625,157 @@
           toast("Не получилось прочитать файл копии");
         }
       };
-      $("#q").oninput = render;
+      /* FunPay CSV/ZIP import. Per-operation markers let the user reselect the same file to remove its imported rows. */
+      let fpSource = null;
+      const fpNormalizeText = (text) => String(text || "").replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").trim();
+      async function fpHashText(text) {
+        const bytes = new TextEncoder().encode(fpNormalizeText(text));
+        if (window.crypto?.subtle) {
+          const digest = await crypto.subtle.digest("SHA-256", bytes);
+          return [...new Uint8Array(digest)].map((x) => x.toString(16).padStart(2, "0")).join("").slice(0, 24);
+        }
+        let h = 2166136261;
+        for (const b of bytes) { h ^= b; h = Math.imul(h, 16777619); }
+        return (h >>> 0).toString(16).padStart(8, "0");
+      }
+      function fpParseCSV(text) {
+        const input = fpNormalizeText(text), rows = []; let row = [], cell = "", quoted = false;
+        for (let i = 0; i < input.length; i++) {
+          const ch = input[i];
+          if (quoted) {
+            if (ch === '"' && input[i + 1] === '"' ) { cell += '"' ; i++; }
+            else if (ch === '"' ) quoted = false;
+            else cell += ch;
+          } else if (ch === '"' && cell.length === 0) quoted = true;
+          else if (ch === ",") { row.push(cell); cell = ""; }
+          else if (ch === "\n") { row.push(cell); if (row.some((v) => v.trim() !== "")) rows.push(row); row = []; cell = ""; }
+          else cell += ch;
+        }
+        row.push(cell); if (row.some((v) => v.trim() !== "")) rows.push(row);
+        if (!rows.length) throw new Error("CSV пустой.");
+        const headers = rows.shift().map((x) => x.trim().toLowerCase().replace(/^\uFEFF/, ""));
+        if (!["order_uid", "role", "status", "amount", "currency"].every((key) => headers.includes(key))) throw new Error("Не найден формат заказа FunPay: нужны order_uid, role, status, amount и currency.");
+        return rows.map((values) => Object.fromEntries(headers.map((key, i) => [key, String(values[i] ?? "").trim()]))).filter((r) => r.order_uid);
+      }
+      async function fpReadZip(file) {
+        const buffer = await file.arrayBuffer(), view = new DataView(buffer), bytes = new Uint8Array(buffer);
+        let eocd = -1;
+        for (let i = Math.max(0, bytes.length - 65557); i <= bytes.length - 22; i++) { if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; } }
+        if (eocd < 0) throw new Error("Не удалось прочитать структуру ZIP-архива.");
+        const count = view.getUint16(eocd + 10, true), centralOffset = view.getUint32(eocd + 16, true);
+        let at = centralOffset; const parts = [];
+        for (let i = 0; i < count && at + 46 <= bytes.length; i++) {
+          if (view.getUint32(at, true) !== 0x02014b50) break;
+          const method = view.getUint16(at + 10, true), compressedSize = view.getUint32(at + 20, true), nameLen = view.getUint16(at + 28, true), extraLen = view.getUint16(at + 30, true), commentLen = view.getUint16(at + 32, true), localOffset = view.getUint32(at + 42, true);
+          const name = new TextDecoder().decode(bytes.slice(at + 46, at + 46 + nameLen)); at += 46 + nameLen + extraLen + commentLen;
+          if (!/\.csv$/i.test(name) || name.endsWith("/")) continue;
+          if (view.getUint32(localOffset, true) !== 0x04034b50) continue;
+          const localNameLen = view.getUint16(localOffset + 26, true), localExtraLen = view.getUint16(localOffset + 28, true), dataStart = localOffset + 30 + localNameLen + localExtraLen;
+          const compressed = bytes.slice(dataStart, dataStart + compressedSize); let plain;
+          if (method === 0) plain = compressed;
+          else if (method === 8 && "DecompressionStream" in window) { const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("deflate-raw")); plain = new Uint8Array(await new Response(stream).arrayBuffer()); }
+          else throw new Error("Этот ZIP использует неподдерживаемый метод сжатия. Распакуй архив и выбери CSV отдельно.");
+          parts.push({ name, text: new TextDecoder("utf-8").decode(plain) });
+        }
+        if (!parts.length) throw new Error("В ZIP не найден CSV-файл.");
+        return parts.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      async function fpReadFile(file) {
+        const parts = /\.zip$/i.test(file.name) ? await fpReadZip(file) : [{ name: file.name, text: await file.text() }];
+        const parsed = parts.map((p) => ({ ...p, text: fpNormalizeText(p.text), rows: fpParseCSV(p.text) }));
+        const allRows = parsed.flatMap((p) => p.rows), hashInput = parsed.length === 1 ? parsed[0].text : parsed.map((p) => p.text).join("\n--- FUNPAY CSV ---\n");
+        return { name: file.name, hash: await fpHashText(hashInput), rows: allRows, csvFiles: parsed.length };
+      }
+      const fpDate = (value) => {
+        const raw = String(value || "").trim(); if (!raw) return today();
+        const d = new Date(raw); if (!Number.isFinite(d.getTime())) return /^\d{4}-\d{2}-\d{2}/.test(raw) ? raw.slice(0, 10) : today();
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      };
+      const fpNumber = (value) => { let text = String(value ?? "").trim().replace(/[\s\u00a0\u202f]/g, ""); if (text.includes(",") && !text.includes(".")) text = text.replace(",", "."); const n = Number(text); return Number.isFinite(n) ? n : NaN; };
+      const fpMarker = (hash, uid, part) => `[[FZFP:${hash}:${encodeURIComponent(uid)}:${part}]]`;
+      const fpHasOrderPart = (uid, part) => { const needle = ":" + encodeURIComponent(uid) + ":" + part + "]]"; return ops.some((o) => String(o.note || "").includes("[[FZFP:") && String(o.note || "").includes(needle)); };
+      function fpBuildPlan(source) {
+        const mode = $("#fpRoleMode").value || "auto", plan = { operations: [], rows: source.rows.length, eligible: 0, duplicates: 0, foreign: 0, unsupported: 0, wrongRole: 0, malformed: 0, partialRefunds: 0, refundedOrders: 0, feeRate: Math.max(0, Math.min(99.9, Number(fees.FunPay?.sale ?? 9))) };
+        const plannedParts = new Set(), genericSections = new Set(["аккаунты", "пополнение", "токены", "робуксы", "валюта", "услуги", "подписки", "прочее", "другое"]);
+        for (const r of source.rows) {
+          const role = (r.role || "").toLowerCase(), status = (r.status || "").toLowerCase(), uid = (r.order_uid || "").trim();
+          if (!["buyer", "seller"].includes(role)) { plan.malformed++; continue; }
+          if (mode !== "auto" && role !== mode) { plan.wrongRole++; continue; }
+          const amount = fpNumber(r.amount);
+          if (!(amount > 0) || !uid) { plan.malformed++; continue; }
+          if ((r.currency || "").toUpperCase() !== "RUB") { plan.foreign++; continue; }
+          if (!["closed", "paid", "refunded"].includes(status)) { plan.unsupported++; continue; }
+          plan.eligible++;
+          const baseDate = fpDate(r.paid_at || r.created_at || r.closed_at), refundDate = fpDate(r.refunded_at || r.closed_at || r.partially_refunded_at || r.paid_at || r.created_at);
+          const gameName = (r.game_name || "").trim(), sectionName = (r.section_name || "").trim();
+          const game = sectionName && !genericSections.has(sectionName.toLowerCase()) ? sectionName : sectionName && gameName ? gameName + " · " + sectionName : gameName || sectionName || "FunPay";
+          const party = role === "buyer" ? (r.seller_name || "продавец") : (r.buyer_name || "покупатель");
+          const refund = status === "refunded", partial = !!r.partially_refunded_at && !refund, fee = role === "seller" ? r2(amount * plan.feeRate / 100) : 0;
+          const baseType = role === "buyer" ? "purchase" : "sale", reverseType = role === "buyer" ? "purchase" : "refund", orderOps = [];
+          const makeOp = (part, type, date, value, opFee, extra) => {
+            const unique = uid + ":" + part; if (plannedParts.has(unique) || fpHasOrderPart(uid, part)) return false; plannedParts.add(unique);
+            const note = `FunPay · ${extra} · заказ #${uid}${partial ? " · частичный возврат указан в экспорте, сумма не дана" : ""} ` + fpMarker(source.hash, uid, part);
+            orderOps.push({ marketplace: "FunPay", date, game, type, amount: r2(value), fee: r2(opFee), note }); return true;
+          };
+          const baseExtra = role === "buyer" ? `покупка у ${party}` : `продажа покупателю ${party} · комиссия по общей ставке ${plan.feeRate}% (оценка)`;
+          makeOp(baseType === "purchase" ? "purchase" : "sale", baseType, baseDate, amount, fee, baseExtra);
+          if (refund) {
+            plan.refundedOrders++;
+            makeOp(role === "buyer" ? "purchase-refund" : "sale-refund", reverseType, refundDate, role === "buyer" ? -amount : amount, role === "buyer" ? 0 : fee, role === "buyer" ? "возврат покупки" : "возврат покупателю");
+          }
+          if (partial) plan.partialRefunds++;
+          if (orderOps.length) plan.operations.push(...orderOps); else plan.duplicates++;
+        }
+        return plan;
+      }
+      function fpRenderPreview() {
+        if (!fpSource) return;
+        const plan = fpBuildPlan(fpSource), batchPrefix = `[[FZFP:${fpSource.hash}:`, fileOps = ops.filter((o) => String(o.note || "").includes(batchPrefix));
+        $("#fpPreview").hidden = false; $("#fpRecheck").hidden = false;
+        $("#fpStats").innerHTML = [["Строк в файле", plan.rows], ["Подходящих заказов", plan.eligible], ["Новых операций", plan.operations.length], ["Уже импортировано", plan.duplicates], ["Записей из этого файла", fileOps.length], ["Пропущено", plan.foreign + plan.unsupported + plan.wrongRole + plan.malformed]].map(([label, value]) => `<div class="fp-import-stat"><b>${value}</b><small>${label}</small></div>`).join("");
+        const warnings = [];
+        if (plan.foreign) warnings.push(`В другой валюте, пропущено: ${plan.foreign}. Finzaro ведёт расчёты в рублях.`);
+        if (plan.unsupported) warnings.push(`Неподдерживаемые статусы, пропущено: ${plan.unsupported}. Импортируются paid, closed и refunded.`);
+        if (plan.partialRefunds) warnings.push(`Частичных возвратов: ${plan.partialRefunds}. CSV содержит дату, но не сумму; запись будет отмечена в заметке без выдуманной суммы.`);
+        if (plan.refundedOrders) warnings.push(`Полных возвратов: ${plan.refundedOrders}. Будут созданы исходная операция и компенсирующая запись на дату возврата.`);
+        if (plan.operations.some((o) => o.type === "sale" || o.type === "refund")) warnings.push(`Точная комиссия в экспорте отсутствует. Для продаж применяется общая ставка FunPay ${plan.feeRate}% как оценка; категории могут отличаться.`);
+        warnings.push("Повторный импорт не создаёт дубли по UID заказа. Маркер источника скрыт и позволяет удалить операции именно этого файла.");
+        $("#fpWarnings").textContent = warnings.join(" ");
+        $("#fpImportConfirm").disabled = !plan.operations.length;
+        $("#fpImportConfirm").textContent = plan.operations.length ? `Импортировать новые · ${plan.operations.length}` : "Новых записей нет";
+        $("#fpDeleteFile").hidden = !fileOps.length; $("#fpDeleteFile").textContent = `Удалить записи этого файла · ${fileOps.length}`;
+        $("#fpStatus").textContent = `${fpSource.name} · ${fpSource.csvFiles} CSV · SHA ${fpSource.hash}`;
+      }
+      $("#fpChoose").onclick = () => $("#fpFile").click();
+      $("#fpRecheck").onclick = fpRenderPreview;
+      $("#fpRoleMode").onchange = () => { if (fpSource) fpRenderPreview(); };
+      $("#fpFile").onchange = async (e) => {
+        const file = e.target.files?.[0]; if (!file) return;
+        $("#fpStatus").textContent = "Читаю " + file.name + "…"; $("#fpPreview").hidden = true;
+        try { fpSource = await fpReadFile(file); fpRenderPreview(); }
+        catch (err) { fpSource = null; $("#fpStatus").textContent = err?.message || "Не удалось прочитать файл."; toast(err?.message || "Не удалось прочитать файл."); }
+        finally { e.target.value = ""; }
+      };
+      $("#fpImportConfirm").onclick = async () => {
+        if (!fpSource) return;
+        const plan = fpBuildPlan(fpSource); if (!plan.operations.length) return toast("Нет новых операций для импорта.");
+        const modeText = $("#fpRoleMode").value === "buyer" ? "покупки" : $("#fpRoleMode").value === "seller" ? "продажи" : "покупки и продажи по role";
+        const yes = await ask({ title: "Импортировать FunPay?", text: `Будет добавлено операций: ${plan.operations.length}. Источник: ${fpSource.name}. Режим: ${modeText}. Существующие записи не будут заменены.` });
+        if (!yes) return;
+        requestOperationFocus(plan.operations[0]);
+        const saved = await add(plan.operations); if (!saved) return;
+        snd("add"); fpRenderPreview(); toast(`Импорт завершён: ${saved.length} операций. Пакет можно отменить кнопкой «Отменить».`);
+      };
+      $("#fpDeleteFile").onclick = async () => {
+        if (!fpSource) return;
+        const prefix = `[[FZFP:${fpSource.hash}:`, fileOps = ops.filter((o) => String(o.note || "").includes(prefix));
+        if (!fileOps.length) return toast("Для этого файла не найдено импортированных записей.");
+        const yes = await ask({ title: "Удалить записи этого файла?", text: `Будут удалены ${fileOps.length} операций, помеченных именно этим CSV/ZIP. Другие операции не затрагиваются. Действие можно отменить.` });
+        if (!yes) return;
+        const ok = await delMany(fileOps.map((o) => o.id), false);
+        if (ok) { fpRenderPreview(); toast(`Удалено записей из файла: ${fileOps.length}. При необходимости нажми «Отменить».`); }
+      };
+            $("#q").oninput = render;
       $("#so").onchange = (e) => {
         so = e.target.value;
         render();

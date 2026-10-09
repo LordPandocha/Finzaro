@@ -2840,7 +2840,7 @@
       const visibleNote = (note) => String(note || "").replace(FP_MARK_RE, "").replace(/\s{2,}/g, " ").trim();
       const hasFPMarker = (note) => /\[\[FZFP:[a-f0-9]{8,64}:[^:\]]+:[a-z-]+\]\]/.test(String(note || ""));
       const opRow = (o, sm, gm) =>
-        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
       const ORD = ["purchase", "withdraw", "other", "refund", "sale"],
         GL = {
           purchase: "Закупки",
@@ -3167,7 +3167,7 @@
         const f = $("#f");
         return calcFee(f.type.value, f.mp.value, +f.amount.value || 0, $("#rate").value, $("#smode").value, f.wm.value);
       };
-      let editId = null,
+      let editId = null, editAmountSign = 1,
         tpls = LS("tpls", []),
         tplEdit = false;
 
@@ -3329,11 +3329,12 @@
         editId = o.id;
         const f = $("#f"),
           a = +o.amount || 0;
+        editAmountSign = a < 0 ? -1 : 1;
         $("#dTitle").textContent = "Редактирование записи";
         $("#tplW").hidden = true;
         $("#types").style.display = o.type === "ad" ? "none" : "";
         f.type.value = o.type;
-        f.amount.value = o.amount;
+        f.amount.value = Math.abs(a);
         const m = [...f.mp].find((r) => r.value === o.marketplace);
         if (m) m.checked = true;
         f.game.value = o.game || "";
@@ -3426,7 +3427,7 @@
       function openAdd() {
         const f = $("#f");
         f.reset();
-        editId = null;
+        editId = null; editAmountSign = 1;
         const hasLast = !!LS("lastTxn", null);
         $("#dTitle").textContent = "Новая запись";
         $("#repeatLast").hidden = !hasLast;
@@ -3491,7 +3492,7 @@
         }
         if (editId) {
           requestOperationFocus({ marketplace: mp, date: f.date.value, game });
-          const updated = await upd(editId, { marketplace: mp, date: f.date.value, game, type: t, amount: r2(amt), fee: r2(fee), note: f.note.value });
+          const updated = await upd(editId, { marketplace: mp, date: f.date.value, game, type: t, amount: r2(amt * editAmountSign), fee: r2(fee * editAmountSign), note: f.note.value });
           if (updated) return $("#dAdd").close();
           pendingFocusOperation = null;
           return;

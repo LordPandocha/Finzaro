@@ -4067,7 +4067,7 @@
         } catch (e) {}
       }
       const vib = (p) => { if (SND.vib && navigator.vibrate) try { navigator.vibrate(p); } catch (e) {} };
-      document.addEventListener("click", (e) => { if (e.target.closest("button,.pill,.tile,summary,.tbtn")) snd("click"); }, true);
+      document.addEventListener("click", (e) => { if (e.target.closest("#sPreview")) return; if (e.target.closest("button,.pill,.tile,summary,.tbtn")) snd("click"); }, true);
       const paintSnd = () => { $("#sOn").checked = SND.on; $("#sVib").checked = SND.vib; $("#sVol").value = SND.vol * 100; $("#vVol").textContent = Math.round(SND.vol * 100) + "%"; $("#sPreset").value = SND.preset; };
       $("#sOn").onchange = (e) => { SND.on = e.target.checked; saveSnd(); snd("add"); };
       $("#sPreset").onchange = (e) => { SND.preset = SOUND_PRESETS[e.target.value] ? e.target.value : "standard"; saveSnd(); snd("preview", true); };

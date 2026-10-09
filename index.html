@@ -3538,13 +3538,15 @@
           const c = S.map((x) => (a += x.p)), N = S.length, W = 320, H = 170,
             mn = Math.min(0, ...c), mx = Math.max(1, ...c),
             X = (i) => 10 + (i / Math.max(N - 1, 1)) * (W - 20), Y = (v) => 12 + ((mx - v) / (mx - mn || 1)) * (H - 34),
+            step = (W - 20) / Math.max(N - 1, 1),
             pts = c.map((v, i) => X(i) + "," + Y(v)).join(" ");
           el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%"><defs><linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".5"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)" stroke-dasharray="4"/><polygon points="${X(0)},${Y(0)} ${pts} ${X(N - 1)},${Y(0)}" fill="url(#gA)"/><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` +
             c.map((v, i) => {
               const label = `${S[i].d.slice(8)}.${S[i].d.slice(5, 7)}.${S[i].d.slice(0, 4)}`,
                 meta = `Прибыль за день: ${fmt(S[i].p)}`,
                 aria = `${label}: накопленная прибыль ${fmt(v)}, за день ${fmt(S[i].p)}`;
-              return `<circle cx="${X(i)}" cy="${Y(v)}" r="10" fill="transparent" stroke="transparent" stroke-width="14" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></circle>` +
+              const left = i === 0 ? 10 : X(i) - step / 2, right = i === N - 1 ? W - 10 : X(i) + step / 2;
+              return `<rect x="${left}" y="12" width="${Math.max(1, right - left)}" height="${H - 34}" fill="transparent" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
                 (S[i].p ? `<circle class="chart-dot" data-chart-key="${S[i].d}" cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--acc)" pointer-events="none"/>` : "");
             }).join("") +
             `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Итого ${fmt(c[N - 1])} · пик ${fmt(mx)}</text></svg>`;

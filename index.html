@@ -799,6 +799,15 @@
       #dView .sound-credit { margin: 8px 0 0; font-size: .74rem; line-height: 1.45; color: var(--mut); }
       #dView .sound-credit a { color: var(--acl); text-underline-offset: 3px; }
       #dSet { overflow-y: auto; }
+      #dSet .set, #dSet .fp-import-box { box-sizing:border-box; min-width:0; }
+      #dSet .set > label { display:block; line-height:1.4; overflow-wrap:normal; }
+      #dSet .set > p { margin:8px 0 0; line-height:1.5; overflow-wrap:break-word; }
+      #dSet .bk-title { font-size:.98rem; font-weight:850; margin-bottom:7px; }
+      #dSet .bk-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
+      #dSet .bk-actions .pill { display:flex; min-width:0; min-height:42px; align-items:center; justify-content:center; padding:9px 10px; text-align:center; white-space:normal; line-height:1.25; }
+      #dSet #csvOut { grid-column:1 / -1; }
+      #dSet .set input[type="checkbox"] { vertical-align:middle; }
+      @media (max-width:380px) { #dSet .bk-actions { grid-template-columns:1fr; } #dSet #csvOut { grid-column:auto; } }
       .fp-import-box { padding: 14px; margin: 14px 0; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--card) 78%, transparent); }
       .fp-import-head { display:flex; gap:10px; align-items:flex-start; }
       .fp-import-icon { display:grid; place-items:center; width:38px; height:38px; flex:none; border-radius:12px; background:color-mix(in srgb,var(--acc) 14%,var(--c2)); font-size:19px; }
@@ -807,7 +816,7 @@
       .fp-import-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
       .fp-import-actions .pill { flex:1 1 150px; justify-content:center; }
       .fp-import-preview { display:grid; gap:9px; margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
-      .fp-import-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+      .fp-import-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; } .fp-import-stat { overflow-wrap:anywhere; }
       .fp-import-stat { padding:10px; border-radius:12px; background:var(--c2); min-width:0; }
       .fp-import-stat b { display:block; font-size:1.12rem; font-variant-numeric:tabular-nums; }
       .fp-import-stat small { display:block; color:var(--mut); font-size:.72rem; }
@@ -1699,12 +1708,12 @@
           <small id="mode"></small><span id="streak"></span>
         </div>
         <div class="row">
-          <button class="ic" id="bEye" data-i="eye" title="Скрыть суммы" aria-label="Скрыть суммы"></button
+          <button class="ic" id="bImport" data-i="import" title="Импорт закупок и продаж FunPay" aria-label="Импорт закупок и продаж FunPay"></button
           ><button class="ic" id="bView" data-i="pal" title="Темы и оформление" aria-label="Темы и оформление"></button
           ><button class="ic" id="bShare" title="Поделиться итогом" aria-label="Поделиться итогом"></button
           ><button class="ic" id="bCalc" data-i="calc" title="Калькулятор цены" aria-label="Калькулятор цены"></button
-          ><button class="ic" id="bSet" data-i="set" title="Комиссии и площадки" aria-label="Комиссии и площадки"></button
-          ><button class="ic" id="bCsv" data-i="dl" title="Скачать таблицу" aria-label="Скачать таблицу"></button
+          ><button class="ic" id="bSet" data-i="set" title="Настройки" aria-label="Настройки"></button
+          ><button class="ic" id="bCsv" data-i="dl" title="Скачать JSON-копию для переноса" aria-label="Скачать JSON-копию для переноса"></button
           ><button class="ic" id="bOut" data-i="out" title="Выйти" hidden></button>
         </div>
       </div>
@@ -1763,7 +1772,7 @@
         </aside>
       </div>
     </div>
-    <button type="button" class="undo-fab" id="bUndo" hidden aria-label="Отменить последнее действие" aria-keyshortcuts="Control+Z Meta+Z"><span aria-hidden="true">↶</span><b>Отменить</b><small id="undoMeta">Последнее действие</small></button>
+    <button type="button" class="undo-fab" id="bUndo" hidden aria-label="Вернуть последнее действие" aria-keyshortcuts="Control+Z Meta+Z"><span aria-hidden="true">↶</span><b>Вернуть действие</b><small id="undoMeta">Ctrl+Z</small></button>
     <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b></button>
     <div id="toast" role="alert"></div>
 
@@ -1868,7 +1877,7 @@
 
     <dialog id="dSet">
       <div class="sh">
-        <b>Комиссии и площадки</b
+        <b>Настройки Finzaro</b
         ><button type="button" class="ic sm" id="cSet" data-i="x" aria-label="Закрыть"></button>
       </div>
       <p class="mut">
@@ -1901,15 +1910,18 @@
           /><button class="pill" id="nAdd" type="button">Добавить</button>
         </div>
       </div>
+      <div class="set" id="hideAmountSetting">
+        <label for="hideAmountsOn"><input type="checkbox" id="hideAmountsOn" style="width:auto;margin-right:8px" />Скрывать суммы в интерфейсе</label>
+        <p class="mut">Спрячет денежные значения на экране. На экспорт и сами записи не влияет.</p>
+      </div>
       <div class="set" id="bk">
-        <label>Перенос данных на другое устройство</label>
-        <p class="mut">
-          Скачайте файл на одном устройстве и загрузите на другом, например с компьютера на телефон.
-        </p>
-        <div class="row" style="flex-wrap: wrap; margin-top: 8px">
-          <button class="pill" id="bkOut" type="button">Скачать копию</button
-          ><label class="pill" for="bkIn">Загрузить копию</label
-          ><input type="file" id="bkIn" accept=".json,application/json" hidden />
+        <label class="bk-title">Перенос данных на другое устройство</label>
+        <p class="mut">Для полного переноса скачай JSON-копию Finzaro и загрузи этот же файл на другом устройстве. CSV — только таблица для Excel, он не восстанавливает операции.</p>
+        <div class="bk-actions">
+          <button class="pill" id="bkOut" type="button">Скачать JSON-копию</button>
+          <label class="pill" for="bkIn">Загрузить JSON-копию</label>
+          <input type="file" id="bkIn" accept=".json,application/json" hidden />
+          <button class="pill" id="csvOut" type="button">Скачать CSV-таблицу</button>
         </div>
       </div>
       <section class="fp-import-box" id="fpImportBox">
@@ -2062,6 +2074,7 @@
           '<path d="M3 3l18 18M10.6 6.2A9.6 9.6 0 0112 6c6 0 10 6 10 6a17 17 0 01-3.2 3.7M6.3 6.8C3.7 8.6 2 12 2 12s4 7 10 7a9.5 9.5 0 004-.9"/>',
         pal: '<path d="M12 3a9 9 0 100 18c1.4 0 2-1 1.5-2-.6-1.2.2-2.5 1.6-2.5H17a4 4 0 004-4c0-5-4-9.5-9-9.5z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
         set: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+        import: '<path d="M12 15V3m0 0L7 8m5-5 5 5M5 14v6h14v-6"/>',
         dl: '<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
         out: '<path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/>',
         plus: '<path d="M12 5v14M5 12h14"/>',
@@ -2499,8 +2512,8 @@
         b.hidden = !undoStack.length;
         b.disabled = undoBusy;
         const last = undoStack[undoStack.length - 1];
-        $("#undoMeta").textContent = undoStack.length > 1 ? `${undoStack.length} действий в истории` : (last?.label || "Последнее действие");
-        b.title = last ? "Отменить: " + last.label : "Нет действий для отмены";
+        $("#undoMeta").textContent = undoStack.length > 1 ? `${undoStack.length} действий · Ctrl+Z` : "Ctrl+Z";
+        b.title = last ? "Вернуть действие: " + last.label + " (Ctrl+Z)" : "Нет действий для возврата";
       }
       function trackUndo(action) {
         if (undoing || !action) return;
@@ -2558,12 +2571,13 @@
       }
       $("#bUndo").addEventListener("click", undoLastAction);
       document.addEventListener("keydown", (e) => {
-        if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z" || e.shiftKey || e.altKey) return;
+        const undoShortcut = (e.ctrlKey || e.metaKey) && (String(e.key || "").toLowerCase() === "z" || e.code === "KeyZ") && !e.shiftKey && !e.altKey;
+        if (!undoShortcut) return;
         const active = document.activeElement;
         if (active && (active.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) return;
         if (!undoStack.length || undoBusy) return;
-        e.preventDefault(); undoLastAction();
-      });
+        e.preventDefault(); e.stopPropagation(); void undoLastAction();
+      }, true);
       async function load() {
         if (sb) {
           if (!user) { ops = []; render(); return []; }
@@ -3529,7 +3543,19 @@
         $("#dAdd").close();
       };
 
-      $("#bCsv").onclick = () => {
+      function downloadBackupCopy() {
+        const payload = {
+          format: "finzaro-backup", v: 2, createdAt: new Date().toISOString(),
+          ops: ops.map((o) => ({ date: o.date, marketplace: o.marketplace, game: o.game || "", type: o.type, amount: Number(o.amount), fee: Number(o.fee) || 0, note: String(o.note || "") })),
+          fees, custom, tpls, goal: LS("goal", 0), pref, chartRange: LS("chartRange2", null)
+        };
+        const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+        const a = document.createElement("a");
+        a.href = url; a.download = "finzaro-" + today() + ".json"; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      $("#bCsv").onclick = downloadBackupCopy;
+      $("#csvOut").onclick = () => {
         const r = [
           ["Дата", "Площадка", "Игра", "Тип", "Сумма", "Комиссия", "Заметка"],
           ...ops.map((o) => [
@@ -3598,32 +3624,66 @@
       };
 
       $("#bk").hidden = !!sb;
-      $("#bkOut").onclick = () => {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(
-          new Blob([JSON.stringify({ v: 1, ops, fees, custom, tpls, goal: LS("goal", 0) })], {
-            type: "application/json",
-          }),
-        );
-        a.download = "finzaro-" + today() + ".json";
-        a.click();
-      };
-      $("#bkIn").onchange = async (e) => {
-        const fl = e.target.files[0];
-        if (!fl) return;
+      $("#bkOut").onclick = downloadBackupCopy;
+      const BACKUP_TYPES = new Set(["sale", "purchase", "other", "refund", "withdraw", "ad"]);
+      function normalizeBackupOperation(o) {
+        if (!o || typeof o !== "object" || Array.isArray(o)) throw new Error("В копии есть некорректная запись.");
+        const date = String(o.date || ""), marketplace = String(o.marketplace || "").trim(), type = String(o.type || "");
+        const amount = Number(o.amount), fee = Number(o.fee ?? 0);
+        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || !marketplace || !BACKUP_TYPES.has(type) || !Number.isFinite(amount) || !Number.isFinite(fee))
+          throw new Error("В копии есть запись с неверной датой, площадкой, типом или суммой.");
+        return { date, marketplace, game: String(o.game || ""), type, amount: r2(amount), fee: r2(fee), note: String(o.note || "") };
+      }
+      async function replaceOperationsFromBackup(rows) {
+        if (!sb) {
+          ops = rows.map((o, i) => ({ ...o, id: Date.now() + i }));
+          localStorage.setItem("ops", JSON.stringify(ops));
+          return;
+        }
+        if (!user) throw new Error("Сначала войди в аккаунт, чтобы заменить облачные данные.");
+        const oldRows = ops.map((o) => normalizeBackupOperation(o));
+        const { error: deleteError } = await sb.from("operations").delete().eq("user_id", user.id);
+        if (deleteError) throw new Error("Не удалось заменить облачные записи: " + deleteError.message);
+        const insertBatches = async (items) => {
+          for (let i = 0; i < items.length; i += 200) {
+            const { error } = await sb.from("operations").insert(items.slice(i, i + 200).map((o) => ({ ...o, user_id: user.id })));
+            if (error) throw new Error(error.message);
+          }
+        };
         try {
-          const d = JSON.parse(await fl.text());
-          if (!Array.isArray(d.ops)) throw 0;
-          if (!(await ask({ title: "Заменить данные?", text: "Данные на этом устройстве будут заменены данными из файла (записей: " + d.ops.length + ")." })))
-            return;
-          localStorage.setItem("ops", JSON.stringify(d.ops));
-          if (d.fees) localStorage.setItem("fees2", JSON.stringify(d.fees));
-          if (d.custom) localStorage.setItem("cmps", JSON.stringify(d.custom));
-          if (d.goal) localStorage.setItem("goal", d.goal);
-          if (d.tpls) localStorage.setItem("tpls", JSON.stringify(d.tpls));
+          await insertBatches(rows);
+        } catch (err) {
+          let restored = false;
+          try {
+            await sb.from("operations").delete().eq("user_id", user.id);
+            await insertBatches(oldRows);
+            restored = true;
+          } catch (_) {}
+          throw new Error("Не удалось загрузить копию в облако: " + (err?.message || "ошибка записи") + (restored ? " Предыдущие операции восстановлены." : " Автоматический возврат старых операций не подтвердился."));
+        }
+      }
+      $("#bkIn").onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const d = JSON.parse(await file.text());
+          if (!d || !Array.isArray(d.ops) || d.ops.length > 100000) throw new Error("Это не копия Finzaro в формате JSON.");
+          const rows = d.ops.map(normalizeBackupOperation);
+          const yes = await ask({ title: "Заменить данные?", text: "Будет загружено операций: " + rows.length + ". Все текущие операции на этом устройстве/в облаке будут заменены данными из JSON-копии." });
+          if (!yes) return;
+          await replaceOperationsFromBackup(rows);
+          if (d.fees && typeof d.fees === "object") localStorage.setItem("fees2", JSON.stringify(d.fees));
+          if (d.custom && typeof d.custom === "object") localStorage.setItem("cmps", JSON.stringify(d.custom));
+          if (d.tpls && typeof d.tpls === "object") localStorage.setItem("tpls", JSON.stringify(d.tpls));
+          if (Object.prototype.hasOwnProperty.call(d, "goal")) localStorage.setItem("goal", JSON.stringify(d.goal));
+          if (d.pref && typeof d.pref === "object") localStorage.setItem("pref3", JSON.stringify(d.pref));
+          if (Object.prototype.hasOwnProperty.call(d, "chartRange")) localStorage.setItem("chartRange2", JSON.stringify(d.chartRange));
+          toast("Копия загружена. Обновляю Finzaro…");
           location.reload();
-        } catch {
-          toast("Не получилось прочитать файл копии");
+        } catch (err) {
+          toast(err?.message || "Не получилось прочитать файл копии");
+        } finally {
+          e.target.value = "";
         }
       };
       /* FunPay CSV/ZIP import. Per-operation markers let the user reselect the same file to remove its imported rows. */
@@ -3696,35 +3756,46 @@
       const fpMarker = (hash, uid, part) => `[[FZFP:${hash}:${encodeURIComponent(uid)}:${part}]]`;
       const fpHasOrderPart = (uid, part) => { const needle = ":" + encodeURIComponent(uid) + ":" + part + "]]"; return ops.some((o) => String(o.note || "").includes("[[FZFP:") && String(o.note || "").includes(needle)); };
       function fpBuildPlan(source) {
-        const mode = $("#fpRoleMode").value || "auto", plan = { operations: [], rows: source.rows.length, eligible: 0, duplicates: 0, foreign: 0, unsupported: 0, wrongRole: 0, malformed: 0, partialRefunds: 0, refundedOrders: 0, feeRate: Math.max(0, Math.min(99.9, Number(fees.FunPay?.sale ?? 9))) };
+        const mode = $("#fpRoleMode").value || "auto";
+        const plan = { operations: [], rows: source.rows.length, eligible: 0, duplicates: 0, foreign: 0, unsupported: 0, wrongRole: 0, malformed: 0, partialRefunds: 0, refundedOrders: 0, refundedPurchases: 0, partialPurchaseRefunds: 0, futureSales: 0, futureOperations: 0, feeRate: Math.max(0, Math.min(99.9, Number(fees.FunPay?.sale ?? 9))) };
         const plannedParts = new Set(), genericSections = new Set(["аккаунты", "пополнение", "токены", "робуксы", "валюта", "услуги", "подписки", "прочее", "другое"]);
+        const now = today();
         for (const r of source.rows) {
-          const role = (r.role || "").toLowerCase(), status = (r.status || "").toLowerCase(), uid = (r.order_uid || "").trim();
+          const role = String(r.role || "").toLowerCase(), status = String(r.status || "").toLowerCase(), uid = String(r.order_uid || "").trim();
           if (!["buyer", "seller"].includes(role)) { plan.malformed++; continue; }
           if (mode !== "auto" && role !== mode) { plan.wrongRole++; continue; }
           const amount = fpNumber(r.amount);
           if (!(amount > 0) || !uid) { plan.malformed++; continue; }
-          if ((r.currency || "").toUpperCase() !== "RUB") { plan.foreign++; continue; }
+          if (String(r.currency || "").toUpperCase() !== "RUB") { plan.foreign++; continue; }
           if (!["closed", "paid", "refunded"].includes(status)) { plan.unsupported++; continue; }
           plan.eligible++;
-          const baseDate = fpDate(r.paid_at || r.created_at || r.closed_at), refundDate = fpDate(r.refunded_at || r.closed_at || r.partially_refunded_at || r.paid_at || r.created_at);
-          const gameName = (r.game_name || "").trim(), sectionName = (r.section_name || "").trim();
+          const baseDate = fpDate(r.paid_at || r.created_at || r.closed_at);
+          const refundDate = fpDate(r.refunded_at || r.closed_at || r.partially_refunded_at || r.paid_at || r.created_at);
+          const partial = !!r.partially_refunded_at && status !== "refunded";
+          if (role === "buyer" && status === "refunded") { plan.refundedPurchases++; continue; }
+          if (role === "buyer" && partial) { plan.partialPurchaseRefunds++; continue; }
+          if (role === "seller" && baseDate > now) { plan.futureSales++; continue; }
+          const gameName = String(r.game_name || "").trim(), sectionName = String(r.section_name || "").trim();
           const game = sectionName && !genericSections.has(sectionName.toLowerCase()) ? sectionName : sectionName && gameName ? gameName + " · " + sectionName : gameName || sectionName || "FunPay";
           const party = role === "buyer" ? (r.seller_name || "продавец") : (r.buyer_name || "покупатель");
-          const refund = status === "refunded", partial = !!r.partially_refunded_at && !refund, fee = role === "seller" ? r2(amount * plan.feeRate / 100) : 0;
-          const baseType = role === "buyer" ? "purchase" : "sale", reverseType = role === "buyer" ? "purchase" : "refund", orderOps = [];
+          const refund = status === "refunded", fee = role === "seller" ? r2(amount * plan.feeRate / 100) : 0;
+          const baseType = role === "buyer" ? "purchase" : "sale", orderOps = [];
           const makeOp = (part, type, date, value, opFee, extra) => {
-            const unique = uid + ":" + part; if (plannedParts.has(unique) || fpHasOrderPart(uid, part)) return false; plannedParts.add(unique);
-            const note = `FunPay · ${extra} · заказ #${uid}${partial ? " · частичный возврат указан в экспорте, сумма не дана" : ""} ` + fpMarker(source.hash, uid, part);
-            orderOps.push({ marketplace: "FunPay", date, game, type, amount: r2(value), fee: r2(opFee), note }); return true;
+            if (date > now) { plan.futureOperations++; return false; }
+            const unique = uid + ":" + part;
+            if (plannedParts.has(unique) || fpHasOrderPart(uid, part)) return false;
+            plannedParts.add(unique);
+            const note = "FunPay · " + extra + " · заказ #" + uid + (partial ? " · частичный возврат указан в экспорте, сумма не дана" : "") + " " + fpMarker(source.hash, uid, part);
+            orderOps.push({ marketplace: "FunPay", date, game, type, amount: r2(value), fee: r2(opFee), note });
+            return true;
           };
-          const baseExtra = role === "buyer" ? `покупка у ${party}` : `продажа покупателю ${party} · комиссия по общей ставке ${plan.feeRate}% (оценка)`;
-          makeOp(baseType === "purchase" ? "purchase" : "sale", baseType, baseDate, amount, fee, baseExtra);
-          if (refund) {
+          const baseExtra = role === "buyer" ? "покупка у " + party : "продажа покупателю " + party + " · комиссия по общей ставке " + plan.feeRate + "% (оценка)";
+          makeOp(role === "buyer" ? "purchase" : "sale", baseType, baseDate, amount, fee, baseExtra);
+          if (refund && role === "seller") {
             plan.refundedOrders++;
-            makeOp(role === "buyer" ? "purchase-refund" : "sale-refund", reverseType, refundDate, role === "buyer" ? -amount : amount, role === "buyer" ? 0 : fee, role === "buyer" ? "возврат покупки" : "возврат покупателю");
+            makeOp("sale-refund", "refund", refundDate, amount, fee, "возврат покупателю");
           }
-          if (partial) plan.partialRefunds++;
+          if (partial && role === "seller") plan.partialRefunds++;
           if (orderOps.length) plan.operations.push(...orderOps); else plan.duplicates++;
         }
         return plan;
@@ -3733,12 +3804,15 @@
         if (!fpSource) return;
         const plan = fpBuildPlan(fpSource), batchPrefix = `[[FZFP:${fpSource.hash}:`, fileOps = ops.filter((o) => String(o.note || "").includes(batchPrefix));
         $("#fpPreview").hidden = false; $("#fpRecheck").hidden = false;
-        $("#fpStats").innerHTML = [["Строк в файле", plan.rows], ["Подходящих заказов", plan.eligible], ["Новых операций", plan.operations.length], ["Уже импортировано", plan.duplicates], ["Записей из этого файла", fileOps.length], ["Пропущено", plan.foreign + plan.unsupported + plan.wrongRole + plan.malformed]].map(([label, value]) => `<div class="fp-import-stat"><b>${value}</b><small>${label}</small></div>`).join("");
+        $("#fpStats").innerHTML = [["Строк в файле", plan.rows], ["Проверено заказов", plan.eligible], ["Новых операций", plan.operations.length], ["Уже импортировано", plan.duplicates], ["Возвраты закупок — пропущены", plan.refundedPurchases + plan.partialPurchaseRefunds], ["Будущие продажи — пропущены", plan.futureSales], ["Записей из этого файла", fileOps.length], ["Другие пропуски", plan.foreign + plan.unsupported + plan.wrongRole + plan.malformed + plan.futureOperations]].map(([label, value]) => '<div class="fp-import-stat"><b>' + value + '</b><small>' + label + '</small></div>').join("");
         const warnings = [];
         if (plan.foreign) warnings.push(`В другой валюте, пропущено: ${plan.foreign}. Finzaro ведёт расчёты в рублях.`);
         if (plan.unsupported) warnings.push(`Неподдерживаемые статусы, пропущено: ${plan.unsupported}. Импортируются paid, closed и refunded.`);
-        if (plan.partialRefunds) warnings.push(`Частичных возвратов: ${plan.partialRefunds}. CSV содержит дату, но не сумму; запись будет отмечена в заметке без выдуманной суммы.`);
-        if (plan.refundedOrders) warnings.push(`Полных возвратов: ${plan.refundedOrders}. Будут созданы исходная операция и компенсирующая запись на дату возврата.`);
+        if (plan.refundedPurchases || plan.partialPurchaseRefunds) warnings.push("Возвраты по закупкам пропущены: " + plan.refundedPurchases + " полных и " + plan.partialPurchaseRefunds + " частичных. Это не даст завысить расходы, если сумма возврата неизвестна.");
+        if (plan.futureSales) warnings.push("Будущие продажи пропущены: " + plan.futureSales + ". В импорт попадут только продажи с датой не позже сегодняшней.");
+        if (plan.futureOperations) warnings.push("Будущие операции возврата пропущены: " + plan.futureOperations + ".");
+        if (plan.partialRefunds) warnings.push("Частичных возвратов продаж: " + plan.partialRefunds + ". CSV содержит дату, но не сумму возврата.");
+        if (plan.refundedOrders) warnings.push("Полных возвратов продаж: " + plan.refundedOrders + ". Для них создаются продажа и компенсирующая запись.");
         if (plan.operations.some((o) => o.type === "sale" || o.type === "refund")) warnings.push(`Точная комиссия в экспорте отсутствует. Для продаж применяется общая ставка FunPay ${plan.feeRate}% как оценка; категории могут отличаться.`);
         warnings.push("Повторный импорт не создаёт дубли по UID заказа. Маркер источника скрыт и позволяет удалить операции именно этого файла.");
         $("#fpWarnings").textContent = warnings.join(" ");
@@ -3796,11 +3870,19 @@
         }
       };
       const eye = (h) => {
-        document.documentElement.classList.toggle("hide", h);
-        $("#bEye").innerHTML = ico(h ? "eyeoff" : "eye");
-        localStorage.setItem("hide", h);
+        document.documentElement.classList.toggle("hide", !!h);
+        const toggle = $("#hideAmountsOn");
+        if (toggle) toggle.checked = !!h;
+        localStorage.setItem("hide", !!h);
       };
-      $("#bEye").onclick = () => eye(!document.documentElement.classList.contains("hide"));
+      $("#hideAmountsOn").onchange = () => eye($("#hideAmountsOn").checked);
+      $("#bImport").onclick = () => {
+        if (!$("#dSet").open) $("#bSet").click();
+        requestAnimationFrame(() => {
+          $("#fpImportBox")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+          $("#fpChoose")?.focus({ preventScroll: true });
+        });
+      };
       eye(LS("hide", false));
       document.addEventListener("keydown", (e) => {
         if (
@@ -4048,48 +4130,53 @@
         });
         return nearest;
       };
-      const brushMarkDate = (date) => {
-        if (!isoDay.test(date)) return;
-        const isNew = !chartBrush.visited.has(date);
-        chartBrush.visited.add(date);
-        chartRange.selectedDates.add(date);
-        if (!isNew) return;
-        document.querySelectorAll("#chart2 [data-chart-key]").forEach((el) => {
-          if (el.dataset.chartKey === date) el.classList.add("chart-brush-selected");
-        });
+      const paintChartBrushPreview = (dates) => {
+        document.querySelectorAll("#chart2 [data-chart-key]").forEach((el) => el.classList.toggle("chart-brush-selected", dates.has(el.dataset.chartKey)));
         document.querySelectorAll("#chartDayChips [data-chart-day]").forEach((el) => {
-          if (el.dataset.chartDay === date) { el.classList.add("selected"); el.setAttribute("aria-pressed", "true"); }
+          const selected = dates.has(el.dataset.chartDay);
+          el.classList.toggle("selected", selected);
+          el.setAttribute("aria-pressed", String(selected));
         });
         const summary = $("#chartRangeSummary");
         const base = summary.textContent.replace(/ · выбрано дней: \d+$/, "");
-        summary.textContent = base + " · выбрано дней: " + chartRange.selectedDates.size;
+        summary.textContent = base + (dates.size ? " · выбрано дней: " + dates.size : "");
       };
       const moveChartBrush = (e) => {
-        if (!chartBrush || e.pointerId !== chartBrush.pointerId) return;
-        const hit = chartPointItem(e.clientX, e.clientY), key = hit?.dataset.chartKey;
-        if (isoDay.test(key || "") && key !== chartBrush.startDate) chartBrush.moved = true;
-        if (chartBrush.moved) {
-          const low = Math.min(chartBrush.lastX, e.clientX), high = Math.max(chartBrush.lastX, e.clientX);
-          chartBrush.cells.forEach((cell) => { if (cell.x >= low - 1 && cell.x <= high + 1) brushMarkDate(cell.key); });
-          if (isoDay.test(key || "")) brushMarkDate(key);
-          brushMarkDate(chartBrush.startDate);
+        if (!chartBrush || !e || e.pointerId !== chartBrush.pointerId || !chartBrush.cells.length) return;
+        const cells = chartBrush.cells;
+        let end = cells[0], distance = Math.abs(cells[0].x - e.clientX);
+        for (let i = 1; i < cells.length; i++) {
+          const d = Math.abs(cells[i].x - e.clientX);
+          if (d < distance) { distance = d; end = cells[i]; }
         }
-        chartBrush.lastX = e.clientX;
+        const startIndex = cells.findIndex((cell) => cell.key === chartBrush.startDate);
+        const endIndex = cells.findIndex((cell) => cell.key === end.key);
+        if (startIndex < 0 || endIndex < 0) return;
+        chartBrush.endDate = end.key;
+        chartBrush.moved = end.key !== chartBrush.startDate && Math.abs(e.clientX - chartBrush.startX) >= 3;
+        if (!chartBrush.moved) { paintChartBrushPreview(chartBrush.baseSelected); return; }
+        const next = new Set(chartBrush.baseSelected);
+        cells.slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex) + 1).forEach((cell) => next.add(cell.key));
+        chartBrush.previewDates = next;
+        paintChartBrushPreview(next);
       };
       const finishChartBrush = (e, canceled = false) => {
         if (!chartBrush || (e && e.pointerId !== chartBrush.pointerId)) return;
+        if (e && !canceled) moveChartBrush(e);
         const brush = chartBrush;
         chartBrush = null;
         chartBrushSuppressClick = true;
-        setTimeout(() => { chartBrushSuppressClick = false; }, 150);
+        setTimeout(() => { chartBrushSuppressClick = false; }, 180);
+        if (canceled) { paintChartBrushPreview(brush.baseSelected); return; }
         if (brush.moved) {
-          brush.visited.forEach((date) => chartRange.selectedDates.add(date));
+          chartRange.selectedDates = new Set(brush.previewDates);
           chartRange.pickerOpen = true;
           saveChartRange();
           resetChartInteraction();
           drawCh();
-        } else if (!canceled && brush.startDate) {
-          toggleChartDate(brush.startDate);
+        } else {
+          paintChartBrushPreview(brush.baseSelected);
+          if (brush.startDate) toggleChartDate(brush.startDate);
         }
       };
       $("#chart2").addEventListener("pointerdown", (e) => {
@@ -4103,7 +4190,7 @@
           const r = el.getBoundingClientRect(), x = r.left + r.width / 2;
           if (!byDate.has(key) || el.hasAttribute("data-chart-hitbox")) byDate.set(key, { key, x, el });
         });
-        chartBrush = { pointerId: e.pointerId, startDate: date, lastX: e.clientX, moved: false, visited: new Set(), cells: [...byDate.values()].sort((a, b) => a.x - b.x) };
+        chartBrush = { pointerId: e.pointerId, startDate: date, endDate: date, startX: e.clientX, moved: false, baseSelected: new Set(chartRange.selectedDates), previewDates: new Set(chartRange.selectedDates), cells: [...byDate.values()].sort((a, b) => a.x - b.x) };
         try { $("#chart2").setPointerCapture(e.pointerId); } catch (_) {}
         e.preventDefault();
       });

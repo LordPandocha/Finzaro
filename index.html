@@ -1685,6 +1685,7 @@
         <div class="tgrid" id="types"></div>
         <label class="tbtn" id="adT" hidden><input type="radio" name="type" value="ad" />Поднятие лота</label>
         <small id="tdesc" style="display: block; margin-top: 8px"></small>
+        <div class="lab" id="amountLabel">Сколько получите после комиссии</div>
         <div class="amt">
           <span>₽</span
           ><input
@@ -1755,7 +1756,7 @@
               <div class="lab">Сумма сверху — это</div>
               <select id="smode">
                 <option value="gross">цена, которую заплатил покупатель</option>
-                <option value="net">деньги, которые пришли мне на баланс</option>
+                <option value="net" selected>деньги, которые пришли мне на баланс</option>
               </select>
             </div>
           </div>
@@ -2937,7 +2938,7 @@
           const r = has ? +rv : +fe.sale;
           let amt = a,
             fee = (a * r) / 100;
-          if (sm === "net" && r < 100) {
+          if (t === "sale" && sm === "net" && r < 100) {
             amt = a / (1 - r / 100);
             fee = amt - a;
           }
@@ -3124,6 +3125,8 @@
         f.game.value = o.game || "";
         f.date.value = o.date;
         f.note.value = o.note || "";
+        // Saved operations store the buyer-paid (gross) amount.
+        $("#smode").value = "gross";
         if (a > 0 && ["sale", "refund", "withdraw"].includes(o.type)) {
           let r = r2(((+o.fee || 0) / a) * 100);
           if (r2((a * r) / 100) !== r2(+o.fee || 0)) r = +(((+o.fee || 0) / a) * 100).toFixed(4);
@@ -3145,6 +3148,11 @@
           sale = t === "sale",
           pr = +$("#promo").value || 0;
         $("#tdesc").textContent = TYPES[t][1];
+        $("#amountLabel").textContent = sale
+          ? ($("#smode").value === "net" ? "Сколько получите после комиссии" : "Сумма, которую заплатил покупатель")
+          : t === "refund" ? "Сумма возврата покупателю"
+          : t === "withdraw" ? "Сумма вывода"
+          : t === "purchase" ? "Сумма закупки" : "Сумма расхода";
         $("#gw").style.display = t === "withdraw" ? "none" : "";
         $("#wmW").style.display = t === "withdraw" ? "" : "none";
         if (!f.wm.value) f.wm.value = fees[mp]?.wdef || "ru";
@@ -3154,7 +3162,7 @@
         });
         $("#promoW").style.display = sale && mp === "Playerok" && !editId ? "" : "none";
         $("#adv").style.display = sale || t === "refund" || t === "withdraw" ? "" : "none";
-        $("#smW").style.display = t === "withdraw" ? "none" : "";
+        $("#smW").style.display = sale ? "" : "none";
         $("#rate").placeholder = "сейчас " + (t === "withdraw" ? wtxt(mp, f.wm.value) : (fees[mp]?.sale ?? 0) + "%");
         $("#fml").textContent = t === "withdraw" ? "Комиссия за вывод · " + WM[f.wm.value] : "Комиссия " + mp;
         $("#feeNow").textContent = r != null
@@ -3236,13 +3244,14 @@
         setRadio(f.type, x.type);
         setRadio(f.mp, x.mp);
         setRadio(f.wm, x.wm);
-        if (x.amount != null) f.amount.value = x.amount;
+        if (x.inputAmount != null) f.amount.value = x.inputAmount;
+        else if (x.amount != null) { f.amount.value = x.amount; $("#smode").value = "gross"; }
         if (x.game != null) f.game.value = x.game || "";
         if (x.promo != null) $("#promo").value = x.promo || "";
-        if (x.date && /^d{4}-d{2}-d{2}$/.test(x.date)) f.date.value = x.date;
+        if (x.date && /^\d{4}-\d{2}-\d{2}$/.test(x.date)) f.date.value = x.date;
         if (x.note != null) f.note.value = x.note || "";
         if (x.rate != null) $("#rate").value = x.rate;
-        if (x.smode) $("#smode").value = x.smode;
+        if (x.inputAmount != null && x.smode) $("#smode").value = x.smode;
         rt = 1;
         f.dispatchEvent(new Event("input", { bubbles: true }));
         $("#amount").focus();
@@ -3272,7 +3281,7 @@
         add(L);
         localStorage.setItem("lastAdd", JSON.stringify({ mp, date: f.date.value }));
         localStorage.setItem("lastTxn", JSON.stringify({
-          mp, date: f.date.value, type: t, amount: r2(amt), fee: r2(fee),
+          mp, date: f.date.value, type: t, amount: r2(amt), inputAmount: r2(+f.amount.value), fee: r2(fee),
           game, promo: +$("#promo").value || 0, note: f.note.value || "",
           rate: $("#rate").value, smode: $("#smode").value, wm: f.wm.value
         }));
@@ -3660,7 +3669,7 @@
       $("#bAdd").addEventListener("click", () => setTimeout(gPrev, 30));
 
       /* ---- звуки (Web Audio) и вибрация ---- */
-      const SND = { on: false, vib: true, vol: .6, ...LS("snd1", {}) };
+      const SND = { on: true, vib: true, vol: .6, ...LS("snd1", {}) };
       const saveSnd = () => localStorage.setItem("snd1", JSON.stringify(SND));
       let AC;
       function tone(f, at, d, type = "sine", g = .25) {

@@ -1199,6 +1199,18 @@
       .chart-day-chip small { font-size: .64rem; color: var(--mut); }
       .chart-day-chip.has-data::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--acc); position: absolute; top: 4px; right: 4px; }
       .chart-day-chip.selected { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 17%, var(--card)); box-shadow: inset 0 0 0 1px var(--acc); }
+      #chartClearDays:not([hidden]) { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 45%, var(--line)); background: color-mix(in srgb, var(--neg) 8%, var(--card)); }
+      #chart2 svg { overflow: visible; }
+      #chart2 [data-chart-item] { user-select: none; }
+      #chart2 [data-chart-hitbox] { cursor: crosshair; }
+      #chart2 [data-chart-hitbox]:focus-visible { outline: none; fill: color-mix(in srgb, var(--acc) 18%, transparent) !important; stroke: var(--acc); stroke-width: 1.5; }
+      #chart2 [data-chart-hitbox].chart-brush-selected { fill: color-mix(in srgb, var(--acc) 18%, transparent) !important; stroke: var(--acc); stroke-width: 1; }
+      #chart2 [data-chart-item].chart-brush-selected:not([data-chart-hitbox]) { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--acc) 70%, transparent)); }
+      .chart-filter-actions { gap: 8px; }
+      .chart-filter-actions .pill { min-height: 36px; }
+      .chart-day-chip { min-height: 44px; }
+      #sPreset { margin-top: 5px; }
+      #sPreview { margin-top: 8px; }
       #chart2 svg text { font-family: inherit; }
       #chart2 [data-chart-item] { cursor: crosshair; outline: none; }
       #chart2 [data-chart-item]:hover { filter: brightness(1.22) drop-shadow(0 0 2px color-mix(in srgb, var(--acc) 55%, transparent)); }
@@ -1703,11 +1715,11 @@
           <div class="card" id="kpi"></div>
           <div class="card" id="plb"></div>
           <div class="card" id="bal"></div>
-          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartPickToggle" aria-pressed="false">Выбрать несколько дней</button><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выбор</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div id="chartDayPicker" class="chart-day-picker" hidden><small id="chartDayPickerHint" class="mut"></small><div id="chartDayChips" class="chart-day-chips"></div></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
+          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartPickToggle" aria-pressed="false">Выбрать несколько дней</button><button type="button" class="pill" id="chartClearDays" hidden>Очистить</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div id="chartDayPicker" class="chart-day-picker" hidden><small id="chartDayPickerHint" class="mut"></small><div id="chartDayChips" class="chart-day-chips"></div></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
       </div>
     </div>
-    <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b><kbd class="fab-kbd">N</kbd></button>
+    <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b></button>
     <div id="toast" role="alert"></div>
 
     <dialog id="dAdd">
@@ -1918,6 +1930,15 @@
       </div>
       <div class="set"><label>Звуки и вибрация</label>
         <label class="chk"><input type="checkbox" id="sOn" />Звуки</label>
+        <label for="sPreset">Набор звуков</label>
+        <select id="sPreset" aria-label="Выберите набор звуков">
+          <option value="standard">Стандартный</option>
+          <option value="soft">Мягкий</option>
+          <option value="glass">Стеклянный</option>
+          <option value="arcade">Аркада</option>
+          <option value="retro">Ретро</option>
+        </select>
+        <button type="button" class="pill" id="sPreview">▶ Прослушать</button>
         <label class="chk"><input type="checkbox" id="sVib" />Вибрация</label>
         <label>Громкость: <span id="vVol"></span></label><input type="range" id="sVol" min="0" max="100" step="5" /></div>
       <button class="pill" id="pReset" type="button">Сбросить</button>
@@ -3596,9 +3617,10 @@
         return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">` +
           `<line x1="8" x2="${W - 8}" y1="${z}" y2="${z}" stroke="var(--line)"/>` +
           it.map((i, x) => {
-            const key = i.key ?? i.l, label = i.label ?? i.l, meta = i.meta || "", aria = `${label}: ${fmt(i.v)}${meta ? "; " + meta : ""}`;
-            return `<rect x="${8 + x * bw + bw * .12}" y="${Math.min(z, Y(i.v))}" width="${bw * .76}" height="${Math.max(1.5, Math.abs(Y(i.v) - z))}" rx="3" fill="${i.v < 0 ? "var(--neg)" : i.c || "var(--acc)"}" opacity="${i.selected === false ? 0.24 : 1}" stroke="${i.selected && i.hasSelection ? "var(--tx)" : "none"}" stroke-width="${i.selected && i.hasSelection ? 1.5 : 0}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
-              (x % k === 0 ? `<text x="${8 + x * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--mut)">${esc(i.l)}</text>` : "");
+            const key = i.key ?? i.l, label = i.label ?? i.l, meta = i.meta || "", isDay = isoDay.test(String(key)), aria = `${label}: ${fmt(i.v)}${meta ? "; " + meta : ""}`;
+            const bar = `<rect x="${8 + x * bw + bw * .12}" y="${Math.min(z, Y(i.v))}" width="${bw * .76}" height="${Math.max(1.5, Math.abs(Y(i.v) - z))}" rx="3" fill="${i.v < 0 ? "var(--neg)" : i.c || "var(--acc)"}" opacity="${i.selected === false ? 0.24 : 1}" stroke="${i.selected && i.hasSelection ? "var(--tx)" : "none"}" stroke-width="${i.selected && i.hasSelection ? 1.5 : 0}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="${isDay ? "-1" : "0"}" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>`;
+            const hitbox = isDay ? `<rect class="chart-hitbox" x="${8 + x * bw}" y="8" width="${bw}" height="${H - 31}" rx="2" fill="transparent" pointer-events="all" data-chart-item data-chart-hitbox data-chart-key="${esc(key)}" data-chart-label="${esc(label)}" data-chart-value="${i.v}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` : "";
+            return bar + hitbox + (x % k === 0 ? `<text x="${8 + x * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--mut)" pointer-events="none">${esc(i.l)}</text>` : "");
           }).join("") + `</svg>`;
       }
       function drawCh() {
@@ -3655,7 +3677,8 @@
           el.innerHTML = `<svg viewBox="0 0 42 42" style="width:70%;max-width:230px;display:block;margin:auto"><circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--line)" stroke-width="5"/>` +
             R.map((x, i) => {
               const pc = (x[1] / tot) * 100, key = "game:" + x[0], meta = `${pc.toFixed(1)}% от положительной прибыли по играм`, aria = `${x[0]}: ${fmt(x[1])}, ${pc.toFixed(1)}%`;
-              const o = `<circle class="chart-slice" cx="21" cy="21" r="15.9155" fill="none" stroke="${PAL[i % 8]}" stroke-width="5" stroke-dasharray="${Math.max(pc - .6, .1)} ${100 - pc + .6}" stroke-dashoffset="${25 - acc}" data-chart-item data-chart-key="${esc(key)}" data-chart-label="${esc(x[0])}" data-chart-value="${x[1]}" data-chart-meta="${esc(meta)}" tabindex="0" role="button" aria-label="${esc(aria)}"><title>${esc(aria)}</title></circle>`;
+              const dash = `${Math.max(pc - .6, .1)} ${100 - pc + .6}`, offset = 25 - acc, itemAttrs = `data-chart-key="${esc(key)}" data-chart-label="${esc(x[0])}" data-chart-value="${x[1]}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"`;
+              const o = `<circle class="chart-slice" cx="21" cy="21" r="15.9155" fill="none" stroke="${PAL[i % 8]}" stroke-width="5" stroke-dasharray="${dash}" stroke-dashoffset="${offset}" data-chart-item ${itemAttrs} tabindex="0" role="button"><title>${esc(aria)}</title></circle><circle class="chart-hitbox" cx="21" cy="21" r="15.9155" fill="none" stroke="transparent" stroke-width="12" stroke-dasharray="${dash}" stroke-dashoffset="${offset}" pointer-events="stroke" data-chart-item data-chart-hitbox ${itemAttrs} tabindex="-1" role="button"><title>${esc(aria)}</title></circle>`;
               acc += pc;
               return o;
             }).join("") +
@@ -3696,7 +3719,7 @@
       }
       function hideChartTooltip() { $("#chartHover").style.display = "none"; $("#chartHover").setAttribute("aria-hidden", "true"); }
       function paintChartSelection() {
-        $("#chart2").querySelectorAll("[data-chart-key]").forEach((el) => el.classList.toggle("chart-selected", !!chartPin && el.dataset.chartKey === chartPin.key));
+        $("#chart2").querySelectorAll("[data-chart-key]:not([data-chart-hitbox])").forEach((el) => el.classList.toggle("chart-selected", !!chartPin && el.dataset.chartKey === chartPin.key));
         $("#chartDetailClear").hidden = !chartPin;
       }
       function resetChartInteraction() {
@@ -3705,22 +3728,100 @@
         setChartDetail(null, false);
         paintChartSelection();
       }
+      let chartBrush = null, chartBrushSuppressClick = false;
+      const chartPointItem = (x, y) => {
+        const under = document.elementFromPoint(x, y);
+        const direct = under?.closest?.("#chart2 [data-chart-item]");
+        if (direct) return direct;
+        const area = $("#chart2").getBoundingClientRect();
+        if (x < area.left || x > area.right || y < area.top || y > area.bottom) return null;
+        let nearest = null, distance = Infinity;
+        document.querySelectorAll("#chart2 [data-chart-item][data-chart-key]").forEach((el) => {
+          const key = el.dataset.chartKey;
+          if (!isoDay.test(key)) return;
+          const r = el.getBoundingClientRect(), d = Math.abs(x - (r.left + r.width / 2));
+          if (d < distance) { distance = d; nearest = el; }
+        });
+        return nearest;
+      };
+      const brushMarkDate = (date) => {
+        if (!isoDay.test(date)) return;
+        chartBrush.visited.add(date);
+        chartRange.selectedDates.add(date);
+        document.querySelectorAll("#chart2 [data-chart-key]").forEach((el) => {
+          if (el.dataset.chartKey === date) el.classList.add("chart-brush-selected");
+        });
+        document.querySelectorAll("#chartDayChips [data-chart-day]").forEach((el) => {
+          if (el.dataset.chartDay === date) { el.classList.add("selected"); el.setAttribute("aria-pressed", "true"); }
+        });
+        const summary = $("#chartRangeSummary");
+        const base = summary.textContent.replace(/ · выбрано дней: \d+$/, "");
+        summary.textContent = base + " · выбрано дней: " + chartRange.selectedDates.size;
+      };
+      const moveChartBrush = (e) => {
+        if (!chartBrush || e.pointerId !== chartBrush.pointerId) return;
+        const hit = chartPointItem(e.clientX, e.clientY), key = hit?.dataset.chartKey;
+        if (isoDay.test(key || "") && key !== chartBrush.startDate) chartBrush.moved = true;
+        if (chartBrush.moved) {
+          const low = Math.min(chartBrush.lastX, e.clientX), high = Math.max(chartBrush.lastX, e.clientX);
+          chartBrush.cells.forEach((cell) => { if (cell.x >= low - 1 && cell.x <= high + 1) brushMarkDate(cell.key); });
+          if (isoDay.test(key || "")) brushMarkDate(key);
+          brushMarkDate(chartBrush.startDate);
+        }
+        chartBrush.lastX = e.clientX;
+      };
+      const finishChartBrush = (e, canceled = false) => {
+        if (!chartBrush || (e && e.pointerId !== chartBrush.pointerId)) return;
+        const brush = chartBrush;
+        chartBrush = null;
+        chartBrushSuppressClick = true;
+        setTimeout(() => { chartBrushSuppressClick = false; }, 500);
+        if (brush.moved) {
+          brush.visited.forEach((date) => chartRange.selectedDates.add(date));
+          chartRange.pickerOpen = true;
+          saveChartRange();
+          resetChartInteraction();
+          drawCh();
+        } else if (!canceled && brush.startDate) {
+          toggleChartDate(brush.startDate);
+        }
+      };
+      $("#chart2").addEventListener("pointerdown", (e) => {
+        if (!chartRange.pickDays || e.button !== 0 || e.pointerType === "touch" || !e.isPrimary) return;
+        const item = e.target.closest?.("[data-chart-item]"), date = item?.dataset.chartKey;
+        if (!isoDay.test(date || "")) return;
+        const byDate = new Map();
+        document.querySelectorAll("#chart2 [data-chart-item][data-chart-key]").forEach((el) => {
+          const key = el.dataset.chartKey;
+          if (!isoDay.test(key)) return;
+          const r = el.getBoundingClientRect(), x = r.left + r.width / 2;
+          if (!byDate.has(key) || el.hasAttribute("data-chart-hitbox")) byDate.set(key, { key, x, el });
+        });
+        chartBrush = { pointerId: e.pointerId, startDate: date, lastX: e.clientX, moved: false, visited: new Set([date]), cells: [...byDate.values()].sort((a, b) => a.x - b.x) };
+        try { $("#chart2").setPointerCapture(e.pointerId); } catch (_) {}
+        e.preventDefault();
+      });
+      $("#chart2").addEventListener("pointerup", (e) => finishChartBrush(e, false));
+      $("#chart2").addEventListener("pointercancel", (e) => finishChartBrush(e, true));
       $("#chart2").addEventListener("pointerover", (e) => {
+        if (chartBrush) return;
         const el = e.target.closest("[data-chart-item]");
         if (el && !chartPin) showChartTooltip(readChartItem(el), e);
       });
       $("#chart2").addEventListener("pointermove", (e) => {
+        if (chartBrush) { moveChartBrush(e); hideChartTooltip(); return; }
         const el = e.target.closest("[data-chart-item]");
         if (el && !chartPin) showChartTooltip(readChartItem(el), e);
         else if (chartPin) hideChartTooltip();
       });
-      $("#chart2").addEventListener("pointerleave", () => { hideChartTooltip(); if (!chartPin) setChartDetail(null, false); });
+      $("#chart2").addEventListener("pointerleave", () => { if (chartBrush) return; hideChartTooltip(); if (!chartPin) setChartDetail(null, false); });
       $("#chart2").addEventListener("focusin", (e) => { const el = e.target.closest("[data-chart-item]"); if (el && !chartPin) setChartDetail(readChartItem(el), false); });
       $("#chart2").addEventListener("keydown", (e) => {
         if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-chart-item]")) { e.preventDefault(); e.target.closest("[data-chart-item]").click(); }
       });
       $("#chCard").onclick = (e) => {
         const item = e.target.closest("#chart2 [data-chart-item]");
+        if (chartBrushSuppressClick && item) { chartBrushSuppressClick = false; return; }
         if (item) {
           const next = readChartItem(item);
           if (chartRange.pickDays && isoDay.test(next.key)) { toggleChartDate(next.key); return; }
@@ -3928,29 +4029,47 @@
       $("#bAdd").addEventListener("click", () => setTimeout(gPrev, 30));
 
       /* ---- звуки (Web Audio) и вибрация ---- */
-      const SND = { on: true, vib: true, vol: .6, ...LS("snd1", {}) };
+      const SOUND_PRESETS = {
+        standard: { label: "Стандартный", pitch: 1, duration: 1, gain: 1, waves: { add: "sine", click: "triangle", low: ["triangle", "sine"], fan: "triangle", preview: "triangle" } },
+        soft: { label: "Мягкий", pitch: .82, duration: 1.18, gain: .65, wave: "sine" },
+        glass: { label: "Стеклянный", pitch: 1.22, duration: 1.04, gain: .76, wave: "triangle" },
+        arcade: { label: "Аркада", pitch: 1.15, duration: .72, gain: .48, wave: "square" },
+        retro: { label: "Ретро", pitch: .9, duration: .88, gain: .45, wave: "sawtooth" },
+      };
+      const SND = { on: true, vib: true, vol: .6, preset: "standard", ...LS("snd1", {}) };
+      if (!SOUND_PRESETS[SND.preset]) SND.preset = "standard";
+      SND.vol = Number.isFinite(Number(SND.vol)) ? Math.max(0, Math.min(1, Number(SND.vol))) : .6;
       const saveSnd = () => localStorage.setItem("snd1", JSON.stringify(SND));
       let AC;
       function tone(f, at, d, type = "sine", g = .25) {
         const o = AC.createOscillator(), a = AC.createGain(), t = AC.currentTime + at;
         o.type = type; o.frequency.value = f;
-        a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g * SND.vol, t + .01); a.gain.exponentialRampToValueAtTime(.0001, t + d);
-        o.connect(a).connect(AC.destination); o.start(t); o.stop(t + d + .02);
+        a.gain.setValueAtTime(0, t); a.gain.linearRampToValueAtTime(g * SND.vol, t + .01); a.gain.exponentialRampToValueAtTime(.0001, t + Math.max(.025, d));
+        o.connect(a).connect(AC.destination); o.start(t); o.stop(t + Math.max(.025, d) + .02);
       }
-      function snd(k) {
-        if (!SND.on) return;
+      function snd(k, force = false) {
+        if (!SND.on && !force) return;
         try {
           AC ||= new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
-          if (k === "add") { tone(1568, 0, .5, "sine", .3); tone(2349, .07, .6, "sine", .2); }
-          else if (k === "click") tone(720, 0, .06, "triangle", .12);
-          else if (k === "low") { tone(170, 0, .28, "triangle", .35); tone(120, .08, .3, "sine", .3); }
-          else if (k === "fan") [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * .1, .45, "triangle", .28));
+          const preset = SOUND_PRESETS[SND.preset] || SOUND_PRESETS.standard;
+          const wave = (kind, index = 0, fallback = "sine") => {
+            const chosen = preset.waves?.[kind] ?? preset.wave ?? fallback;
+            return Array.isArray(chosen) ? (chosen[index] || fallback) : chosen;
+          };
+          const play = (f, at, d, kind, g, index = 0) => tone(f * preset.pitch, at, d * preset.duration, wave(kind, index), g * preset.gain);
+          if (k === "add") { play(1568, 0, .5, "add", .3); play(2349, .07, .6, "add", .2); }
+          else if (k === "click") play(720, 0, .06, "click", .12);
+          else if (k === "low") { play(170, 0, .28, "low", .35, 0); play(120, .08, .3, "low", .3, 1); }
+          else if (k === "fan") [523, 659, 784, 1047, 1319].forEach((f, i) => play(f, i * .1, .45, "fan", .28));
+          else if (k === "preview") [523, 659, 784].forEach((f, i) => play(f, i * .11, .22, "preview", .24));
         } catch (e) {}
       }
       const vib = (p) => { if (SND.vib && navigator.vibrate) try { navigator.vibrate(p); } catch (e) {} };
       document.addEventListener("click", (e) => { if (e.target.closest("button,.pill,.tile,summary,.tbtn")) snd("click"); }, true);
-      const paintSnd = () => { $("#sOn").checked = SND.on; $("#sVib").checked = SND.vib; $("#sVol").value = SND.vol * 100; $("#vVol").textContent = Math.round(SND.vol * 100) + "%"; };
+      const paintSnd = () => { $("#sOn").checked = SND.on; $("#sVib").checked = SND.vib; $("#sVol").value = SND.vol * 100; $("#vVol").textContent = Math.round(SND.vol * 100) + "%"; $("#sPreset").value = SND.preset; };
       $("#sOn").onchange = (e) => { SND.on = e.target.checked; saveSnd(); snd("add"); };
+      $("#sPreset").onchange = (e) => { SND.preset = SOUND_PRESETS[e.target.value] ? e.target.value : "standard"; saveSnd(); snd("preview", true); };
+      $("#sPreview").onclick = () => snd("preview", true);
       $("#sVib").onchange = (e) => { SND.vib = e.target.checked; saveSnd(); vib(40); };
       $("#sVol").oninput = (e) => { SND.vol = e.target.value / 100; $("#vVol").textContent = e.target.value + "%"; saveSnd(); };
       $("#sVol").onchange = () => snd("add");

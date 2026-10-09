@@ -2513,6 +2513,10 @@
           } else if (action.type === "delete") {
             const rows = action.rows.map((o) => { const { id, user_id, created_at, updated_at, ...rest } = o; return user ? { ...rest, user_id: user.id } : rest; });
             success = !!(await add(rows));
+            if (success && action.trashIds?.length) {
+              localStorage.setItem("trash2", JSON.stringify(LS("trash2", []).filter((x) => !action.trashIds.includes(x.tid))));
+              if ($("#dSet")?.open) renderTrash();
+            }
           }
         } catch (_) { success = false; }
         undoing = false; undoBusy = false;
@@ -2594,8 +2598,8 @@
           ops = ops.filter((o) => !ids.includes(o.id));
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        if (!silent) toTrash(rows);
-        if (rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), label: "удаление" });
+        const trashIds = !silent && rows.length ? toTrash(rows) : [];
+        if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
         await load();
         return true;
       }
@@ -2609,8 +2613,8 @@
           ops = ops.filter((o) => o.id != id);
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        if (!silent) toTrash(rows);
-        if (rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), label: "удаление" });
+        const trashIds = !silent && rows.length ? toTrash(rows) : [];
+        if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
         await load();
         return true;
       }

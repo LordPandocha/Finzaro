@@ -1749,7 +1749,7 @@
           </div>
           <div id="feeAdv" hidden>
             <div class="lab">В этой операции комиссия, %</div>
-            <input id="rate" type="number" step="0.1" min="0" /><small class="mut"
+            <input id="rate" type="number" step="0.1" min="0" max="99.9" /><small class="mut"
               >Оставьте пустым — возьмётся тариф площадки. Если у тарифа есть фиксированная часть, она тоже учитывается.</small
             >
             <div id="smW">
@@ -3168,8 +3168,10 @@
         $("#feeNow").textContent = r != null
           ? (t === "withdraw" ? wdFormula(mp, f.wm.value, $("#rate").value) + " = " + fmt(fee) : (+r).toFixed(2) + "% = " + fmt(fee))
           : "";
-        $("#hint").textContent = !amt
-          ? "Введите сумму — здесь появится расчёт."
+        $("#hint").textContent = sale && !(r >= 0 && r < 100)
+          ? "Комиссия продажи должна быть от 0 до 99,9%."
+          : !amt
+            ? "Введите сумму — здесь появится расчёт."
           : sale
             ? `Покупатель заплатил ${fmt(amt)}. Комиссия ${mp} (${+r.toFixed(2)}%) — ${fmt(fee)}. Вам придёт ${fmt(amt - fee)}.` +
               (mp === "Playerok" && pr
@@ -3263,11 +3265,16 @@
         const f = e.target,
           t = f.type.value,
           mp = f.mp.value,
-          { amt, fee } = F(),
+          { amt, fee, r } = F(),
           game = t === "withdraw" ? null : f.game.value.trim() || null,
           b = { marketplace: mp, date: f.date.value, game },
           L = [{ ...b, type: t, amount: r2(amt), fee: r2(fee), note: f.note.value || (t === "withdraw" ? WM[f.wm.value] : "") }],
           pr = +$("#promo").value || 0;
+        if (t === "sale" && !(r >= 0 && r < 100)) {
+          toast("Комиссия продажи должна быть от 0 до 99,9%.");
+          $("#rate").focus();
+          return;
+        }
         if (editId) {
           upd(editId, { marketplace: mp, date: f.date.value, game, type: t, amount: r2(amt), fee: r2(fee), note: f.note.value });
           if (game) opened.add("g|" + game);

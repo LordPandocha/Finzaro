@@ -3741,8 +3741,7 @@
           // Purchases are inventory assets, not instant P&L expenses.
           // Recognize their cost only as units are sold (synthetic FIFO COGS below)
           // or written off. Missing stock never creates negative inventory or blocks sales.
-          if (o.type === "purchase" && (+o.amount || 0) > 0) continue;
-          if (o.type === "purchase" && (+o.amount || 0) === 0) continue;
+          if (o.type === "purchase") continue;
           out.push(o);
           if (o.type === "sale") {
             const cost = inventory.cogsBySale.get(String(o.id)) || 0;
@@ -3772,7 +3771,7 @@
         return out;
       }
 
-      /* Прибыль = продажи − возвраты − комиссия − закупки − поднятие лотов − прочие траты. Вывод в прибыль не входит. */
+      /* P&L input is a transformed ledger: purchases are inventory assets; only sold/write-off cost is added as COGS. Withdrawals remain transfers, except an enabled withdrawal fee. */
       const agg = (l) => {
         const t = { sales: 0, comm: 0, purch: 0, oth: 0, wd: 0, wfee: 0 };
         for (const o of l) {
@@ -4663,7 +4662,7 @@
               : t === "withdraw"
                 ? `Вы выводите ${fmt(amt)}. Комиссия ${wdFormula(mp, f.wm.value, $("#rate").value)} = ${fmt(fee)}, на карту придёт ${fmt(amt - fee)}. На прибыль это не влияет.` + (!wdRule(mp, f.wm.value) && wraw(mp, f.wm.value) == null && $("#rate").value === "" ? " ⚠️ Ставка этого способа не задана — комиссия сейчас 0%. Впишите её в «Комиссии и площадки» или в поле «Изменить»." : "")
                 : t === "purchase"
-                  ? `Закупка ${fmt(amt)} вычтется из прибыли.`
+                  ? `Закупка ${fmt(amt)} попадёт в склад. Прибыль не изменится, пока товар не будет продан или списан.`
                   : `Расход ${fmt(amt)} вычтется из прибыли.`;
         const rec = [...new Set(ops.filter((o) => o.marketplace === mp && o.game).map((o) => o.game))].slice(
           -4,

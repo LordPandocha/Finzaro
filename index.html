@@ -2211,6 +2211,94 @@
       .app-main tbody tr:hover td{background:var(--ui-accent-soft)}
       .app-main hr{border:0;border-top:1px solid var(--ui-border)}
       .app-main .panel,.app-main .table-wrap,.app-main .table-card{background:var(--ui-surface);border-color:var(--ui-border);color:var(--ui-ink)}
+
+      /* Cross-device fix pass: viewport-fixed rail, robust analytics range totals and larger type. */
+      .app-shell{display:block!important;padding-left:218px!important;min-width:0}
+      .app-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:218px!important;height:100vh;height:100dvh;min-height:0!important;max-height:100dvh;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;z-index:100}
+      .app-main{min-width:0;width:100%;margin:0}
+      .app-main .wrap{min-width:0}
+      @media(max-width:1250px) and (min-width:1021px){
+        .app-shell{padding-left:196px!important}
+        .app-sidebar{width:196px!important}
+      }
+      @media(max-width:1020px) and (min-width:681px){
+        .app-shell{display:block!important;padding-left:68px!important}
+        .app-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:68px!important;height:100vh;height:100dvh;min-height:0!important;display:flex;align-items:center;overflow-y:auto!important;padding:17px 8px 13px}
+      }
+      @media(max-width:680px){
+        .app-shell{display:block!important;padding-left:60px!important}
+        .app-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:60px!important;height:100vh;height:100dvh;min-height:0!important;max-height:100dvh;display:flex;flex-direction:column;align-items:stretch;overflow:hidden!important}
+        .sidebar-nav{min-height:0;overflow-y:auto!important;overscroll-behavior:contain}
+      }
+      @media(max-width:390px){
+        .app-shell{padding-left:56px!important}
+        .app-sidebar{width:56px!important}
+      }
+      html{font-size:17px}
+      @media(max-width:680px){html{font-size:16px}}
+      .app-main small,.app-main .mut{font-size:max(.78rem, .76em);line-height:1.42}
+      .app-main .dashboard-widgets small,.app-main .dashboard-bottom-grid small{font-size:max(.78rem, .76em)}
+      .app-main .metric-head{font-size:.9rem}
+      .app-main .metric-foot{font-size:.82rem;line-height:1.4}
+      .app-main .recent-copy b{font-size:.9rem}
+      .app-main .recent-copy small{font-size:.8rem}
+      .app-main .platform-number b{font-size:.87rem}
+      .app-main .platform-number small{font-size:.78rem}
+      .app-main .dash-widget-head b{font-size:1rem}
+      .app-main .dash-widget-head small{font-size:.82rem}
+      .app-main .fc-bottomline,.app-main .fc-chart-top{font-size:.84rem;line-height:1.45}
+      .app-main .pb{font-size:.88rem}
+      .app-main #chartRangeSummary{font-size:.82rem;line-height:1.45}
+      .chart-selection-summary{margin-top:9px;color:var(--tx);font-size:.9rem;line-height:1.4;font-weight:750}
+      .chart-selection-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--c2)}
+      .selection-total{display:grid;align-content:start;gap:5px;min-width:0}
+      .selection-total small{font-size:.8rem!important;color:var(--mut)}
+      .selection-total b{font-size:1.02rem;font-weight:850;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+      .selection-total-profit{padding-left:12px;border-left:1px solid var(--line)}
+      .selection-total .pos{color:var(--pos)}.selection-total .neg{color:var(--neg)}
+      .selection-total-meta{grid-column:1/-1;color:var(--mut);font-size:.78rem;line-height:1.4;padding-top:5px;border-top:1px solid var(--line)}
+      .chart-selection-totals.is-preview{display:flex;align-items:center;gap:10px;border-color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--card))}
+      .selection-preview-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:color-mix(in srgb,var(--acc) 13%,var(--card));color:var(--acc);font-size:1.25rem;flex:none}
+      .chart-selection-totals.is-preview>div:last-child{display:grid;gap:4px}
+      .chart-selection-totals.is-preview b{font-size:.9rem}
+      .chart-selection-totals.is-preview small{font-size:.8rem;color:var(--mut);line-height:1.4}
+      .chart-detail{min-width:0}
+      #chartDetailValue{font-size:1.35rem}
+      #chartDetailMeta{font-size:.84rem;line-height:1.45}
+      .dash-trend-readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--c2)}
+      .dash-trend-readout>div{display:grid;gap:3px;min-width:0}
+      .dash-trend-readout small{font-size:.78rem!important;color:var(--mut)}
+      .dash-trend-readout b{font-size:.92rem;font-weight:850;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+      .dash-trend-readout .dtr-income{color:var(--acc)}
+      .dash-trend-readout .dtr-expenses{color:var(--neg)}
+      .dash-trend-hint{display:block;margin-top:7px;font-size:.76rem!important;color:var(--mut);line-height:1.4}
+      .dash-trend-hitbox{cursor:crosshair;outline:none}
+      .dash-trend-hitbox:focus{fill:color-mix(in srgb,var(--acc) 12%,transparent);stroke:var(--acc);stroke-width:1}
+      .dash-trend-chart svg{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+      @media(max-width:680px){
+        .chart-selection-totals{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px;gap:8px}
+        .selection-total-profit{grid-column:1/-1;padding:10px 0 0;border-left:0;border-top:1px solid var(--line)}
+        .selection-total b{font-size:.98rem}
+        .dash-trend-readout{gap:8px;padding:9px}
+        .dash-trend-readout b{font-size:.88rem}
+      }
+      @media(max-width:380px){
+        .chart-selection-totals{grid-template-columns:minmax(0,1fr)}
+        .selection-total-profit{grid-column:auto}
+      }
+      @media(prefers-reduced-motion:reduce){
+        .dash-trend-hitbox,.chart-selection-totals,.chart-detail{transition:none!important}
+      }
+
+      .chart-filter-actions{display:flex;flex-wrap:wrap;gap:8px}
+      #chartPickDaysToggle{min-height:40px}
+      #chartPickDaysToggle.on{background:var(--ui-accent-soft);color:var(--ui-ink);border-color:var(--ui-accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ui-accent) 20%,transparent)}
+      #chartPickDaysToggle:focus-visible{outline:2px solid var(--ui-focus);outline-offset:2px}
+      @media(max-width:680px){
+        #chartPickDaysToggle{min-height:44px;flex:1}
+        #chartClearDays{min-height:44px}
+        #chart2:not(.chart-picking){touch-action:pan-y}
+      }
     </style>
   </head>
   <body>
@@ -2329,7 +2417,7 @@
           </div>
         </main>
         <aside>
-          <div class="card" id="chCard"><b><span class="panel-title-icon" data-i="chart"></span> Расширенная аналитика</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выделение</button></div><small class="chart-range-summary" id="chartRangeSummary"></small></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
+          <div class="card" id="chCard"><b><span class="panel-title-icon" data-i="chart"></span> Расширенная аналитика</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartPickDaysToggle" aria-pressed="false" title="Включить выделение дней касанием">Выделять дни</button><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выделение</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div class="chart-selection-summary" id="chartSelectionSummary" aria-live="polite">Выдели один день или протяни по столбцам, чтобы посчитать итоги.</div><div class="chart-selection-totals" id="chartSelectionTotals" hidden aria-live="polite"></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
       </div>
         </div>
@@ -3942,17 +4030,77 @@
           dates = Array.from({ length: count }, (_, i) => selectedMonth + "-" + String(i + 1).padStart(2, "0"));
           if (selectedMonth === today().slice(0, 7)) dates = dates.filter((d) => d <= today());
         }
-        if (!dates.length || !chartOps.length) { $("#dashTrendChart").innerHTML = '<div class="dash-trend-empty">Добавь продажи и расходы — здесь появится их динамика.</div>'; return; }
-        const rows = dates.map((d) => ({ d, ...agg(group[d] || []) })), maxV = Math.max(1, ...rows.map((r) => Math.max(r.sales, r.spent)));
-        const W=420,H=142,L=9,R=7,T=8,B=23,x=(i)=>L+(i/Math.max(1,rows.length-1))*(W-L-R),y=(v)=>T+(1-v/maxV)*(H-T-B);
-        const pathFor=(key)=>rows.map((r,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(r[key]).toFixed(1)).join(" ");
-        const salesPath=pathFor("sales"),spentPath=pathFor("spent"),saleArea=salesPath+" L "+x(rows.length-1).toFixed(1)+" "+(H-B)+" L "+x(0).toFixed(1)+" "+(H-B)+" Z";
-        const ticks=[0,Math.floor((rows.length-1)/2),rows.length-1].filter((v,i,a)=>a.indexOf(v)===i);
-        const grid=[.25,.5,.75,1].map(k=>{const yy=y(maxV*k);return '<line class="trend-grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/>';}).join("");
-        const labels=ticks.map(i=>'<text class="trend-axis" x="'+x(i).toFixed(1)+'" y="'+(H-5)+'" text-anchor="'+(i===0?"start":i===rows.length-1?"end":"middle")+'">'+Number(rows[i].d.slice(8))+'</text>').join("");
-        const last=rows[rows.length-1];
-        $("#dashTrendChart").innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Динамика дохода и расходов по дням"><defs><linearGradient id="dashTrendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>'+grid+'<path d="'+saleArea+'" fill="url(#dashTrendFill)"/><path d="'+salesPath+'" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="'+spentPath+'" fill="none" stroke="var(--neg)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+x(rows.length-1).toFixed(1)+'" cy="'+y(last.sales).toFixed(1)+'" r="3" fill="var(--acc)"/><circle cx="'+x(rows.length-1).toFixed(1)+'" cy="'+y(last.spent).toFixed(1)+'" r="3" fill="var(--neg)"/>'+labels+'</svg>';
-        $("#dashTrendWidget").setAttribute("title","Последний день: доход "+fmt(last.sales)+", расходы "+fmt(last.spent));
+        const host = $("#dashTrendChart");
+        if (!dates.length || !chartOps.length) {
+          host.innerHTML = '<div class="dash-trend-empty">Добавь продажи и расходы — здесь появится их динамика.</div>';
+          return;
+        }
+        const rows = dates.map((d) => {
+          const a = agg(group[d] || []);
+          return { d, sales: a.sales, spent: a.spent, profit: a.profit };
+        });
+        const minV = Math.min(0, ...rows.flatMap((r) => [r.sales, r.spent]));
+        const maxV = Math.max(1, ...rows.flatMap((r) => [r.sales, r.spent]));
+        const W = 420, H = 142, L = 9, R = 7, T = 8, B = 23;
+        const x = (i) => L + (i / Math.max(1, rows.length - 1)) * (W - L - R);
+        const y = (v) => T + ((maxV - v) / (maxV - minV || 1)) * (H - T - B);
+        const zeroY = y(0);
+        const step = (W - L - R) / Math.max(1, rows.length - 1);
+        const pathFor = (key) => rows.map((r, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(r[key]).toFixed(1)).join(" ");
+        const salesPath = pathFor("sales"), spentPath = pathFor("spent");
+        const saleArea = salesPath + " L " + x(rows.length - 1).toFixed(1) + " " + zeroY.toFixed(1) + " L " + x(0).toFixed(1) + " " + zeroY.toFixed(1) + " Z";
+        const ticks = [0, Math.floor((rows.length - 1) / 2), rows.length - 1].filter((v, i, a) => a.indexOf(v) === i);
+        const grid = [0.25, 0.5, 0.75, 1].map((k) => {
+          const yy = y(maxV * k);
+          return '<line class="trend-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '" pointer-events="none"/>';
+        }).join("");
+        const labels = ticks.map((i) => '<text class="trend-axis" x="' + x(i).toFixed(1) + '" y="' + (H - 5) + '" text-anchor="' + (i === 0 ? "start" : i === rows.length - 1 ? "end" : "middle") + '" pointer-events="none">' + Number(rows[i].d.slice(8)) + '</text>').join("");
+        const zones = rows.map((r, i) => {
+          const left = i === 0 ? L : x(i) - step / 2;
+          const right = i === rows.length - 1 ? W - R : x(i) + step / 2;
+          const label = r.d.slice(8) + "." + r.d.slice(5, 7) + "." + r.d.slice(0, 4);
+          const aria = label + " · доход " + fmt(r.sales) + " · расходы " + fmt(r.spent) + " · чистый результат " + fmt(r.profit);
+          return '<rect class="dash-trend-hitbox" x="' + left.toFixed(1) + '" y="' + T + '" width="' + Math.max(1, right - left).toFixed(1) + '" height="' + (H - T - B) + '" fill="transparent" pointer-events="all" tabindex="0" role="button" data-dash-day="' + r.d + '" aria-label="' + esc(aria) + '"><title>' + esc(aria) + '</title></rect>';
+        }).join("");
+        const last = rows[rows.length - 1];
+        const labelFor = (r) => r.d.slice(8) + "." + r.d.slice(5, 7) + "." + r.d.slice(0, 4);
+        const readoutMarkup = '<div class="dash-trend-readout" id="dashTrendReadout" aria-live="polite" aria-atomic="true">' +
+          '<div><small>Дата</small><b data-dtr-date>' + labelFor(last) + '</b></div>' +
+          '<div><small>Доход</small><b class="dtr-income" data-dtr-income>' + fmt(last.sales) + '</b></div>' +
+          '<div><small>Расходы</small><b class="dtr-expenses" data-dtr-expenses>' + fmt(last.spent) + '</b></div>' +
+          '<div><small>Чистая прибыль</small><b class="dtr-profit ' + (last.profit < 0 ? "neg" : "pos") + '" data-dtr-profit>' + fmt(last.profit) + '</b></div>' +
+        '</div><small class="dash-trend-hint">Наведи, нажми или перейди клавишей Tab на любой день — значения останутся видны ниже.</small>';
+        host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="group" aria-label="Динамика дохода и расходов по дням">' +
+          '<defs><linearGradient id="dashTrendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>' +
+          grid + '<line class="trend-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" pointer-events="none"/>' +
+          '<path d="' + saleArea + '" fill="url(#dashTrendFill)" pointer-events="none"/>' +
+          '<path d="' + salesPath + '" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
+          '<path d="' + spentPath + '" fill="none" stroke="var(--neg)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
+          '<circle cx="' + x(rows.length - 1).toFixed(1) + '" cy="' + y(last.sales).toFixed(1) + '" r="3" fill="var(--acc)" pointer-events="none"/>' +
+          '<circle cx="' + x(rows.length - 1).toFixed(1) + '" cy="' + y(last.spent).toFixed(1) + '" r="3" fill="var(--neg)" pointer-events="none"/>' +
+          zones + labels + '</svg>' + readoutMarkup;
+        const readout = $("#dashTrendReadout");
+        let shownDate = last.d;
+        const updateReadout = (event) => {
+          const hit = event.target.closest?.("[data-dash-day]");
+          if (!hit || !host.contains(hit) || hit.dataset.dashDay === shownDate) return;
+          const row = rows.find((r) => r.d === hit.dataset.dashDay);
+          if (!row) return;
+          shownDate = row.d;
+          readout.querySelector("[data-dtr-date]").textContent = labelFor(row);
+          readout.querySelector("[data-dtr-income]").textContent = fmt(row.sales);
+          readout.querySelector("[data-dtr-expenses]").textContent = fmt(row.spent);
+          const profitEl = readout.querySelector("[data-dtr-profit]");
+          profitEl.textContent = fmt(row.profit);
+          profitEl.classList.toggle("neg", row.profit < 0);
+          profitEl.classList.toggle("pos", row.profit >= 0);
+        };
+        const svg = host.querySelector("svg");
+        svg.addEventListener("pointerover", updateReadout);
+        svg.addEventListener("pointermove", updateReadout);
+        svg.addEventListener("focusin", updateReadout);
+        svg.addEventListener("click", updateReadout);
+        $("#dashTrendWidget").removeAttribute("title");
       }
       function renderDashboardRecent(list) {
         const recent=list.filter(o=>!String(o.id||"").startsWith("cogs-")).slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.id||"").localeCompare(String(a.id||""))).slice(0,4);
@@ -5069,7 +5217,11 @@
         pickerOpen: false,
       };
       const saveChartRange = () => localStorage.setItem("chartRange2", JSON.stringify({ mode: chartRange.mode, start: chartRange.start, end: chartRange.end, selectedDates: [...chartRange.selectedDates] }));
-      const chartBaseOps = () => { const list = ops.filter((o) => view === "all" || o.marketplace === view); return view !== "all" ? marketplaceProfitOps(list, view, chartRange.mode === "custom" ? chartRange.end : today()) : list; };
+      const chartBaseOps = () => {
+        const list = ops.filter((o) => view === "all" || o.marketplace === view);
+        // Keep extended analytics on the same FIFO/stock-write-off profit model as the monthly forecast.
+        return marketplaceProfitOps(list, view, chartRange.mode === "custom" ? chartRange.end : today());
+      };
       const chartWindow = (base) => {
         const now = today();
         let start, end = now;
@@ -5106,11 +5258,13 @@
         $("#chartDateEnd").value = w.end;
         $("#chartDateStart").max = today();
         $("#chartDateEnd").max = today();
-        $("#chart2").classList.add("chart-picking");
+        $("#chart2").classList.toggle("chart-picking", chartRange.pickDays);
+        const pickDaysButton = $("#chartPickDaysToggle");
+        pickDaysButton.setAttribute("aria-pressed", String(chartRange.pickDays));
+        pickDaysButton.classList.toggle("on", chartRange.pickDays);
+        pickDaysButton.textContent = chartRange.pickDays ? "Выделение включено" : "Выделять дни";
         $("#chartClearDays").hidden = chartRange.selectedDates.size === 0;
-        const chosen = [...chartRange.selectedDates].sort();
-        const detail = chosen.length ? " · выделено " + chosen[0].split("-").reverse().join(".") + (chosen.length > 1 ? " — " + chosen[chosen.length - 1].split("-").reverse().join(".") : "") + " · дней: " + chosen.length : "";
-        $("#chartRangeSummary").textContent = labels[chartRange.mode] + ": " + w.start.split("-").reverse().join(".") + " — " + w.end.split("-").reverse().join(".") + detail + " · зажми дату, протяни и отпусти для выбора промежутка";
+        $("#chartRangeSummary").textContent = labels[chartRange.mode] + ": " + w.start.split("-").reverse().join(".") + " — " + w.end.split("-").reverse().join(".") + " · протяни по столбцам, чтобы выделить дни";
       }
       const cur = () => {
         const inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym));
@@ -5140,6 +5294,27 @@
             return bar + hitbox + (x % k === 0 ? `<text x="${8 + x * bw + bw / 2}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--mut)" pointer-events="none">${esc(i.l)}</text>` : "");
           }).join("") + `</svg>`;
       }
+      function renderChartSelectionSummary(selectedDates, selectedOps) {
+        const summary = $("#chartSelectionSummary"), totals = $("#chartSelectionTotals");
+        const chosen = [...selectedDates].sort();
+        if (!chosen.length) {
+          summary.textContent = "Выдели один день или протяни по столбцам, чтобы посчитать итоги.";
+          totals.hidden = true;
+          totals.classList.remove("is-preview");
+          totals.innerHTML = "";
+          return;
+        }
+        const dayLabel = (d) => d.slice(8) + "." + d.slice(5, 7) + "." + d.slice(0, 4);
+        const amount = agg(selectedOps);
+        summary.textContent = "Выбрано дней: " + chosen.length + " · " + dayLabel(chosen[0]) + (chosen.length > 1 ? " — " + dayLabel(chosen[chosen.length - 1]) : "");
+        totals.hidden = false;
+        totals.classList.remove("is-preview");
+        totals.innerHTML =
+          '<div class="selection-total"><small>Доход</small><b class="selection-income">' + fmt(amount.sales) + '</b></div>' +
+          '<div class="selection-total"><small>Расходы с комиссиями</small><b class="selection-expenses">' + fmt(amount.spent) + '</b></div>' +
+          '<div class="selection-total selection-total-profit"><small>Чистая прибыль за выбранные дни</small><b class="' + (amount.profit < 0 ? "neg" : "pos") + '">' + fmt(amount.profit) + '</b></div>' +
+          '<div class="selection-total-meta">Себестоимость и списания учтены по FIFO. Итоги соответствуют выбранным площадке и категории.</div>';
+      }
       function drawCh() {
         const base = chartBaseOps(), w = chartWindow(base), rangeOps = base.filter((o) => o.date >= w.start && o.date <= w.end);
         const selectedBefore = chartRange.selectedDates.size;
@@ -5151,6 +5326,7 @@
           L = selectedDates.size ? allL.filter((o) => selectedDates.has(o.date)) : allL,
           B = (k, l, v, a) => `<button type="button" class="pill ${v === a ? "on" : ""}" data-${k}="${esc(l[0])}">${l[1]}</button>`;
         renderChartFilters(base, w);
+        renderChartSelectionSummary(selectedDates, L);
         $("#chT").innerHTML = [["cum", "Динамика"], ["bar", ico("chart") + " Прибыль по дням"], ["don", ico("pie") + " По играм"], ["mp", ico("store") + " Площадки"], ["wk", ico("calendar") + " Дни недели"]].map((l) => B("ct", l, l[0], ch.t)).join("");
         $("#chC").innerHTML = cats.length > 1 ? [["all", "Все категории"], ...cats.map((c) => [c, (CE[c] || "") + " " + c])].map((l) => B("cc", l, l[0], ch.c)).join("") : "";
         const el = $("#chart2");
@@ -5267,9 +5443,23 @@
           el.classList.toggle("selected", selected);
           el.setAttribute("aria-pressed", String(selected));
         });
-        const summary = $("#chartRangeSummary");
-        const base = summary.textContent.replace(/ · выбрано дней: \d+$/, "");
-        summary.textContent = base + (dates.size ? " · выбрано дней: " + dates.size : "");
+        const summary = $("#chartSelectionSummary"), totals = $("#chartSelectionTotals");
+        const chosen = [...dates].sort();
+        const dayLabel = (d) => d.slice(8) + "." + d.slice(5, 7) + "." + d.slice(0, 4);
+        summary.textContent = chosen.length
+          ? (chartBrush ? "Предварительно выделено дней: " : "Выбрано дней: ") + chosen.length + " · " + dayLabel(chosen[0]) + (chosen.length > 1 ? " — " + dayLabel(chosen[chosen.length - 1]) : "")
+          : "Выдели один день или протяни по столбцам, чтобы посчитать итоги.";
+        if (chartBrush) {
+          totals.hidden = false;
+          totals.classList.add("is-preview");
+          totals.innerHTML = '<div class="selection-preview-mark">↔</div><div><b>Выделение обновляется</b><small>Отпусти кнопку мыши или палец — покажу сумму дохода, расходов и чистой прибыли за эти дни.</small></div>';
+        } else if (!chosen.length) {
+          totals.hidden = true;
+          totals.classList.remove("is-preview");
+          totals.innerHTML = "";
+        } else {
+          totals.classList.remove("is-preview");
+        }
       };
       const moveChartBrush = (e) => {
         if (!chartBrush || !e || e.pointerId !== chartBrush.pointerId || !chartBrush.cells.length) return;
@@ -5316,13 +5506,19 @@
           const item = chartPointItem(e?.clientX ?? brush.startX, e?.clientY ?? 0);
           if (item) {
             const next = readChartItem(item);
+            if (chartRange.pickDays && isoDay.test(next.key)) {
+              toggleChartDate(next.key);
+              return;
+            }
             if (chartPin && chartPin.key === next.key) resetChartInteraction();
             else { chartPin = next; hideChartTooltip(); setChartDetail(next, true); paintChartSelection(); }
           }
         }
       };
       $("#chart2").addEventListener("pointerdown", (e) => {
-        if (e.button !== 0 || !e.isPrimary) return;
+        if (e.isPrimary === false || (e.pointerType === "mouse" && e.button !== 0)) return;
+        // Let phone users scroll normally unless they explicitly enable the day-selection mode.
+        if (e.pointerType !== "mouse" && !chartRange.pickDays) return;
         const item = e.target.closest?.("[data-chart-item]"), date = item?.dataset.chartKey;
         if (!isoDay.test(date || "")) return;
         const byDate = new Map();
@@ -5349,7 +5545,13 @@
         if (el && !chartPin) showChartTooltip(readChartItem(el), e);
         else if (chartPin) hideChartTooltip();
       });
-      $("#chart2").addEventListener("pointerleave", () => { if (chartBrush) return; hideChartTooltip(); if (!chartPin) setChartDetail(null, false); });
+      $("#chart2").addEventListener("pointerleave", () => {
+        if (chartBrush) return;
+        hideChartTooltip();
+        if (!chartPin && $("#chartDetailLabel").textContent !== "Наведи на точку, столбец или сектор") {
+          $("#chartDetailState").textContent = "ПОСЛЕДНЕЕ ЗНАЧЕНИЕ · НАЖМИ НА ГРАФИК ДЛЯ ЗАКРЕПЛЕНИЯ";
+        }
+      });
       $("#chart2").addEventListener("focusin", (e) => { const el = e.target.closest("[data-chart-item]"); if (el && !chartPin) setChartDetail(readChartItem(el), false); });
       $("#chart2").addEventListener("keydown", (e) => {
         if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-chart-item]")) { e.preventDefault(); e.target.closest("[data-chart-item]").click(); }
@@ -5381,6 +5583,12 @@
         drawCh();
       }
       $("#chartFilters").addEventListener("click", (e) => {
+        if (e.target.closest("#chartPickDaysToggle")) {
+          chartRange.pickDays = !chartRange.pickDays;
+          resetChartInteraction();
+          drawCh();
+          return;
+        }
         const preset = e.target.closest("[data-chart-preset]")?.dataset.chartPreset;
         if (preset) {
           if (preset === "custom") {

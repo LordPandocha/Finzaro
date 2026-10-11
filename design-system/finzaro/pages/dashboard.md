@@ -22,3 +22,13 @@
 - Each KPI can use a distinct theme-driven semantic accent (`--acc`, `--acc2`, `--neg`, `--b3`) while its background, border and type inherit active theme surfaces.
 - Donut and line-series palettes must be theme-derived CSS variables rather than a fixed list of hexadecimal colours.
 - Hover, selected and keyboard-focus styles should tint the active theme accent into the theme card surface. Use an obvious focus ring, preserve contrast, and respect `prefers-reduced-motion`.
+
+- **Single profit source of truth:** monthly forecast and extended “profit by day” chart must call the same `marketplaceProfitOps` transformation, including FIFO COGS rows and stock closures. Don't bypass it when marketplace filter is “all”; otherwise the same date can show different profit in the two charts.
+- **Selection totals are mandatory:** after dragging across days, persistently show day count/range plus summed revenue, expenses/fees, and net profit. During drag, label totals as a preview; after pointer release, compute and show exact totals. Don't mutate the preset/date-range status line from pointer-move handlers.
+- **Hover values must survive long enough to read:** charts update a visible readout on pointer hover, click/tap, and keyboard focus. Pointer leave may hide the cursor-following tooltip but must not blank the visible detail immediately.
+- **Revenue/expense line chart:** every day needs a transparent, keyboard-focusable hitbox with a full accessible label, and a persistent readout for date, income, expenses, and net result. Native SVG `<title>` alone is not a sufficient primary interaction.
+- **Permanent rail implementation:** use a viewport-fixed sidebar with a matching content offset, and test scroll position. Sticky can attach to an unintended scrolling ancestor when overflow is set on ancestors; see MDN's position notes: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position.
+- **Pointer/touch testing:** use Pointer Events for drag-range selection, but do not reject touch pointers based on mouse-only button semantics. Keep a visible non-hover path for touch and keyboard users. See https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events.
+
+- **Touch day selection is opt-in:** on mobile, chart touch should scroll the page by default. A visible “Выделять дни” toggle enables the drag/tap-selection interaction and only then applies `touch-action:none`. Mouse users can still drag the range with the pointer.
+- **Negative expense/refund days:** the income-versus-expense chart must include negative values in its vertical scale and draw the zero baseline correctly; don't let refunds or fee reversals render below the SVG viewport.

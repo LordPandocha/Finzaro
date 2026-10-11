@@ -2993,7 +2993,7 @@
           ? (projected >= goal ? "По текущей оценке цель достижима; ориентировочный запас — " + fmt(projected - goal) + "." : "По текущей оценке до цели не хватает " + fmt(goal - projected) + ".")
           : "Добавьте месячную цель, чтобы сравнивать её с прогнозом.";
         el.innerHTML = '<div class="fch"><div><small>Примерная прибыль за месяц</small><div class="fcb fcn ' + (projected >= 0 ? "pos" : "neg") + '">' + money(projected) + '</div><small>Факт на сегодня + оценка оставшихся ' + left + ' дн.</small></div>' +
-          '<div class="fcc"><span>Факт сейчас<b class="fcn">' + money(now) + '</b></span><span>В среднем за день<b class="fcn">' + money(monthAvg) + '</b></span><span>Последние "+ k7 +" дней<b class="fcn">' + money(recentAvg) + '</b></span></div></div>' +
+          '<div class="fcc"><span>Факт сейчас<b class="fcn">' + money(now) + '</b></span><span>В среднем за день<b class="fcn">' + money(monthAvg) + '</b></span><span>Последние ' + k7 + ' ' + pl(k7, ["день", "дня", "дней"]) + '<b class="fcn">' + money(recentAvg) + '</b></span></div></div>' +
           svg + table + '<p class="fc-estimate-note">' + confidence + ' ' + goalNote + '</p>';
       }
 

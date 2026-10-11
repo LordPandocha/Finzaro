@@ -117,6 +117,10 @@ for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
 }
 assert.deepEqual(failures, [], "Hard-coded CSS text/background pairs below 4.5:1:\n" + JSON.stringify(failures, null, 2));
 
+const keyframeNames = [...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
+const duplicateKeyframes = keyframeNames.filter((name, index) => keyframeNames.indexOf(name) !== index);
+assert.deepEqual(duplicateKeyframes, [], "Duplicate keyframe names can silently override one another: " + duplicateKeyframes.join(", "));
+
 const goalButtonRule = css.slice(css.lastIndexOf("Keep action labels readable"));
 assert.ok(goalButtonRule.includes("color: #f0f2f7 !important"), "Goal button needs a light foreground");
 assert.ok(goalButtonRule.includes("background: #1b2027 !important"), "Goal button needs an explicit dark surface");

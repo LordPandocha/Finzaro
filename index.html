@@ -1925,8 +1925,8 @@
           <input id="qty" type="number" inputmode="decimal" min="0.0001" step="0.0001" value="1" placeholder="Например, 1000" />
           <small class="mut">При закупке укажи общий объём, при продаже — сколько из него продал. Укажи одинаковую категорию и описание товара, чтобы связать одну закупку с продажами на разных площадках.</small>
           <p class="mut" id="inventoryHint">Заполни категорию и описание товара, чтобы увидеть доступный остаток.</p>
-          <button type="button" id="inventoryCloseBtn" class="pill" hidden>Закрыть остаток без выручки</button>
-          <small class="mut" id="inventoryCloseHelp" hidden>Закрывает остаток в складском учёте, но не создаёт фиктивную продажу и не добавляет прибыль. Используй, если товар уже распродан, а сумма продажи неизвестна.</small>
+          <button type="button" id="inventoryCloseBtn" class="pill" hidden>Списать остаток без выручки</button>
+          <small class="mut" id="inventoryCloseHelp" hidden>Убирает единицы из остатка и списывает их себестоимость в расходы на выбранную дату. Выручку не придумывает.</small>
         </div>
         <div id="promoW">
           <div class="lab">Playerok: потратил на поднятие лота, ₽</div>
@@ -3114,6 +3114,24 @@
             });
           }
         }
+        /* Остаток, закрытый без продажи, становится расходом себестоимости на дату закрытия.
+           Расход распределяется по площадкам, где были куплены закрытые партии. */
+        for (const closures of inventory.closuresByKey.values()) {
+          for (const closure of closures) {
+            const allocations = closure.closedCostByMarketplace || {};
+            const marketplaces = platform === "all" ? Object.keys(allocations) : [platform];
+            for (const marketplace of marketplaces) {
+              const amount = r2(Number(allocations[marketplace]) || 0);
+              if (amount <= .005) continue;
+              const qtyPart = closure.closedQty || closure.quantity || 0;
+              out.push({
+                id: "stock-writeoff-" + String(closure.id) + "-" + encodeURIComponent(marketplace),
+                marketplace, date: closure.date, game: closure.game, type: "other", amount, fee: 0,
+                note: "Списание товарного остатка без выручки · " + Number(qtyPart).toLocaleString("ru-RU") + " ед. · FIFO"
+              });
+            }
+          }
+        }
         return out;
       }
 
@@ -3221,6 +3239,7 @@
           if (!key.split("|")[0]) continue;
           if (event.kind === "close") {
             let need = Number(o.quantity) || 0, closedQty = 0, closedCost = 0;
+            const closedCostByMarketplace = {};
             for (const lot of byKey.get(key) || []) {
               if (need <= .0000001) break;
               if (lot.remainingQty <= .0000001) continue;
@@ -3229,9 +3248,11 @@
               lot.remainingQty = Math.max(0, lot.remainingQty - units);
               lot.remainingCost = Math.max(0, lot.remainingCost - partCost);
               need -= units; closedQty += units; closedCost += partCost;
+              const sourceMarketplace = String(lot.marketplace || "Без площадки");
+              closedCostByMarketplace[sourceMarketplace] = (closedCostByMarketplace[sourceMarketplace] || 0) + partCost;
             }
             if (!closuresByKey.has(key)) closuresByKey.set(key, []);
-            closuresByKey.get(key).push({ ...o, closedQty, closedCost });
+            closuresByKey.get(key).push({ ...o, closedQty, closedCost, closedCostByMarketplace });
             continue;
           }
           if (o.type === "purchase" && (+o.amount || 0) > 0) {
@@ -3290,14 +3311,14 @@
       $("#inventoryCloseBtn").onclick = async () => {
         const button = $("#inventoryCloseBtn"), quantity = Number(button.dataset.quantity) || 0, game = String(button.dataset.game || ""), item = String(button.dataset.item || "");
         if (!(quantity > 0) || !game) return;
-        const yes = await ask({ title:"Закрыть остаток без выручки?", text:"Из запаса будет убрано " + quantity.toLocaleString("ru-RU") + " ед. для «" + game + (item ? " · " + item : "") + "». В отчёт не добавятся ни сумма продажи, ни прибыль. Подтверди только если товар уже распродан, но данных о продаже нет." });
+        const yes = await ask({ title:"Списать остаток без выручки?", text:"Из запаса будет убрано " + quantity.toLocaleString("ru-RU") + " ед. для «" + game + (item ? " · " + item : "") + "». Выручка не добавится, но себестоимость оставшихся единиц будет записана как расход на сегодня. Подтверди, если товар действительно больше не числится в остатке." });
         if (!yes) return;
         const closure = { id:"stock-" + Date.now().toString(36) + Math.random().toString(36).slice(2,7), date:today(), game, item, quantity, reason:"Закрытие остатка без записи выручки" };
         const closures = LS("inventoryClosures2", []);
         closures.push(closure); localStorage.setItem("inventoryClosures2", JSON.stringify(closures));
         trackUndo({ type:"inventory-close", closure, label:"закрытие остатка без выручки" });
         hint();
-        toast("Остаток закрыт. Выручка и прибыль не изменены.");
+        toast("Остаток списан без выручки. Себестоимость учтена в расходах.");
       };
       const opRow = (o, sm, gm) =>
         `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}${["sale","purchase"].includes(o.type) && QTY_VALUE_RE.test(String(o.note || "")) ? `<small class="qty-chip">Количество · ${opQty(o).toLocaleString("ru-RU")} ед.</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;

@@ -815,6 +815,9 @@
       #dSet #csvOut { grid-column:1 / -1; }
       #dSet .set input[type="checkbox"] { vertical-align:middle; }
       @media (max-width:380px) { #dSet .bk-actions { grid-template-columns:1fr; } #dSet #csvOut { grid-column:auto; } }
+      .qty-chip { display:inline-block; width:max-content; max-width:100%; margin-top:3px; padding:2px 6px; border-radius:6px; background:color-mix(in srgb,var(--acc) 10%,var(--c2)); color:var(--mut); font-size:.7rem; font-variant-numeric:tabular-nums; }
+      #inventoryCloseBtn { margin-top:8px; border-color:color-mix(in srgb,var(--acc) 40%,var(--line)); }
+      #inventoryCloseHelp { display:block; line-height:1.4; margin-top:5px; }
       .fp-import-box { padding: 14px; margin: 14px 0; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--card) 78%, transparent); }
       .fp-import-head { display:flex; gap:10px; align-items:flex-start; }
       .fp-import-icon { display:grid; place-items:center; width:38px; height:38px; flex:none; border-radius:12px; background:color-mix(in srgb,var(--acc) 14%,var(--c2)); font-size:19px; }
@@ -1851,6 +1854,8 @@
           <input id="qty" type="number" inputmode="decimal" min="0.0001" step="0.0001" value="1" placeholder="Например, 1000" />
           <small class="mut">При закупке укажи общий объём, при продаже — сколько из него продал. Укажи одинаковую категорию и описание товара, чтобы связать одну закупку с продажами на разных площадках.</small>
           <p class="mut" id="inventoryHint">Заполни категорию и описание товара, чтобы увидеть доступный остаток.</p>
+          <button type="button" id="inventoryCloseBtn" class="pill" hidden>Закрыть остаток без выручки</button>
+          <small class="mut" id="inventoryCloseHelp" hidden>Закрывает остаток в складском учёте, но не создаёт фиктивную продажу и не добавляет прибыль. Используй, если товар уже распродан, а сумма продажи неизвестна.</small>
         </div>
         <div id="promoW">
           <div class="lab">Playerok: потратил на поднятие лота, ₽</div>
@@ -2601,6 +2606,7 @@
           return { title:"Изменение · " + typeLabel(row.type), detail:detailRow(row), stamp };
         }
         if (action.type === "delete") return { title:"Удаление" + (action.rows?.length > 1 ? " · " + action.rows.length + " записей" : ""), detail:(action.rows || []).slice(0,3).map(detailRow).join(" / "), stamp };
+        if (action.type === "inventory-close") return { title:"Закрытие остатка без выручки", detail:[action.closure?.game, action.closure?.item || "без названия позиции", Number(action.closure?.quantity || 0).toLocaleString("ru-RU") + " ед.", action.closure?.date].filter(Boolean).join(" · "), stamp };
         return { title:action.label || "Изменение", detail:"", stamp };
       }
       function renderUndoHistory() {
@@ -2649,6 +2655,14 @@
             if (action.after && !undoRowsMatch(current, action.after)) throw new Error("Эту запись меняли позже. Сначала верни более новое изменение этой же записи.");
             const patch = Object.fromEntries(Object.entries(action.row).filter(([k]) => !["id","user_id","created_at","updated_at"].includes(k)));
             success = !!(await upd(action.row.id, patch));
+          } else if (action.type === "inventory-close") {
+            const closures = LS("inventoryClosures2", []);
+            const ci = closures.findIndex((item) => String(item.id) === String(action.closure?.id));
+            if (ci < 0) throw new Error("Закрытие остатка уже отсутствует.");
+            closures.splice(ci, 1);
+            localStorage.setItem("inventoryClosures2", JSON.stringify(closures));
+            success = true;
+            hint();
           } else if (action.type === "delete") {
             const rows = (action.rows || []).filter((o) => !ops.some((cur) => undoRowsMatch(cur, o)));
             if (!rows.length) throw new Error("Эти записи уже восстановлены. Дубликаты не созданы.");
@@ -3016,15 +3030,46 @@
       const visibleNote = (note) => String(note || "").replace(FP_MARK_RE, "").replace(QTY_MARK_RE, "").replace(/\s{2,}/g, " ").trim();
       const hasFPMarker = (note) => /\[\[FZFP:[a-f0-9]{8,64}:[^:\]]+:[a-z-]+\]\]/.test(String(note || ""));
       const opQty = (o) => { const m = String(o?.note || "").match(QTY_VALUE_RE); const n = Number(m?.[1] ?? 1); return Number.isFinite(n) && n > 0 ? n : 1; };
-      const noteWithQty = (note, qty) => [visibleNote(note), "[[FZQTY:" + Math.max(.0001, Number(qty) || 1).toFixed(4).replace(/0+$/, "").replace(/\.$/, "") + "]]"].filter(Boolean).join(" ");
-      const inventoryKey = (game, note) => [normGame(game || ""), normGame(hasFPMarker(note) ? "" : visibleNote(note || ""))].join("|");
+      const noteWithQty = (note, qty) => [visibleNote(note), "[[FZQTY:" + Math.max(.0001, Math.round((Number(qty) || 1) * 10000) / 10000).toFixed(4).replace(/0+$/, "").replace(/\.$/, "") + "]]"].filter(Boolean).join(" ");
+      function inventoryItemKey(note) {
+        if (hasFPMarker(note)) return "";
+        const raw = String(visibleNote(note || "")).normalize("NFKC").toLocaleLowerCase("ru-RU");
+        if (/токен(?:ы|ов|а)?|tokens?/i.test(raw)) return "токены";
+        return normGame(raw
+          .replace(/приятная\s+цена/gi, " ")
+          .replace(/акция/gi, " ")
+          .replace(/предметы|трейд/gi, " ")
+          .replace(/\d+(?:[.,]\d+)?\s*(?:шт\.?|штук[аи]?|pcs?[a-z]?|items?)/gi, " ")
+          .replace(/[^\p{L}\p{N} ]/gu, " ")
+          .replace(/\s+/g, " "));
+      }
+      const inventoryKey = (game, note) => [normGame(game || ""), inventoryItemKey(note)].join("|");
       function computeInventoryState(list = ops, until = today()) {
-        const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map();
-        const ordered = list.filter((o) => o.date <= until && ["purchase","sale"].includes(o.type))
-          .slice().sort((a,b) => a.date.localeCompare(b.date) || (a.type === b.type ? 0 : a.type === "purchase" ? -1 : 1));
-        for (const o of ordered) {
-          const key = inventoryKey(o.game, o.note);
+        const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map(), closuresByKey = new Map();
+        const operations = list.filter((o) => o.date <= until && ["purchase","sale"].includes(o.type))
+          .map((o) => ({ kind:o.type, date:o.date, order:o.type === "purchase" ? 0 : 1, row:o }));
+        const closures = LS("inventoryClosures2", [])
+          .filter((c) => c && typeof c.date === "string" && c.date <= until && Number(c.quantity) > 0 && String(c.game || "").trim())
+          .map((c) => ({ kind:"close", date:c.date, order:2, row:c }));
+        const ordered = [...operations, ...closures].sort((a,b) => a.date.localeCompare(b.date) || a.order - b.order);
+        for (const event of ordered) {
+          const o = event.row, key = inventoryKey(o.game, event.kind === "close" ? (o.item || "") : o.note);
           if (!key.split("|")[0]) continue;
+          if (event.kind === "close") {
+            let need = Number(o.quantity) || 0, closedQty = 0, closedCost = 0;
+            for (const lot of byKey.get(key) || []) {
+              if (need <= .0000001) break;
+              if (lot.remainingQty <= .0000001) continue;
+              const units = Math.min(need, lot.remainingQty);
+              const partCost = lot.remainingQty ? lot.remainingCost * units / lot.remainingQty : 0;
+              lot.remainingQty = Math.max(0, lot.remainingQty - units);
+              lot.remainingCost = Math.max(0, lot.remainingCost - partCost);
+              need -= units; closedQty += units; closedCost += partCost;
+            }
+            if (!closuresByKey.has(key)) closuresByKey.set(key, []);
+            closuresByKey.get(key).push({ ...o, closedQty, closedCost });
+            continue;
+          }
           if (o.type === "purchase" && (+o.amount || 0) > 0) {
             const qty = opQty(o), lot = { id:o.id, marketplace:o.marketplace, date:o.date, remainingQty:qty, remainingCost:+o.amount, unitCost:(+o.amount)/qty, key };
             if (!byKey.has(key)) byKey.set(key, []);
@@ -3048,27 +3093,50 @@
             cogsBySale.set(String(o.id), cost);
           }
         }
-        return { byKey, remainingByPurchase, cogsBySale };
+        return { byKey, remainingByPurchase, cogsBySale, closuresByKey };
       }
       function inventoryHint(game, note, excludeId, type, qty) {
+        const closeBtn = $("#inventoryCloseBtn"), closeHelp = $("#inventoryCloseHelp");
+        if (closeBtn) closeBtn.hidden = true;
+        if (closeHelp) closeHelp.hidden = true;
         if (!String(game || "").trim()) return "Выбери категорию / игру / сервис.";
         const candidates = ops.filter((o) => String(o.id) !== String(excludeId));
         const state = computeInventoryState(candidates);
         const key = inventoryKey(game, note), exactLots = state.byKey.get(key) || [];
-        const genericLots = state.byKey.get(normGame(game || "") + "|") || [];
+        const genericKey = normGame(game || "") + "|", genericLots = state.byKey.get(genericKey) || [];
         const usesGeneric = !exactLots.length && !key.endsWith("|") && genericLots.length > 0;
         const lots = exactLots.length ? exactLots : genericLots;
         const available = lots.reduce((sum,lot)=>sum+lot.remainingQty,0), cost = lots.reduce((sum,lot)=>sum+lot.remainingCost,0);
         const avg = available > 0 ? cost / available : 0;
-        if (type === "purchase") return "После сохранения в запас добавится " + qty + " ед. · " + (available ? "сейчас уже есть " + available.toLocaleString("ru-RU") + " ед. по средней себестоимости " + fmt(avg) + "/ед." : "это будет первая партия этой позиции.");
-        let need = Math.max(.0001, Number(qty) || 1), estimate = 0;
+        if (closeBtn && type === "sale" && !editId && available > .0000001) {
+          closeBtn.hidden = false; closeHelp.hidden = false;
+          closeBtn.dataset.game = String(game).trim();
+          closeBtn.dataset.item = exactLots.length ? visibleNote(note) : "";
+          closeBtn.dataset.quantity = String(available);
+        }
+        if (type === "purchase") return "После сохранения в запас добавится " + Number(qty || 1).toLocaleString("ru-RU") + " ед. · " + (available ? "сейчас уже есть " + available.toLocaleString("ru-RU") + " ед. по средней себестоимости " + fmt(avg) + "/ед." : "это будет первая партия этой позиции.");
+        let need = Math.max(.0001, Math.round((Number(qty) || 1) * 10000) / 10000), estimate = 0;
         for (const lot of lots) { if (need <= .0000001) break; const units = Math.min(need, lot.remainingQty); estimate += units * (lot.remainingQty ? lot.remainingCost / lot.remainingQty : 0); need -= units; }
-        return available > 0
-          ? "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед." : "") + (usesGeneric ? " · использованы закупки FunPay без отдельного названия лота" : "") + "."
+        if (available > .0000001) return "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед." : "") + (usesGeneric ? " · использованы закупки без отдельного названия позиции" : "") + ".";
+        const latestClosed = (state.closuresByKey.get(key) || []).at(-1);
+        return latestClosed
+          ? "Остаток этой позиции закрыт вручную " + String(latestClosed.date || "").split("-").reverse().join(".") + " (" + Number(latestClosed.closedQty || 0).toLocaleString("ru-RU") + " ед.) без добавления выручки в отчёт."
           : "Похожей закупки с таким же описанием пока нет — себестоимость для площадки автоматически распределить не из чего.";
       }
+      $("#inventoryCloseBtn").onclick = async () => {
+        const button = $("#inventoryCloseBtn"), quantity = Number(button.dataset.quantity) || 0, game = String(button.dataset.game || ""), item = String(button.dataset.item || "");
+        if (!(quantity > 0) || !game) return;
+        const yes = await ask({ title:"Закрыть остаток без выручки?", text:"Из запаса будет убрано " + quantity.toLocaleString("ru-RU") + " ед. для «" + game + (item ? " · " + item : "") + "». В отчёт не добавятся ни сумма продажи, ни прибыль. Подтверди только если товар уже распродан, но данных о продаже нет." });
+        if (!yes) return;
+        const closure = { id:"stock-" + Date.now().toString(36) + Math.random().toString(36).slice(2,7), date:today(), game, item, quantity, reason:"Закрытие остатка без записи выручки" };
+        const closures = LS("inventoryClosures2", []);
+        closures.push(closure); localStorage.setItem("inventoryClosures2", JSON.stringify(closures));
+        trackUndo({ type:"inventory-close", closure, label:"закрытие остатка без выручки" });
+        hint();
+        toast("Остаток закрыт. Выручка и прибыль не изменены.");
+      };
       const opRow = (o, sm, gm) =>
-        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}${["sale","purchase"].includes(o.type) && QTY_VALUE_RE.test(String(o.note || "")) ? `<small class="qty-chip">Количество · ${opQty(o).toLocaleString("ru-RU")} ед.</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
       const ORD = ["purchase", "withdraw", "other", "refund", "sale"],
         GL = {
           purchase: "Закупки",
@@ -3680,7 +3748,7 @@
           mp = f.mp.value,
           { amt, fee, r } = F(),
           game = t === "withdraw" ? null : f.game.value.trim() || null,
-          qty = ["sale", "purchase"].includes(t) ? Math.max(.0001, Number($("#qty").value) || 1) : 1,
+          qty = ["sale", "purchase"].includes(t) ? Math.max(.0001, Math.round((Number($("#qty").value) || 1) * 10000) / 10000) : 1,
           note = ["sale", "purchase"].includes(t) ? noteWithQty(f.note.value || "", qty) : (f.note.value || (t === "withdraw" ? WM[f.wm.value] : "")),
           b = { marketplace: mp, date: f.date.value, game },
           L = [{ ...b, type: t, amount: r2(amt), fee: r2(fee), note }],
@@ -3752,7 +3820,7 @@
         const payload = {
           format: "finzaro-backup", v: 2, createdAt: new Date().toISOString(),
           ops: backupOps.map((o) => ({ date: o.date, marketplace: o.marketplace, game: o.game || "", type: o.type, amount: Number(o.amount), fee: Number(o.fee) || 0, note: String(o.note || "") })),
-          fees, custom, tpls, goal: LS("goal", 0), pref, hideAmounts: LS("hide", false), chartRange: LS("chartRange2", {}) || {}
+          fees, custom, tpls, goal: LS("goal", 0), pref, hideAmounts: LS("hide", false), chartRange: LS("chartRange2", {}) || {}, inventoryClosures: LS("inventoryClosures2", [])
         };
         const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
         const a = document.createElement("a");
@@ -3882,6 +3950,7 @@
           if (d.chartRange && typeof d.chartRange === "object") localStorage.setItem("chartRange2", JSON.stringify(d.chartRange));
           else if (Object.prototype.hasOwnProperty.call(d, "chartRange")) localStorage.removeItem("chartRange2");
           if (Object.prototype.hasOwnProperty.call(d, "hideAmounts")) localStorage.setItem("hide", JSON.stringify(!!d.hideAmounts));
+          localStorage.setItem("inventoryClosures2", JSON.stringify(Array.isArray(d.inventoryClosures) ? d.inventoryClosures : []));
           toast("Копия загружена. Обновляю Finzaro…");
           location.reload();
         } catch (err) {

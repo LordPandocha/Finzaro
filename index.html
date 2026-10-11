@@ -1380,6 +1380,10 @@
       #best { position: fixed; left: 50%; top: 18%; z-index: 100; transform: translateX(-50%); padding: 14px 26px; border-radius: 999px; font-weight: 900; font-size: 22px; color: #fff; background: linear-gradient(135deg, #ffb347, #f2682a); box-shadow: 0 12px 40px rgba(255,120,50,.6); pointer-events: none; animation: best 2.6s cubic-bezier(.2,1.4,.4,1) forwards; white-space: nowrap; }
       @keyframes best { 0% { opacity: 0; transform: translateX(-50%) scale(.3) rotate(-8deg); } 15% { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(3deg); } 25%, 80% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) translateY(-30px); } }
       /* иконки игр */
+      .gi { position:relative; overflow:hidden; }
+      .gi.brand .brand-logo, .gi.roblox-game .rbx-logo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:6px; }
+      .gi.brand .brand-fallback, .gi.roblox-game .brand-fallback { position:relative; z-index:0; font-size:11px; font-weight:850; }
+      .gi.roblox-game .rbx-logo { padding:0; object-fit:cover; }
       .gi { display: inline-grid; place-items: center; width: 1.55em; height: 1.55em; min-width: 1.55em; vertical-align: -.4em; margin-right: .45em; flex: none; transition: transform .3s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
       .gi svg, .gi img { width:100%; height:100%; display:block; object-fit:contain; }
       .gi.brand svg { width:100%; height:100%; display:block; color:currentColor; }
@@ -2227,6 +2231,7 @@
         Сервисы: [
           "Steam",
           "Telegram",
+          "ChatGPT",
           "Discord Nitro",
           "Подписки ИИ",
           "Spotify",
@@ -2252,7 +2257,7 @@
       };
       const GAMES = [...new Set(Object.values(CATS).flat())];
       const POP = {
-        _: ["Roblox", "Steam", "CS2", "Brawl Stars", "Genshin Impact", "Telegram"],
+        _: ["Roblox", "Blade Ball", "Steam", "CS2", "Brawl Stars", "Genshin Impact", "Telegram", "ChatGPT"],
         Starpets: ["Adopt Me", "Murder Mystery 2", "Grow a Garden", "Pet Simulator 99", "Blox Fruits"],
       };
       const THEMES = {
@@ -4564,14 +4569,62 @@
         counterstrike:'<path d="M21.71 3.235h-7.017l-.013-.177.335.032.244-.989-.227-.085c-.041-.172-.377-1.323-1.994-1.581-.787-.125-1.302.211-1.577.478a1.594 1.594 0 0 0-.302.41l-.096.213.051.982.355.153-.196.324-.623.019c-.386.016-1.245.486-1.878 1.839l-.724 1.55-.068.04-.578.002-.898 2.543.627.392-.327.966-.434.382-.598 1.531-.336.002-.2 2.288-.158.908-.559.426c-.255.244-.598.69-.766 1.001l-1.86 3.924.132.235-.071.531 1.891.003.103-1.296-.027-.195 3.606-4.232.286-.451 1.719-3.789.109-.035.183.053c.15.18.504.781.676 1.032.142.207.85 1.23 1.158 1.568.085.092.348.198.466.269.029.017.041.055.029.112l-1.03 1.808-.455 2.136-.036.153-.412 1.483c.003.187-.141.286-.153.506l-.15 1.084.058.061 2.545.014c.095 0 .19-.004.285-.007.124-.016.563-.075.75-.15.109-.039.181-.082.227-.13.185-.193.2-.278.203-.398-.017-.052-.032-.083-.087-.152l-1.182-.356a.37.37 0 0 1-.189-.134l-.317-.469.618-.609.048-.073 1.904-4.488c.089-.285.059-.605 0-.945-.044-.25-.685-1.326-.854-1.624l-1.286-2.252c-.079-.137-.189-.132-.229-.276l-.073-1.117.332-.028.074-.049 1.147-2.154-.235-.291-.001-.087.352-.38.074-.021.934.527c.058.033.124.051.186.05.259-.002.686-.155.908-.291a.384.384 0 0 0 .138-.148l.458-1.07.029.003.128.595.079.05 1.349-.3.05-.079-.318-1.344.009-.054.131-.204a.281.281 0 0 0 .036-.081l.159-.725.04-.032 3.733.005.093-.093v-.634h1.461v-.378z"/>'
       };
       const normGame = (n) => String(n || "").trim().toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ");
+      const rbxIconCache = LS("rbxIcons2", {});
+      const ROBLOX_GAMES = new Set(CATS.Roblox.filter((name) => name !== "Roblox").map(normGame));
+      const rbxPending = {};
+      function applyRbxGameIcon(key, url) {
+        document.querySelectorAll(".gi.roblox-game[data-rbx-key]").forEach((el) => {
+          if (el.dataset.rbxKey !== key || el.querySelector(".rbx-logo")) return;
+          const img = document.createElement("img");
+          img.className = "rbx-logo"; img.alt = ""; img.loading = "lazy"; img.src = url;
+          img.addEventListener("error", () => { img.remove(); delete rbxIconCache[key]; localStorage.setItem("rbxIcons2", JSON.stringify(rbxIconCache)); });
+          el.appendChild(img);
+        });
+      }
+      async function loadRbxGameIcon(name) {
+        const key = normGame(name);
+        if (rbxPending[key]) return rbxPending[key];
+        rbxPending[key] = (async () => {
+          const cached = rbxIconCache[key];
+          if (cached?.url && Date.now() - cached.at < 7 * 864e5) { applyRbxGameIcon(key, cached.url); return; }
+          try {
+            const response = await fetch("https://games.roblox.com/v1/games/search?keyword=" + encodeURIComponent(name) + "&limit=10&sortOrder=Desc&sortType=Relevance");
+            if (!response.ok) throw new Error("Roblox search unavailable");
+            const search = await response.json(), games = Array.isArray(search.data) ? search.data : [];
+            const match = games.find((game) => normGame(game.name) === key) || games.find((game) => normGame(game.name).startsWith(key));
+            const universeId = match?.universeId || match?.id;
+            if (!universeId) return;
+            const responseIcons = await fetch("https://thumbnails.roblox.com/v1/games/icons?universeIds=" + encodeURIComponent(universeId) + "&size=150x150&format=Png&isCircular=false");
+            if (!responseIcons.ok) throw new Error("Roblox icon unavailable");
+            const payload = await responseIcons.json(), result = (payload.data || []).find((item) => item.state === "Completed" && item.imageUrl);
+            if (!result?.imageUrl) return;
+            rbxIconCache[key] = { url: result.imageUrl, at: Date.now() };
+            localStorage.setItem("rbxIcons2", JSON.stringify(rbxIconCache));
+            applyRbxGameIcon(key, result.imageUrl);
+          } catch (_) { /* initials remain as offline/blocked-network fallback */ }
+          finally { delete rbxPending[key]; }
+        })();
+        return rbxPending[key];
+      }
+
       function gi(n) {
         n = String(n || "").trim(); if (!n) return "";
         if (giC[n]) return giC[n];
         const k = normGame(n), slug = BRAND[k], icon = slug && BI[slug];
+        if (ROBLOX_GAMES.has(k)) {
+          const cached = rbxIconCache[k]?.url;
+          const fallback = k.split(" ").filter(Boolean).map((x) => x[0]).slice(0,2).join("").toUpperCase();
+          const inner = cached
+            ? '<img class="rbx-logo" alt="" loading="lazy" src="' + esc(cached) + '"><span class="brand-fallback">' + esc(fallback) + '</span>'
+            : '<span class="brand-fallback">' + esc(fallback) + '</span>';
+          if (!cached && !rbxPending[k]) window.setTimeout(() => loadRbxGameIcon(n), 0);
+          return (giC[n] = '<span class="gi roblox-game" data-rbx-key="' + esc(k) + '" aria-hidden="true">' + inner + '</span>');
+        }
         if (icon) return (giC[n] = `<span class="gi brand" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" focusable="false">${icon}</svg></span>`);
         if (slug) {
           const initials = k.split(" ").filter(Boolean).map((x) => x[0]).slice(0, 2).join("").toUpperCase();
-          return (giC[n] = `<span class="gi brand" aria-hidden="true"><span style="font-weight:800;font-size:11px">${initials}</span></span>`);
+          const logoUrl = "https://cdn.simpleicons.org/" + encodeURIComponent(slug) + "/FFFFFF";
+          return (giC[n] = '<span class="gi brand" aria-hidden="true"><span class="brand-fallback">' + esc(initials) + '</span><img class="brand-logo" alt="" loading="lazy" src="' + esc(logoUrl) + '" onerror="this.remove()"></span>');
         }
         const w = k.split(" ").filter(Boolean);
         let h = 0; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0;

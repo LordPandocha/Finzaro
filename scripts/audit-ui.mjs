@@ -125,6 +125,8 @@ const goalButtonRule = css.slice(css.lastIndexOf("Keep action labels readable"))
 assert.ok(goalButtonRule.includes("color: #f0f2f7 !important"), "Goal button needs a light foreground");
 assert.ok(goalButtonRule.includes("background: #1b2027 !important"), "Goal button needs an explicit dark surface");
 assert.ok(contrastRatio("#f0f2f7", "#1b2027") >= 4.5, "Goal button contrast must meet WCAG AA");
+assert.ok(goalButtonRule.includes("html[data-theme] .fly") && goalButtonRule.includes("color: var(--acl) !important"), "Floating profit feedback must use the contrast-adjusted accent");
+assert.ok(html.includes("cr(l, th.s) < 4.5"), "Custom accent colors must be adjusted for contrast against the theme surface");
 assert.ok(css.includes("color: #241108; background: linear-gradient(135deg, #ffb347, #f2682a)"), "The orange toast must use a high-contrast dark label");
 assert.ok(Math.min(contrastRatio("#241108", "#ffb347"), contrastRatio("#241108", "#f2682a")) >= 4.5, "Toast contrast must meet WCAG AA");
 

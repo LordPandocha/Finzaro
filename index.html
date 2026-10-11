@@ -3721,14 +3721,12 @@
           return '<div class="streak-week-day '+(isMarked?"marked ":"")+(isToday?"today":"")+'" aria-label="'+d+(isMarked?", проверка засчитана":", не отмечено")+'"><span>'+weekNames[dayIndex]+'</span><b>'+(isMarked?"✓":d.slice(8))+'</b></div>';
         }).join("");
         renderStreakWeeklyReview();
-        const prior=STREAK_LEVELS.slice().reverse().find(x=>x.days<=currentStreak),base=prior?prior.days:0;
         const pct=next?Math.max(0,Math.min(100,(currentStreak/next.days)*100)):100;
         $("#streakNextCount").textContent=next?(next.days-currentStreak)+" дн.":"100%";
         $("#streakHistoryCount").textContent=STREAK_LEVELS.filter(x=>currentStreak>=x.days).length+"/"+STREAK_LEVELS.length;
         $("#streakProgressCopy").innerHTML=next?
           '<b>'+esc(next.title)+'</b><span>'+esc(next.benefit)+'</span><div class="streak-progress-track"><i style="width:'+pct.toFixed(1)+'%"></i></div><small>'+currentStreak+' из '+next.days+' '+streakPlural(next.days)+' · рекорд '+bestStreakValue+'</small>':
           '<b>Год под контролем</b><span>Ты сохранил привычку финансовой проверки на длинной дистанции.</span><div class="streak-progress-track"><i style="width:100%"></i></div>';
-        const seen=LS("streakMilestones",[]);
         $("#streakAchievements").innerHTML=STREAK_LEVELS.map(x=>{
           const unlocked=currentStreak>=x.days,upcoming=next&&next.days===x.days;
           return '<div class="streak-milestone-row '+(unlocked?"reached":"")+(upcoming?" upcoming":"")+'"><span class="streak-milestone-icon">'+(unlocked?"✓":x.icon)+'</span><div><b>'+esc(x.title)+'</b><small>'+esc(x.benefit)+'</small></div><em>'+(unlocked?"ЗАСЧИТАНО":upcoming?"СЛЕДУЮЩИЙ ЭТАП":x.days+" дней")+'</em></div>';

@@ -35,7 +35,7 @@ Use semantic CSS custom properties across every component. The active user-selec
 ## Data and accounting invariants
 - Keep the existing vanilla JavaScript and single-file runtime unless the owner explicitly approves a stack migration.
 - The `agg` function remains the source of truth for income, costs, fees, withdrawals, and net profit.
-- Inventory COGS is generated through the current FIFO calculation. Never introduce a second independent profit formula in UI-only widgets; aggregate the same transformed operations.
+- Purchases are inventory assets, not immediate profit expenses. Inventory COGS is recognized only for units sold (FIFO) or explicitly written off. Never introduce a second independent profit formula in UI-only widgets; aggregate the same transformed operations. Sales may exceed logged purchases: keep the sale, cap COGS at available stock, never create negative stock or block saving, and visibly flag the uncosted quantity so it can be reconciled.
 - Withdrawals are transfers, not profit expenses; only the configured withdrawal fee can affect profit.
 - Monthly projection is based on past daily history, blends longer and recent averages, then applies the cautious 10% reduction already defined in `fcForecastFromDaily`.
 - Empty states should preserve the structure of the dashboard and invite the first operation rather than invent data.
@@ -66,3 +66,12 @@ All UI components must consume the existing theme variables (`--bg`, `--card`, `
 - Use `color-mix(in srgb, <semantic token> X%, var(--card))` for tinted surfaces and selected/hover states. Don't use hard-coded navy, white, teal, orange or violet for structural surfaces.
 - Data visualizations can use `--acc`, `--acc2`, `--b1`, `--b2`, `--b3`, `--pos` and `--neg` as a theme-derived series palette. Keep status meaning clear and keep axis/legend contrast.
 - Theme-specific style differences (e.g. maximal's thicker border/shadow) are allowed, but semantic colour roles still come from tokens.
+
+
+## Inventory accounting policy (source of truth)
+- Identify inventory by normalized game/category plus item name. Do not split inventory solely by sales marketplace; a unit may be bought on one marketplace and sold on another.
+- FIFO lot events are ordered by date, with purchases before sales on the same date because the user records date but not time.
+- Buying stock does not by itself increase or decrease profit. A purchase lot's remaining cost is held in inventory and only its sold portion becomes COGS on the sale date. Explicitly written-off units become expense on the write-off date.
+- When a sale asks for more units than logged stock, consume only available units, set the uncosted shortage on that sale, and continue normally. Don't create a negative lot, throw a validation error, or invent a cost for the missing part.
+- When an operation is deleted, recompute FIFO allocation and all dependent profit views, summaries, charts and stock-gap flags from the remaining source operations. Update the UI immediately after the server accepts deletion and retain the undo/restore path.
+- Keep cash/operations history distinct from profit-and-loss: purchase rows remain visible in the raw operation ledger, but not as direct P&L expenses.

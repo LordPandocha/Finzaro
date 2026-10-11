@@ -3,20 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Finzaro — учёт прибыли</title>
-    <meta name="description" content="Finzaro — учёт прибыли с продаж: площадки, комиссии, цели и графики." />
+    <title>Finzaro — учёт прибыли и финансовая аналитика</title>
+    <meta name="description" content="Finzaro — контроль чистой прибыли, продаж, комиссий и себестоимости. Прогноз на месяц, склад FIFO, площадки и интерактивная аналитика в одном дашборде." />
     <link rel="canonical" href="https://finzaro.ru/" />
     <meta name="theme-color" content="#0b0d14" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Finzaro — учёт прибыли" />
-    <meta property="og:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
+    <meta property="og:title" content="Finzaro — прибыль под контролем" />
+    <meta property="og:description" content="Чистая прибыль, прогноз на месяц, склад, комиссии и аналитика по площадкам — в одном месте." />
         <meta property="og:image" content="https://finzaro.ru/assets/finzaro-og.svg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/svg+xml" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Finzaro — учёт прибыли" />
-    <meta name="twitter:description" content="Учёт прибыли с продаж: площадки, комиссии, цели и графики." />
+    <meta name="twitter:title" content="Finzaro — прибыль под контролем" />
+    <meta name="twitter:description" content="Чистая прибыль, прогноз на месяц, склад, комиссии и аналитика по площадкам — в одном месте." />
     <meta name="twitter:image" content="https://finzaro.ru/assets/finzaro-og.svg" />
     <meta name="google-site-verification" content="e-XHxRdrDXNJ0EvfEzdm4AGAMalDm8ONzL6K-7McPIs" />
 <link rel="icon" type="image/svg+xml" href="/assets/finzaro-icon.svg" />
@@ -1752,16 +1752,81 @@
         }
       }
 
+
+      /* Finzaro dashboard refresh */
+      .app-shell{display:grid;grid-template-columns:218px minmax(0,1fr);min-height:100vh;background:#07111f}
+      .app-sidebar{position:sticky;top:0;display:flex;flex-direction:column;gap:26px;height:100vh;min-width:0;padding:20px 13px 16px;overflow:hidden;color:#d8e7ff;background:linear-gradient(180deg,#071222,#06101d);border-right:1px solid #172b45;z-index:30}
+      .brand-lockup{display:flex;align-items:center;gap:10px;min-width:0;padding:0 6px;color:#f5f9ff;text-decoration:none}
+      .brand-lockup img{width:38px;height:38px;flex:0 0 38px;object-fit:contain}.brand-lockup>span{min-width:0;display:grid;gap:2px}.brand-lockup b{font-size:1.28rem;font-weight:850;letter-spacing:-.045em;line-height:1.1}.brand-lockup small{color:#8099bb;font-size:.66rem;white-space:nowrap}
+      .sidebar-nav{display:grid;gap:5px}.sidebar-link{display:flex;align-items:center;gap:11px;width:100%;min-height:43px;padding:10px 11px;border:1px solid transparent;border-radius:11px;background:transparent;color:#9db5d7;text-align:left;font:inherit;font-size:.84rem;cursor:pointer;transition:background .18s,color .18s,border-color .18s}
+      .sidebar-link .side-icon{width:19px;height:19px;flex:0 0 19px;display:grid;place-items:center;color:#80a5dc}.sidebar-link .side-icon svg{width:18px;height:18px;margin:0}.sidebar-link:hover{color:#f6fbff;background:#10223a}.sidebar-link.is-active{color:#effbff;background:linear-gradient(105deg,#102946,#10233a);border-color:#1b3c5b;box-shadow:inset 3px 0 #20d7c2}.sidebar-link.is-active .side-icon{color:#28e1ca}
+      .sidebar-footer{margin-top:auto;display:grid;gap:13px;min-width:0}.sidebar-streak-wrap{padding:12px 10px;border:1px solid #203650;border-radius:14px;background:linear-gradient(145deg,#0d1e32,#0a1727)}.sidebar-kicker{display:block;margin:0 0 7px;color:#718cad;font-size:.61rem;font-weight:800;letter-spacing:.13em}
+      .streak-pill{display:flex;align-items:center;gap:8px;width:100%;min-width:0;padding:0;color:#dff8f5;background:transparent;border:0;text-align:left;cursor:pointer}.streak-pill .streak-flame{font-size:1.15rem;filter:drop-shadow(0 0 8px #ff8b4a80)}.streak-copy{display:grid;gap:1px;min-width:0;flex:1}.streak-copy b{font-size:.78rem;line-height:1.25}.streak-copy small{font-size:.64rem;color:#7ed8d1}.streak-best{flex:0 0 auto;color:#8ca6c8;font-size:.62rem}
+      .sidebar-theme{display:flex;align-items:center;gap:10px;min-height:40px;padding:7px 10px;background:none;border:0;color:#91a8c9;text-align:left;font:inherit;font-size:.8rem;cursor:pointer}.sidebar-theme:hover{color:#fff}.sidebar-theme .side-icon{width:18px;height:18px;display:grid;place-items:center}.sidebar-theme .side-icon svg{width:17px;height:17px;margin:0}.side-chevron{margin-left:auto;color:#5f7ea5}.sidebar-note{color:#516985;padding:0 10px;font-size:.68rem}
+      .app-main{min-width:0;min-height:100vh}.app-main .wrap{max-width:none;width:100%;margin:0;padding:22px clamp(16px,2vw,30px) 66px}
+      .top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 16px}.page-heading{min-width:0;display:grid;gap:3px}.page-heading h1{margin:0;font-size:clamp(1.35rem,2vw,1.8rem);font-weight:850;color:#f3f7ff;letter-spacing:-.04em;cursor:default}.page-heading p{margin:0;color:#90a8c8;font-size:.78rem}.mode-label{color:#6683a8;font-size:.68rem}.top .row{flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:7px}.top .ic{width:37px;height:37px;border-radius:11px;background:#0b192b;border-color:#1d3450;color:#8fb4df}
+      .bar2{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 11px}.month{gap:8px;padding:4px 7px;background:#0c1b2f;border:1px solid #1c3450;border-radius:12px}.month .ic{width:30px;height:30px;border:0;background:transparent;box-shadow:none;color:#96b3d7}.month b{min-width:104px;font-size:.8rem;color:#cbdaf0}#allT{font-size:.76rem;padding:7px 12px}
+      #tabs{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 15px;padding:2px 0 5px}#tabs .pill{min-height:34px;padding:7px 12px;font-size:.76rem;background:#0b192b;border:1px solid #1b314a;color:#8faacb}#tabs .pill.on{background:#133047;border-color:#1c8e91;color:#dcfffa;box-shadow:inset 0 0 0 1px #1e656c}#tabs .dt{width:7px;height:7px;margin-right:2px}
+      .dashboard-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:12px 0 18px}.dash-metric{min-width:0;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;padding:15px 16px 13px;overflow:hidden;border:1px solid #1a3550;border-radius:15px;background:linear-gradient(145deg,#0d1d31,#0a1728);box-shadow:0 8px 24px #00000012}
+      .dash-metric.tone-teal{border-color:#126b70;background:linear-gradient(145deg,#082b32,#0b1d2a 80%)}.dash-metric.tone-blue{border-color:#1c477a;background:linear-gradient(145deg,#0d2344,#0b192d 86%)}.dash-metric.tone-pink{border-color:#673459;background:linear-gradient(145deg,#2a1834,#151a2c 86%)}.dash-metric.tone-violet{border-color:#48347d;background:linear-gradient(145deg,#20193d,#111a2d 86%)}
+      .metric-head{display:flex;align-items:center;gap:9px;min-width:0;color:#a7bedb;font-size:.78rem;font-weight:650}.metric-icon{width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border-radius:9px;background:#123b42;color:#25ddc7}.tone-blue .metric-icon{background:#12356c;color:#48a8ff}.tone-pink .metric-icon{background:#4c2545;color:#ff72b4}.tone-violet .metric-icon{background:#3b286f;color:#b4a0ff}.metric-icon svg{width:17px;height:17px;margin:0}
+      .metric-value{display:block;max-width:100%;color:#f4f8ff;font-size:clamp(1.15rem,1.8vw,1.65rem);font-weight:850;line-height:1.1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.metric-value.negative{color:#ff70a7}.metric-foot{min-height:15px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:#7f9bbd;font-size:.68rem}.metric-delta{display:inline-flex;align-items:center;gap:4px;font-weight:750;font-size:.76rem}.metric-delta.good{color:#25e0c8}.metric-delta.bad{color:#ff70a7}.metric-delta.neutral{color:#90a9c9}.metric-delta small,.metric-foot>small{color:#7892b3;font-size:.64rem;font-weight:500}.metric-meta{color:#7892b3;font-size:.67rem}
+      .fc{margin:0 0 16px;padding:15px 16px 12px;border:1px solid #1b3550;border-radius:15px;background:linear-gradient(150deg,#0a192b,#081626 80%);box-shadow:0 12px 30px #00000010;gap:10px}.fc-head{align-items:center}.fc-head small{color:#83a0c4;font-size:.65rem;letter-spacing:.12em}.fc-head h3{color:#eaf2ff;font-size:1.08rem;font-weight:800}.fc-days{color:#90a9c9;background:#11243a;border:1px solid #1b3450;border-radius:8px;font-size:.69rem}.fc-overview{align-items:center}.fc-total-block>small,.fc-pace-block small{color:#8ea8ca;font-size:.7rem}.fc-total-block strong{font-size:clamp(1.7rem,2.7vw,2.35rem);color:#25e0c8}.fc-subline{color:#7d98ba}.fc-pace-block{background:#0d2034;border-color:#1d3b58;border-radius:11px}.fc-chart-top{color:#91a9c9;font-size:.73rem}.fc-bottomline{color:#6f8cad;font-size:.69rem}.fc-chart-top,.fc-bottomline{padding:0 2px}
+      .fc-empty{display:flex;align-items:center;gap:14px;padding:26px 5px 19px;color:#dce8fa}.fc-empty-icon{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;color:#24ddc6;border-radius:13px;background:#0d3438}.fc-empty-icon svg{width:23px;height:23px;margin:0}.fc-empty-copy{flex:1;min-width:0;display:grid;gap:4px}.fc-empty-copy small{color:#8ba6c8;font-size:.77rem}.fc-empty-copy b{font-size:.91rem}.fc-empty button{flex:0 0 auto;border:1px solid #1d8f8c;background:#0e383d;color:#dffff8}
+      .dashboard-widgets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:12px;margin:0 0 14px;align-items:stretch}.dashboard-widgets>.card,.dashboard-bottom-grid>.card{min-width:0;margin:0;padding:15px 15px 13px;border:1px solid #1a334e;border-radius:15px;background:linear-gradient(155deg,#0d1c2f,#091626);box-shadow:0 8px 22px #00000010}
+      .dashboard-widgets #plb{display:block}.dashboard-widgets #plb>.dash-widget-head{display:grid;gap:3px;margin-bottom:11px}.dashboard-widgets #plb>.dash-widget-head b{font-size:.86rem;color:#e8f1ff}.dashboard-widgets #plb>.dash-widget-head small{color:#7f9bbb;font-size:.66rem}
+      .dash-widget-head{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;min-width:0;margin:0 0 12px}.dash-widget-head>div{display:grid;gap:3px;min-width:0}.dash-widget-head b{color:#e7f0ff;font-size:.84rem;line-height:1.25}.dash-widget-head small{color:#7d98b9;font-size:.65rem;line-height:1.35}.widget-link{padding:2px 0;color:#58b7ff;background:none;border:0;font:inherit;font-size:.67rem;white-space:nowrap;cursor:pointer}.widget-more{color:#819cbd;font-size:.65rem;white-space:nowrap}
+      .pb{grid-template-columns:minmax(62px,.8fr) minmax(36px,1fr) minmax(77px,auto);gap:8px;margin-top:11px;font-size:.7rem}.pb>span:first-child{color:#c5d6ed}.pb s{height:6px;background:#12253a}.pb s i{background:linear-gradient(90deg,#1684ff,#28d7d0)!important}.pb.selected>span:first-child{color:#36dfce}.pb.selected s{outline:1px solid #1a8888;outline-offset:2px}.platform-number{display:grid;gap:3px;min-width:70px;text-align:right}.platform-number b{font-size:.7rem;font-weight:750;white-space:nowrap}.platform-number small{color:#7692b5;font-size:.62rem}
+      #dashTrendChart{min-width:0;min-height:120px}#dashTrendChart svg{display:block;width:100%;height:auto;overflow:visible}.dash-trend-chart .trend-grid{stroke:#1a3048;stroke-width:1}.dash-trend-chart .trend-axis{fill:#7692b4;font-size:10px}.dash-legend{display:flex;flex-wrap:wrap;gap:14px;color:#849fbe;font-size:.66rem;margin-top:8px}.dash-legend span{display:inline-flex;align-items:center;gap:6px}.dash-legend i{width:7px;height:7px;display:inline-block;border-radius:50%}.legend-income{background:#1bd9c0}.legend-expense{background:#ef5b9f}.dash-trend-empty{color:#7893b3;padding:24px 4px;font-size:.76rem}
+      #dashRecentContent{display:grid}.recent-item{display:grid;grid-template-columns:29px minmax(0,1fr) auto;align-items:center;gap:8px;min-width:0;padding:9px 0;width:100%;text-align:left;border:0;border-top:1px solid #172a41;color:#deebfc;background:transparent;cursor:pointer}.recent-item:first-child{border-top:0;padding-top:0}.recent-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;color:#2bd9c5;background:#10343a}.recent-icon svg{width:15px;height:15px;margin:0}.recent-icon.purchase{color:#66aaff;background:#122e56}.recent-icon.refund,.recent-icon.other,.recent-icon.ad{color:#fb78ad;background:#48243e}.recent-icon.withdraw{color:#a5b6cd;background:#1b2b40}.recent-copy{min-width:0;display:grid;gap:3px}.recent-copy b{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#dae8fb;font-size:.7rem;font-weight:650}.recent-copy small{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#7692b4;font-size:.62rem}.recent-value{text-align:right;display:grid;gap:4px;justify-items:end;white-space:nowrap;font-size:.7rem;font-weight:800;font-variant-numeric:tabular-nums}.recent-value.positive{color:#26d9c2}.recent-value.negative{color:#ff70a7}.recent-value.neutral{color:#b0c3dd}.recent-value small{color:#7691b3;font-size:.6rem;font-weight:500}
+      .dashboard-bottom-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:12px;margin:0 0 22px}.dashboard-bottom-grid #bw{grid-column:1/-1;margin:0;gap:12px}#kpi>b:first-child{display:block;margin-bottom:8px;color:#e8f1ff}#kpi .kpi{grid-template-columns:repeat(2,minmax(0,1fr));margin:0;gap:8px}#kpi .kpi div{padding:9px 10px;border:1px solid #1a3048;background:#0b192a;border-radius:10px}#kpi .kpi small{color:#7c98ba;font-size:.62rem}#kpi .kpi b{color:#d9e7f9;font-size:.75rem;overflow-wrap:anywhere}
+      .dash-goal-body{display:grid;gap:8px}.dash-goal-value{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px}.dash-goal-value strong{color:#f0f7ff;font-size:1.35rem;letter-spacing:-.035em}.dash-goal-value span{color:#21dfc6;font-size:.73rem;font-weight:800}.dash-goal-meta{display:flex;justify-content:space-between;gap:8px;color:#819cbd;font-size:.67rem}.dash-goal-track{height:7px;border-radius:99px;overflow:hidden;background:#172d44}.dash-goal-track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#1976ff,#21dec4);transition:width .4s ease}.dash-goal-empty{color:#8aa5c6;font-size:.74rem;line-height:1.5}.dash-streak-summary{display:flex;align-items:center;gap:10px}.dash-streak-big{color:#fff0de;font-size:1.75rem;font-weight:900;letter-spacing:-.05em;white-space:nowrap}.dash-streak-big span{color:#ff9654;font-size:1rem}.dash-streak-detail{display:grid;gap:4px;min-width:0}.dash-streak-detail b{color:#f6e5d3;font-size:.75rem}.dash-streak-detail small{color:#8ba3c2;font-size:.66rem;line-height:1.35}.dash-streak-next{margin-top:10px;color:#8ba3c2;font-size:.66rem;line-height:1.45}.dash-streak-next b{color:#ffb36b}.streak-ember{color:#23dcca;font-size:.95rem}.bw .bwt{background:#0b192a;border:1px solid #1b3048;border-radius:12px}.bw .bwt small{color:#8ca7c7}.bw .bwt b{color:#e2edff}.bw .bwt .bws{background:#14273d}
+      .panel-title-icon{display:inline-grid;place-items:center;vertical-align:middle;margin-right:6px;color:#70b5ff}.panel-title-icon svg{width:17px;height:17px;margin:0}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.78fr);align-items:start;gap:16px;margin-top:0}.layout>main,.layout>aside{min-width:0;display:grid;gap:14px;align-content:start}.layout .hero{display:none!important}.layout .bar3{margin:8px 0 10px}#chCard{min-width:0;background:#0b1929;border-color:#1c334c;border-radius:15px;box-shadow:none}#chCard>b:first-child{display:block;color:#e8f2ff;margin-bottom:10px;font-size:.88rem}#chart2{min-width:0}#chart2 svg{max-width:100%}.app-main .card:hover{transform:none}.app-main .pill{border-color:#243b55}
+      .app-main button:focus-visible,.app-main a:focus-visible,.app-sidebar button:focus-visible{outline:2px solid #36dcca;outline-offset:3px}
+      #dStreak .streak-dialog-hero{display:flex;align-items:center;gap:14px;padding:16px;margin-bottom:14px;border:1px solid #23405a;border-radius:15px;background:linear-gradient(135deg,#132d42,#18203a)}.streak-orb{width:55px;height:55px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 25%,#ffd89a,#ff8245 55%,#a92c24);box-shadow:0 0 30px #ff7f3e45;font-size:1.8rem}.streak-dialog-hero>div:last-child{display:grid;gap:4px}.streak-dialog-hero small{color:#8fa9c8;font-size:.65rem;letter-spacing:.08em}.streak-dialog-hero strong{color:#fff5e8;font-size:1.6rem;letter-spacing:-.04em}.streak-dialog-hero span{color:#ffb16e;font-size:.78rem}.streak-progress-copy{margin:0 0 12px;color:#8fa9c8;font-size:.77rem;line-height:1.5}.streak-achievements{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.streak-achievement{display:flex;align-items:center;gap:9px;min-width:0;padding:11px;border:1px solid #1d344d;border-radius:12px;background:#0b1929}.streak-achievement.locked{opacity:.48;filter:saturate(.45)}.achievement-icon{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border-radius:10px;background:#183243;color:#ffb26c}.streak-achievement div{min-width:0;display:grid;gap:3px}.streak-achievement b{color:#e7f1ff;font-size:.75rem}.streak-achievement small{color:#8aa4c3;font-size:.65rem}.streak-achievement em{color:#25dcca;font-size:.6rem;font-style:normal;font-weight:800}.streak-footnote{margin-top:14px;font-size:.75rem}
+      @media(max-width:1250px){.app-shell{grid-template-columns:196px minmax(0,1fr)}.app-main .wrap{padding-left:18px;padding-right:18px}.dashboard-widgets{gap:9px}.dashboard-widgets>.card,.dashboard-bottom-grid>.card{padding:13px 12px}.pb{grid-template-columns:minmax(52px,.8fr) minmax(28px,1fr) minmax(72px,auto);gap:6px}.recent-item{grid-template-columns:25px minmax(0,1fr) auto;gap:6px}.recent-icon{width:25px;height:25px}}
+      @media(max-width:1020px){.app-shell{grid-template-columns:72px minmax(0,1fr)}.app-sidebar{align-items:center;padding:17px 8px 13px;gap:22px}.brand-lockup{padding:0}.brand-lockup img{width:38px;height:38px}.brand-lockup>span,.sidebar-link>span:last-child,.sidebar-footer .sidebar-kicker,.sidebar-theme>span:not(.side-icon),.sidebar-note{display:none}.sidebar-nav{width:100%}.sidebar-link{justify-content:center;padding:9px 7px}.sidebar-link .side-icon{width:20px;height:20px}.sidebar-footer{width:100%}.sidebar-streak-wrap{padding:9px 4px}.streak-pill{justify-content:center}.streak-copy,.streak-best{display:none}.sidebar-theme{justify-content:center;padding:8px 4px}.dashboard-kpis{gap:8px}.dash-metric{padding:12px 11px}.metric-head{gap:7px;font-size:.71rem}.metric-value{font-size:clamp(1rem,2vw,1.35rem)}.dashboard-widgets{grid-template-columns:repeat(2,minmax(0,1fr))}#dashRecentWidget{grid-column:1/-1}.recent-item{grid-template-columns:29px minmax(0,1fr) auto}.layout{grid-template-columns:minmax(0,1fr)}.layout>aside{display:block}}
+      @media(max-width:680px){.app-shell{display:block}.app-sidebar{position:sticky;top:0;width:100%;height:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:8px 12px;padding:9px 12px 8px;overflow:visible;border-right:0;border-bottom:1px solid #1a3048}.brand-lockup{grid-column:1;grid-row:1;justify-self:start;gap:7px}.brand-lockup img{width:31px;height:31px;flex:0 0 31px}.brand-lockup>span{display:grid}.brand-lockup b{font-size:1rem}.brand-lockup small{display:none}.sidebar-streak-wrap{display:block;grid-column:2;grid-row:1;padding:0;border:0;background:none}.sidebar-kicker{display:none}.streak-pill{gap:6px;justify-content:flex-end;width:auto}.streak-copy{display:grid}.streak-copy b{font-size:.68rem}.streak-copy small,.streak-best{display:none}.sidebar-nav{grid-column:1/-1;grid-row:2;display:flex;align-items:center;gap:5px;width:100%;overflow-x:auto;padding:1px 0 3px;scrollbar-width:thin}.sidebar-link{flex:0 0 auto;min-height:37px;width:auto;justify-content:flex-start;gap:7px;padding:7px 9px;border-radius:9px;white-space:nowrap;font-size:.71rem}.sidebar-link>span:last-child{display:inline}.sidebar-link .side-icon{width:16px;height:16px;flex-basis:16px}.sidebar-link .side-icon svg{width:16px;height:16px}.sidebar-footer{display:none}.app-main .wrap{padding:14px 12px 90px}.top{align-items:flex-start;gap:10px;margin-bottom:13px}.page-heading h1{font-size:1.3rem}.page-heading p{font-size:.7rem}.top .row{display:flex;gap:4px;max-width:150px}.top .ic{width:32px;height:32px}.top .ic svg{width:16px;height:16px}.bar2{margin-bottom:9px}.month{gap:2px;padding:3px 5px}.month b{min-width:88px;font-size:.72rem}.month .ic{width:28px;height:28px}#tabs{gap:6px;padding-bottom:3px;margin-bottom:10px}#tabs .pill{padding:6px 9px;font-size:.7rem;min-height:32px}.dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 12px}.dash-metric{min-height:102px;padding:11px;gap:9px;border-radius:12px}.metric-head{font-size:.7rem;gap:6px}.metric-icon{width:26px;height:26px;flex-basis:26px}.metric-icon svg{width:15px;height:15px}.metric-value{font-size:1.15rem}.metric-foot{font-size:.63rem}.metric-delta{font-size:.67rem}.fc{padding:12px 10px;margin-bottom:12px;border-radius:13px}.fc-head{align-items:flex-start;gap:8px}.fc-head h3{font-size:.97rem}.fc-days{padding:5px 7px;font-size:.62rem;text-align:center}.fc-overview{flex-direction:row;align-items:center;gap:8px}.fc-total-block strong{font-size:1.65rem}.fc-pace-block{gap:7px;padding:8px}.fc-pace-block b{font-size:.8rem}.fc-chart-top{flex-direction:column;align-items:flex-start;gap:5px;font-size:.68rem}.fc-legend{justify-content:flex-start}.fc-axis{font-size:12px}.fc-bottomline{font-size:.64rem}.dashboard-widgets{grid-template-columns:minmax(0,1fr);gap:9px;margin-bottom:10px}#dashRecentWidget{grid-column:auto}.dashboard-widgets>.card,.dashboard-bottom-grid>.card{padding:13px;border-radius:13px}.dashboard-widgets #plb>.dash-widget-head{margin-bottom:8px}.pb{grid-template-columns:minmax(80px,.8fr) minmax(60px,1fr) minmax(80px,auto)}.dash-widget-head b{font-size:.8rem}#dashTrendChart{min-height:140px}.recent-item{padding:10px 0}.recent-copy b{font-size:.72rem}.recent-copy small{font-size:.64rem}.recent-value{font-size:.7rem}.dashboard-bottom-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:15px}.dashboard-bottom-grid #kpi,.dashboard-bottom-grid #bw{grid-column:1/-1}.dashboard-bottom-grid #bw{grid-template-columns:minmax(0,1fr)}.dashboard-bottom-grid .bwt{padding:12px 13px 12px 18px}#kpi .kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-goal-value strong{font-size:1.1rem}.dash-streak-big{font-size:1.4rem}.streak-achievements{grid-template-columns:minmax(0,1fr)}.layout{gap:12px}.layout>main{gap:12px}.layout>aside{display:block}#chCard{margin-top:0}#dStreak{width:min(560px,calc(100vw - 16px));padding:17px}.fc-empty{align-items:flex-start;flex-wrap:wrap}.fc-empty-copy{flex-basis:calc(100% - 60px)}.fc-empty button{margin-left:58px}}
+      @media(prefers-reduced-motion:reduce){.sidebar-link,.dash-goal-track i{transition:none!important}.streak-pill .streak-flame,.streak-orb{animation:none!important}}
+
+      /* Keep the daily streak visible in the mobile header, not buried in the desktop footer. */
+      .sidebar-streak-wrap{margin-top:auto}
+      .sidebar-footer{margin-top:0}
+      @media(max-width:680px){.sidebar-streak-wrap{grid-column:2;grid-row:1;margin:0;padding:0;border:0;background:none}.sidebar-footer{display:none}}
     </style>
   </head>
   <body>
     <div id="bg"><i></i><i></i><i></i></div>
     <div id="fx"></div>
-    <div class="wrap">
+    <div class="app-shell">
+      <aside class="app-sidebar" aria-label="Основная навигация">
+        <a class="brand-lockup" href="/" aria-label="Finzaro — главная">
+          <img src="/assets/finzaro-icon.svg" alt="" width="42" height="42">
+          <span><b>Finzaro</b><small>Твой доход под контролем</small></span>
+        </a>
+        <nav class="sidebar-nav" aria-label="Разделы Finzaro">
+          <button type="button" class="sidebar-link is-active" data-side-nav="home"><span class="side-icon" data-i="chart"></span><span>Главная</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="operations"><span class="side-icon" data-i="history"></span><span>Операции</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="inventory"><span class="side-icon" data-i="purchase"></span><span>Склад</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="analytics"><span class="side-icon" data-i="chart"></span><span>Аналитика</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="marketplaces"><span class="side-icon" data-i="store"></span><span>Площадки</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="calculator"><span class="side-icon" data-i="calc"></span><span>Калькулятор</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="import"><span class="side-icon" data-i="dl"></span><span>Импорт / экспорт</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="settings"><span class="side-icon" data-i="set"></span><span>Настройки</span></button>
+        </nav>
+        <div class="sidebar-streak-wrap"><small class="sidebar-kicker">ТВОЯ СЕРИЯ</small><button type="button" id="streak" class="streak-pill" aria-haspopup="dialog" aria-controls="dStreak"></button></div>
+        <div class="sidebar-footer">
+          <button type="button" class="sidebar-theme" id="sideTheme"><span class="side-icon" data-i="pal"></span><span>Оформление</span><span class="side-chevron">↗</span></button>
+          <small class="sidebar-note">Маленький шаг каждый день.</small>
+        </div>
+      </aside>
+      <div class="app-main">
+        <div class="wrap">
       <div class="top">
-        <div>
-          <h1><i class="logo"></i><span class="brand-name">Finzaro</span></h1>
-          <small id="mode"></small><span id="streak"></span>
+        <div class="page-heading">
+          <h1>Прибыль за месяц</h1>
+          <p>Динамика, площадки и прогноз — в одном месте</p>
+          <small id="mode" class="mode-label"></small>
         </div>
         <div class="row">
           <button class="ic" id="bImport" data-i="import" title="Импорт закупок и продаж FunPay" aria-label="Импорт закупок и продаж FunPay"></button
@@ -1782,9 +1847,35 @@
         </div>
         <button class="pill" id="allT">Всё время</button>
       </div>
-      <nav class="pills" id="tabs"></nav>
+      <nav class="pills" id="tabs" aria-label="Фильтр по площадкам"></nav>
       <div id="tpl" hidden></div>
 
+      <section class="dashboard-kpis" id="dashKpis" aria-label="Ключевые показатели"></section>
+      <div class="card fc" id="fc"></div>
+      <section class="dashboard-widgets" aria-label="Сводная аналитика">
+        <div class="card" id="plb"></div>
+        <div class="card dash-widget" id="dashTrendWidget">
+          <div class="dash-widget-head"><div><b>Доход vs расходы</b><small>По дням выбранного периода</small></div><span class="widget-more">Тренд</span></div>
+          <div id="dashTrendChart" class="dash-trend-chart"></div>
+          <div class="dash-legend"><span><i class="legend-income"></i>Доход</span><span><i class="legend-expense"></i>Расходы</span></div>
+        </div>
+        <div class="card dash-widget" id="dashRecentWidget">
+          <div class="dash-widget-head"><div><b>Последние операции</b><small>Свежие записи</small></div><button type="button" class="widget-link" data-side-nav="operations">Все →</button></div>
+          <div id="dashRecentContent"></div>
+        </div>
+      </section>
+      <section class="dashboard-bottom-grid" aria-label="Цели и дополнительные показатели">
+        <div class="card" id="kpi"></div>
+        <div class="card dash-goal-widget" id="dashGoalWidget">
+          <div class="dash-widget-head"><div><b>Цель на месяц</b><small>Держи курс на результат</small></div><button type="button" class="widget-link" id="dashGoalSet">Изменить →</button></div>
+          <div id="dashGoalContent"></div>
+        </div>
+        <div class="card dash-streak-widget" id="dashStreakWidget">
+          <div class="dash-widget-head"><div><b>Серия огоньков</b><small>Регулярность тоже актив</small></div><span class="streak-ember" aria-hidden="true">✦</span></div>
+          <div id="dashStreakContent"></div>
+        </div>
+        <div class="bw" id="bw"></div>
+      </section>
       <div class="layout">
         <main>
           <div id="pHead"></div>
@@ -1795,8 +1886,6 @@
             <div class="st3" id="st"></div>
             <div class="goal" id="goal"></div>
           </section>
-          <div class="card fc" id="fc"></div>
-          <div class="bw" id="bw"></div>
           <div class="kpi k3" id="pK"></div>
           <div class="seg" id="secs"></div>
           <div id="paneG">
@@ -1822,16 +1911,23 @@
           </div>
         </main>
         <aside>
-          <div class="card" id="kpi"></div>
-          <div class="card" id="plb"></div>
-          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выделение</button></div><small class="chart-range-summary" id="chartRangeSummary"></small></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
+          <div class="card" id="chCard"><b><span class="panel-title-icon" data-i="chart"></span> Расширенная аналитика</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выделение</button></div><small class="chart-range-summary" id="chartRangeSummary"></small></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
+      </div>
+        </div>
       </div>
     </div>
     <button type="button" class="undo-fab" id="bUndo" hidden aria-label="Вернуть последнее действие" aria-keyshortcuts="Control+Z Meta+Z"><span aria-hidden="true">↶</span><b>Вернуть действие</b><small id="undoMeta">Ctrl+Z</small></button>
     <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b></button>
     <div id="toast" role="alert"></div>
 
+    <dialog id="dStreak">
+      <div class="sh"><b>Коллекция огоньков</b><button type="button" class="ic sm" id="cStreak" data-i="x" aria-label="Закрыть достижения"></button></div>
+      <div class="streak-dialog-hero"><div class="streak-orb" aria-hidden="true">🔥</div><div><small>ТВОЙ ТЕКУЩИЙ СЕРИЙНЫЙ СЧЁТ</small><strong id="streakDialogCount">0 дней</strong><span id="streakDialogRank">Первая искра</span></div></div>
+      <div class="streak-progress-copy" id="streakProgressCopy"></div>
+      <div class="streak-achievements" id="streakAchievements"></div>
+      <p class="mut streak-footnote">Серия растёт за каждый новый календарный день посещения Finzaro. Заходи завтра, чтобы не дать огоньку погаснуть.</p>
+    </dialog>
     <dialog id="dHistory">
       <div class="sh"><b>История действий</b><button type="button" class="ic sm" id="cHistory" data-i="x" aria-label="Закрыть историю"></button></div>
       <p class="mut">Выбери конкретное действие, которое нужно вернуть. Можно откатить не только последнее; если более позднее изменение зависит от него, Finzaro предупредит и не перезапишет новые данные.</p>
@@ -2429,7 +2525,7 @@
         const d = new Date(year, monthNumber, 0);
         return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
       };
-      const DEF = { theme: "peach", acc: null, font: "Системный", fs: 16, r: 20, wd: false, decor: true, decorLevel: "normal" };
+      const DEF = { theme: "dark", acc: null, font: "Системный", fs: 16, r: 20, wd: false, decor: true, decorLevel: "normal" };
       let sec = "games",
         tf = "all",
         so = "new",
@@ -2906,24 +3002,29 @@
         hint();
       });
 
-      /* Серия огоньков: уникальные локальные календарные дни, один визит в день. */
+      const STREAK_LEVELS=[
+        {days:1,title:"Первая искра",icon:"✦",note:"Начало привычки"},{days:3,title:"Искра",icon:"✧",note:"3 дня подряд"},
+        {days:7,title:"Неделя огня",icon:"🔥",note:"7 дней подряд"},{days:14,title:"Уверенное пламя",icon:"♨",note:"14 дней подряд"},
+        {days:30,title:"Жаркий месяц",icon:"☀",note:"30 дней подряд"},{days:60,title:"Хранитель огня",icon:"❖",note:"60 дней подряд"},
+        {days:100,title:"Легенда Finzaro",icon:"✹",note:"100 дней подряд"},{days:180,title:"Пламя полугодия",icon:"✺",note:"180 дней подряд"},
+        {days:365,title:"Вечный огонь",icon:"♛",note:"365 дней подряд"}
+      ];
+      let currentStreak=0,bestStreakValue=0;
+      /* Серия огоньков: визиты по календарным дням + награды за этапы. */
       (() => {
-        const key = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-        const t = today(), saved = LS("visits", []);
-        const days = Array.isArray(saved) ? [...new Set(saved.filter((x) => typeof x === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x)))].sort() : [];
-        if (!days.includes(t)) days.push(t);
-        const clean = [...new Set(days)].sort().slice(-400);
-        localStorage.setItem("visits", JSON.stringify(clean));
-        const S = new Set(clean), c = new Date();
-        c.setHours(12, 0, 0, 0);
-        let n = 0;
-        while (S.has(key(c))) { n++; c.setDate(c.getDate() - 1); }
-        const oldBest = Number(LS("bestStreak", 0)) || 0, best = Math.max(n, oldBest);
-        if (best !== oldBest) localStorage.setItem("bestStreak", String(best));
-        const el = $("#streak");
-        el.title = "Серия дней, когда вы открывали Finzaro. Считается в этом браузере.";
-        el.setAttribute("aria-label", `${n} ${pl(n, ["день", "дня", "дней"])} подряд`);
-        el.innerHTML = `<span class="fl" aria-hidden="true">🔥</span><span class="streak-count">${n} ${pl(n, ["день", "дня", "дней"])} подряд</span><small>${n < 2 ? "Загляни завтра, чтобы продолжить" : best > n ? "Рекорд: " + best : "Личный рекорд!"}</small>`;
+        const key=(d)=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+        const t=today(),saved=LS("visits",[]);
+        const days=Array.isArray(saved)?[...new Set(saved.filter(x=>typeof x==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x)))].sort():[];
+        if(!days.includes(t))days.push(t);
+        const clean=[...new Set(days)].sort().slice(-400);localStorage.setItem("visits",JSON.stringify(clean));
+        const S=new Set(clean),c=new Date();c.setHours(12,0,0,0);let n=0;while(S.has(key(c))){n++;c.setDate(c.getDate()-1);}
+        const oldBest=Number(LS("bestStreak",0))||0,best=Math.max(n,oldBest);if(best!==oldBest)localStorage.setItem("bestStreak",String(best));
+        currentStreak=n;bestStreakValue=best;
+        const el=$("#streak"),plural=n===1?"день":n>=2&&n<=4?"дня":"дней",rank=STREAK_LEVELS.slice().reverse().find(x=>n>=x.days)||STREAK_LEVELS[0];
+        el.title="Открой достижения серии огоньков";el.setAttribute("aria-label",n+" "+plural+" подряд. Лучший результат: "+best+" дней.");
+        el.innerHTML='<span class="streak-flame" aria-hidden="true">🔥</span><span class="streak-copy"><b>'+n+' '+plural+'</b><small>'+esc(rank.title)+'</small></span><span class="streak-best">Рекорд '+best+'</span>';
+        const seen=LS("streakMilestones",[]),newly=STREAK_LEVELS.filter(x=>n>=x.days&&!seen.includes(x.days));
+        if(newly.length){localStorage.setItem("streakMilestones",JSON.stringify([...new Set([...seen,...newly.map(x=>x.days)])]));const reward=newly[newly.length-1];setTimeout(()=>toast("🔥 Достижение открыто: «"+reward.title+"»! "+n+" дней подряд."),850);}
       })();
 
       /* Лучшая и худшая игра */
@@ -2976,7 +3077,12 @@
         const selectedOps = ops.filter((o) => view === "all" || o.marketplace === view);
         const profitOps = marketplaceProfitOps(selectedOps, view, t);
         const current = profitOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
-        if (!current.length) { el.innerHTML = ""; return; }
+        if (!current.length) {
+          const emptyMonth=MN[M-1]||"";
+          el.innerHTML='<div class="fc-head"><div><small>ФИНАНСЫ · '+esc(emptyMonth)+' '+Y+'</small><h3>Примерная прибыль за месяц</h3></div><span class="fc-days">Прогноз появится после первой операции</span></div>'+
+            '<div class="fc-empty"><span class="fc-empty-icon">'+ico("chart")+'</span><div class="fc-empty-copy"><b>Пока нет данных для прогноза</b><small>Добавь продажу, закупку или импортируй историю FunPay. Finzaro покажет факт, осторожный темп и примерный итог месяца.</small></div><button type="button" class="pill" id="fcEmptyAdd">Добавить операцию</button></div>';
+          $("#fcEmptyAdd").onclick=()=>$("#bAdd").click();return;
+        }
 
         const by = {};
         current.forEach((o) => (by[o.date] ??= []).push(o));
@@ -3350,6 +3456,56 @@
           .join("");
       }
 
+
+      /* Dashboard-specific charts use Finzaro's existing accounting totals. */
+      function renderDashboardTrend(chartOps, showAllTime, selectedMonth) {
+        const group = {};
+        chartOps.forEach((o) => (group[o.date] ??= []).push(o));
+        let dates = [];
+        if (showAllTime) dates = Object.keys(group).sort().slice(-31);
+        else {
+          const [yy, mm] = selectedMonth.split("-").map(Number), count = new Date(yy, mm, 0).getDate();
+          dates = Array.from({ length: count }, (_, i) => selectedMonth + "-" + String(i + 1).padStart(2, "0"));
+          if (selectedMonth === today().slice(0, 7)) dates = dates.filter((d) => d <= today());
+        }
+        if (!dates.length || !chartOps.length) { $("#dashTrendChart").innerHTML = '<div class="dash-trend-empty">Добавь продажи и расходы — здесь появится их динамика.</div>'; return; }
+        const rows = dates.map((d) => ({ d, ...agg(group[d] || []) })), maxV = Math.max(1, ...rows.map((r) => Math.max(r.sales, r.spent)));
+        const W=420,H=142,L=9,R=7,T=8,B=23,x=(i)=>L+(i/Math.max(1,rows.length-1))*(W-L-R),y=(v)=>T+(1-v/maxV)*(H-T-B);
+        const pathFor=(key)=>rows.map((r,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(r[key]).toFixed(1)).join(" ");
+        const salesPath=pathFor("sales"),spentPath=pathFor("spent"),saleArea=salesPath+" L "+x(rows.length-1).toFixed(1)+" "+(H-B)+" L "+x(0).toFixed(1)+" "+(H-B)+" Z";
+        const ticks=[0,Math.floor((rows.length-1)/2),rows.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+        const grid=[.25,.5,.75,1].map(k=>{const yy=y(maxV*k);return '<line class="trend-grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/>';}).join("");
+        const labels=ticks.map(i=>'<text class="trend-axis" x="'+x(i).toFixed(1)+'" y="'+(H-5)+'" text-anchor="'+(i===0?"start":i===rows.length-1?"end":"middle")+'">'+Number(rows[i].d.slice(8))+'</text>').join("");
+        const last=rows[rows.length-1];
+        $("#dashTrendChart").innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Динамика дохода и расходов по дням"><defs><linearGradient id="dashTrendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1bd9c0" stop-opacity=".25"/><stop offset="100%" stop-color="#1bd9c0" stop-opacity="0"/></linearGradient></defs>'+grid+'<path d="'+saleArea+'" fill="url(#dashTrendFill)"/><path d="'+salesPath+'" fill="none" stroke="#1bd9c0" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="'+spentPath+'" fill="none" stroke="#ef5b9f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+x(rows.length-1).toFixed(1)+'" cy="'+y(last.sales).toFixed(1)+'" r="3" fill="#1bd9c0"/><circle cx="'+x(rows.length-1).toFixed(1)+'" cy="'+y(last.spent).toFixed(1)+'" r="3" fill="#ef5b9f"/>'+labels+'</svg>';
+        $("#dashTrendWidget").setAttribute("title","Последний день: доход "+fmt(last.sales)+", расходы "+fmt(last.spent));
+      }
+      function renderDashboardRecent(list) {
+        const recent=list.filter(o=>!String(o.id||"").startsWith("cogs-")).slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.id||"").localeCompare(String(a.id||""))).slice(0,4);
+        if(!recent.length){$("#dashRecentContent").innerHTML='<div class="dash-trend-empty">Пока пусто. Первая запись появится здесь.</div>';return;}
+        $("#dashRecentContent").innerHTML=recent.map(o=>{
+          const amount=Number(o.amount)||0,fee=Number(o.fee)||0;let value=fmt(Math.abs(amount)),tone="neutral";
+          if(o.type==="sale"){value="+"+fmt(Math.max(0,amount-fee));tone="positive";}
+          else if(o.type==="refund"){value="−"+fmt(Math.max(0,amount-fee));tone="negative";}
+          else if(["purchase","other","ad"].includes(o.type)||amount<0){value="−"+fmt(Math.abs(amount));tone="negative";}
+          else if(o.type==="withdraw"){value="↗ "+fmt(amount);tone="neutral";}
+          const title=typeLabel(o.type)+(o.marketplace?" ("+o.marketplace+")":""), secondary=[dm(o.date),o.game||visibleNote(o.note)].filter(Boolean).join(" · ");
+          return '<button type="button" class="recent-item" data-e="'+esc(o.id)+'" title="Открыть операцию"><span class="recent-icon '+esc(o.type)+'">'+ico(o.type)+'</span><span class="recent-copy"><b>'+esc(title)+'</b><small>'+esc(secondary)+'</small></span><span class="recent-value '+tone+'">'+value+(fee&&o.type==="sale"?'<small>Комиссия −'+fmt(fee)+'</small>':fee&&o.type==="withdraw"?'<small>Комиссия '+fmt(fee)+'</small>':'')+'</span></button>';
+        }).join("");
+      }
+      function renderDashboardStreak(){
+        const next=STREAK_LEVELS.find(x=>x.days>currentStreak),rank=STREAK_LEVELS.slice().reverse().find(x=>currentStreak>=x.days)||STREAK_LEVELS[0];
+        $("#dashStreakContent").innerHTML='<div class="dash-streak-summary"><strong class="dash-streak-big">'+currentStreak+'<span> 🔥</span></strong><div class="dash-streak-detail"><b>'+esc(rank.title)+'</b><small>Рекорд: '+bestStreakValue+' дн.</small></div></div><div class="dash-streak-next">'+(next?'Следующая награда: <b>'+esc(next.title)+'</b> через '+(next.days-currentStreak)+' дн.':'<b>Все награды собраны.</b> Ты приручил вечный огонь!')+'</div>';
+      }
+      function renderStreakDialog(){
+        const plural=currentStreak===1?"день":currentStreak>=2&&currentStreak<=4?"дня":"дней",next=STREAK_LEVELS.find(x=>x.days>currentStreak),rank=STREAK_LEVELS.slice().reverse().find(x=>currentStreak>=x.days)||STREAK_LEVELS[0];
+        $("#streakDialogCount").textContent=currentStreak+" "+plural;$("#streakDialogRank").textContent=rank.title;
+        $("#streakProgressCopy").textContent=next?'До «'+next.title+'» осталось '+(next.days-currentStreak)+' дн. Рекорд серии — '+bestStreakValue+' дн.':'Коллекция пройдена на 100%. Рекорд — '+bestStreakValue+' дн.';
+        const seen=LS("streakMilestones",[]);
+        $("#streakAchievements").innerHTML=STREAK_LEVELS.map(x=>{const unlocked=currentStreak>=x.days,achieved=seen.includes(x.days);return '<div class="streak-achievement '+(unlocked?"unlocked":"locked")+'"><span class="achievement-icon">'+x.icon+'</span><div><b>'+esc(x.title)+'</b><small>'+esc(x.note)+'</small><em>'+(unlocked?(achieved?"ОТКРЫТО":"ДОСТУПНО"):"ЗАКРЫТО")+'</em></div></div>';}).join("");
+      }
+      $("#streak").addEventListener("click",()=>{renderStreakDialog();$("#dStreak").showModal();});
+      $("#cStreak").addEventListener("click",()=>$("#dStreak").close());
       function render() {
         renderTpl();
         const keys = Object.keys(MPS);
@@ -3366,6 +3522,36 @@
           list = view === "all" ? inP : inP.filter((o) => o.marketplace === view),
           profitList = marketplaceProfitOps(list.filter((o) => o.date <= asOfDate), view, asOfDate),
           T = agg(profitList);
+        let previousStats=null;
+        if(!allT){
+          const [cy,cm]=ym.split("-").map(Number),pd=new Date(cy,cm-2,1),pm=pd.getFullYear()+"-"+String(pd.getMonth()+1).padStart(2,"0");
+          const previousRows=ops.filter(o=>o.date.startsWith(pm)&&(view==="all"||o.marketplace===view));
+          previousStats=agg(marketplaceProfitOps(previousRows,view,monthLastDay(pm)));
+        }
+        const metricChange=(value,previous,invert=false)=>{
+          if(allT)return '<span class="metric-meta">За всё время</span>';
+          if(!previousStats||!Number.isFinite(previous)||Math.abs(previous)<.005)return '<span class="metric-meta">Нет базы для сравнения</span>';
+          const delta=((value-previous)/Math.abs(previous))*100,tone=Math.abs(delta)<.05?"neutral":((delta>0)!==invert?"good":"bad");
+          return '<span class="metric-delta '+tone+'"><i aria-hidden="true">'+(delta>0?"↗":delta<0?"↘":"→")+'</i> '+Math.abs(delta).toLocaleString("ru-RU",{maximumFractionDigits:1})+'%</span><small>к прошлому месяцу</small>';
+        };
+        const marginChange=()=>{
+          if(allT||!previousStats||T.margin==null||previousStats.margin==null)return '<span class="metric-meta">Доля прибыли от продаж</span>';
+          const d=T.margin-previousStats.margin;
+          return '<span class="metric-delta '+(Math.abs(d)<.05?"neutral":d>0?"good":"bad")+'">'+(d>0?"+":d<0?"−":"")+Math.abs(d).toLocaleString("ru-RU",{maximumFractionDigits:1})+' п.п.</span><small>к прошлому месяцу</small>';
+        };
+        const marginValue=T.margin==null?"—":T.margin.toLocaleString("ru-RU",{maximumFractionDigits:1})+"%";
+        $("#dashKpis").innerHTML=[
+          {label:"Общая прибыль",value:fmt(T.profit),icon:"chart",tone:"teal",foot:metricChange(T.profit,previousStats?.profit),valueTone:T.profit<0?"negative":""},
+          {label:"Доход",value:fmt(T.sales),icon:"sale",tone:"blue",foot:metricChange(T.sales,previousStats?.sales)},
+          {label:"Расходы",value:fmt(T.spent),icon:"purchase",tone:"pink",foot:metricChange(T.spent,previousStats?.spent,true)},
+          {label:"Рентабельность",value:marginValue,icon:"pie",tone:"violet",foot:marginChange()}
+        ].map(m=>'<article class="dash-metric tone-'+m.tone+'"><div class="metric-head"><span class="metric-icon">'+ico(m.icon)+'</span><span>'+m.label+'</span></div><strong class="metric-value '+(m.valueTone||"")+'">'+m.value+'</strong><div class="metric-foot">'+m.foot+'</div></article>').join("");
+        const goalValue=Number(LS("goal",0))||0,goalProgress=goalValue>0?Math.max(0,Math.min(100,Math.round((Math.max(T.profit,0)/goalValue)*100))):0;
+        $("#dashGoalContent").innerHTML=goalValue>0
+          ?'<div class="dash-goal-body"><div class="dash-goal-value"><strong>'+fmt(Math.max(T.profit,0))+'</strong><span>'+goalProgress+'%</span></div><div class="dash-goal-track"><i style="width:'+goalProgress+'%"></i></div><div class="dash-goal-meta"><span>Цель '+fmt(goalValue)+'</span><span>'+fmt(Math.max(0,goalValue-Math.max(T.profit,0)))+' осталось</span></div></div>'
+          :'<div class="dash-goal-empty">Поставь цель по прибыли — прогресс будет виден на главной каждый день.<br><b>Настрой цель, чтобы начать отсчёт.</b></div>';
+        renderDashboardStreak();
+        renderDashboardRecent(list);
         $("#gl").innerHTML = [...new Set([...ops.map((o) => o.game).filter(Boolean), ...GAMES])]
           .map((g) => `<option value="${esc(g)}">`)
           .join("");
@@ -3420,14 +3606,11 @@
           return [k, agg(marketplaceProfitOps(platformOps, k)).profit];
         }),
           pmx = Math.max(1, ...PA.map((x) => x[1]));
-        $("#plb").innerHTML =
-          inP.length && view === "all"
-            ? `<b>Площадки</b>` +
-              PA.map(
-                ([k, v]) =>
-                  `<button class="pb" data-v="${esc(k)}"><span class="ell">${esc(k)}</span><s><i style="width:${(Math.max(v, 0) / pmx) * 100}%;background:${MPS[k].c}"></i></s><span>${col(v)}</span></button>`,
-              ).join("")
-            : "";
+        const totalPositiveProfit=PA.reduce((sum,row)=>sum+Math.max(row[1],0),0);
+        $("#plb").innerHTML=inP.length
+          ? '<div class="dash-widget-head"><div><b>Прибыль по площадкам</b><small>Нажми на строку, чтобы отфильтровать</small></div><span class="widget-more">Все</span></div>'+
+            PA.map(([k,v])=>{const share=totalPositiveProfit>0&&v>0?Math.round(v/totalPositiveProfit*100):0;return `<button type="button" class="pb ${view===k?"selected":""}" data-v="${esc(k)}"><span class="ell">${esc(k)}</span><s><i style="width:${(Math.max(v,0)/pmx)*100}%;background:${MPS[k].c}"></i></s><span class="platform-number"><b>${col(v)}</b><small>${share}% прибыли</small></span></button>`;}).join("")
+          : '<div class="dash-trend-empty">Добавь операцию — прибыль по площадкам появится здесь.</div>';
         $("#secs").innerHTML = [
           ["games", "По играм"],
           ["ops", "Все операции · " + list.length],
@@ -3450,6 +3633,7 @@
         }
         let N, dl;
         const chartOps = profitList.filter((o) => o.date <= asOfDate);
+        renderDashboardTrend(chartOps, allT, ym);
         const days = [...new Set(chartOps.map((o) => o.date))].sort();
         if (allT) {
           N = days.length;
@@ -3485,6 +3669,22 @@
             '<text x="4" y="' + (Y(mx) + 4) + '" fill="var(--mut)" font-size="11">' + fmt(mx) + '</text><text x="4" y="' + (Y(mn) + 4) + '" fill="var(--mut)" font-size="11">' + fmt(mn) + '</text></svg>'
           : '<span class="mut">Нет данных для графика</span>';
       }
+      /* Sidebar shortcuts route into the existing app flows. */
+      function setSidebarActive(key){document.querySelectorAll("[data-side-nav]").forEach(b=>b.classList.toggle("is-active",b.dataset.sideNav===key));}
+      document.querySelectorAll("[data-side-nav]").forEach(button=>button.addEventListener("click",()=>{
+        const key=button.dataset.sideNav;setSidebarActive(key);
+        if(key==="home")window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+        else if(key==="operations"){sec="ops";render();$("#paneO").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});}
+        else if(key==="inventory"){$("#bAdd").click();const p=document.querySelector('#types input[name="type"][value="purchase"]');if(p){p.checked=true;hint();}}
+        else if(key==="analytics")$("#chCard").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+        else if(key==="marketplaces")$("#tabs").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+        else if(key==="calculator")$("#bCalc").click();
+        else if(key==="import")$("#bImport").click();
+        else if(key==="settings")$("#bSet").click();
+      }));
+      $("#sideTheme").onclick=()=>$("#bView").click();
+      $("#dashGoalSet").onclick=()=>$("#goal").click();
+
       document.addEventListener(
         "toggle",
         (e) => {

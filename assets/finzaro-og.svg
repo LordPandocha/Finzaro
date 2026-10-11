@@ -1,63 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#fff7f0"/>
-      <stop offset=".55" stop-color="#ffd9bf"/>
-      <stop offset="1" stop-color="#ffad78"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#ff9a5c"/>
-      <stop offset="1" stop-color="#f2682a"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#c66a35" flood-opacity=".18"/>
-    </filter>
-  </defs>
-  <rect width="1200" height="630" rx="32" fill="url(#bg)"/>
-  <circle cx="1040" cy="80" r="130" fill="#fff" opacity=".4"/>
-  <circle cx="170" cy="560" r="170" fill="#fff" opacity=".35"/>
-  <path d="M690 70 C820 130, 920 80, 1160 150" fill="none" stroke="#ff8a4c" stroke-width="4" opacity=".45"/>
-  <path d="M540 570 C700 470, 860 540, 1110 430" fill="none" stroke="#ff8a4c" stroke-width="4" opacity=".32"/>
-  
-  <g transform="translate(78 90)">
-    <rect x="0" y="0" width="92" height="92" rx="24" fill="url(#accent)"/>
-    <rect x="18" y="44" width="14" height="30" rx="7" fill="#fff"/>
-    <rect x="39" y="28" width="14" height="46" rx="7" fill="#fff"/>
-    <rect x="60" y="14" width="14" height="60" rx="7" fill="#fff"/>
-    <text x="114" y="72" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="64" font-weight="800" fill="#17110e">Finzaro</text>
-    <text x="0" y="160" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="40" font-weight="800" fill="#17110e">Учёт прибыли с продаж</text>
-    <text x="0" y="206" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23" font-weight="500" fill="#6e5547">Доходы • расходы • комиссии • цели • аналитика</text>
-    <rect x="0" y="250" width="250" height="68" rx="34" fill="#fff" opacity=".78"/>
-    <text x="34" y="294" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="24" font-weight="800" fill="#e86025">Больше контроля — больше прибыли</text>
-  </g>
-
-  <g filter="url(#shadow)" transform="translate(675 118)">
-    <rect width="450" height="350" rx="28" fill="#fff" opacity=".9"/>
-    <rect x="22" y="22" width="150" height="306" rx="22" fill="#15171b"/>
-    <text x="44" y="58" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="800" fill="#fff">Finzaro</text>
-    <rect x="40" y="82" width="114" height="42" rx="14" fill="#2a2f38"/>
-    <text x="58" y="109" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" fill="#fff">Главная</text>
-    <text x="40" y="154" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" fill="#aeb3bd">Операции</text>
-    <text x="40" y="186" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" fill="#aeb3bd">Аналитика</text>
-    <text x="40" y="218" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" fill="#aeb3bd">Настройки</text>
-    <text x="195" y="52" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="800" fill="#17110e">Главная</text>
-    <rect x="195" y="74" width="112" height="78" rx="18" fill="#effaf4"/>
-    <text x="211" y="98" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#5a7a68">Доходы</text>
-    <text x="211" y="129" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="800" fill="#17110e">254 780 ₽</text>
-    <rect x="319" y="74" width="112" height="78" rx="18" fill="#fff2ee"/>
-    <text x="335" y="98" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#a55f46">Расходы</text>
-    <text x="335" y="129" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="800" fill="#17110e">142 320 ₽</text>
-    <rect x="195" y="170" width="236" height="125" rx="18" fill="#fff8f1"/>
-    <text x="211" y="197" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" fill="#8b6b5a">Чистая прибыль</text>
-    <text x="211" y="228" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="25" font-weight="800" fill="#e86025">112 460 ₽</text>
-    <polyline points="212,270 245,255 276,263 308,234 342,245 372,220 414,204" fill="none" stroke="#ff8a4c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-
-  <g filter="url(#shadow)" transform="translate(835 62)">
-    <rect width="210" height="66" rx="24" fill="#fff"/>
-    <text x="22" y="28" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" font-weight="700" fill="#4d6d5d">Рост за месяц</text>
-    <text x="22" y="50" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="800" fill="#178a4a">↗ +18%</text>
-  </g>
-
-  <text x="1080" y="585" text-anchor="end" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="600" fill="#745c4f">finzaro.ru</text>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071322"/><stop offset="1" stop-color="#0b1c33"/></linearGradient><linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#20d9c4"/><stop offset=".55" stop-color="#22b8e8"/><stop offset="1" stop-color="#a3e635"/></linearGradient><linearGradient id="forecast" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#546cff"/><stop offset="1" stop-color="#9c6cff"/></linearGradient><pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#28405c" stroke-opacity=".32"/></pattern><filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="18"/></filter></defs>
+  <rect width="1200" height="630" fill="url(#bg)"/><rect width="1200" height="630" fill="url(#grid)" opacity=".5"/><circle cx="920" cy="125" r="170" fill="#185f82" opacity=".2" filter="url(#glow)"/><circle cx="1090" cy="410" r="170" fill="#5135a2" opacity=".16" filter="url(#glow)"/>
+  <g transform="translate(76 72)"><rect width="68" height="68" rx="18" fill="#0c2438" stroke="#26506c" stroke-width="1.5"/><path d="M12 43 24 31 35 38 53 16M42 16h11v11" fill="none" stroke="url(#accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <text x="162" y="115" fill="#f3f8ff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="44" font-weight="800" letter-spacing="-1.5">Finzaro</text>
+  <text x="78" y="218" fill="#f3f8ff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="54" font-weight="800" letter-spacing="-2">Прибыль под контролем.</text><text x="80" y="267" fill="#95b0d0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="23">Продажи, комиссии, склад и прогноз на месяц — в одном месте.</text>
+  <g transform="translate(78 315)"><rect width="326" height="112" rx="18" fill="#0b2334" stroke="#126b70"/><text x="24" y="32" fill="#8cb4c8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16">Чистая прибыль</text><text x="24" y="76" fill="#f4fbff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="35" font-weight="800">+362 480 ₽</text><text x="24" y="99" fill="#27dcca" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14">Факт по всем площадкам</text></g>
+  <g transform="translate(423 315)"><rect width="326" height="112" rx="18" fill="#0e213a" stroke="#204d83"/><text x="24" y="32" fill="#8cb1d5" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16">Прогноз на месяц</text><text x="24" y="76" fill="#f4fbff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="35" font-weight="800">+485 200 ₽</text><text x="24" y="99" fill="#89a0ff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14">Осторожный темп −10%</text></g>
+  <g transform="translate(776 305)"><rect width="346" height="220" rx="18" fill="#0a1a2c" stroke="#213c59"/><g stroke="#1b3049" stroke-width="1"><path d="M20 55H326M20 95H326M20 135H326M20 175H326"/></g><g fill="url(#accent)"><rect x="26" y="139" width="18" height="46" rx="4"/><rect x="54" y="123" width="18" height="62" rx="4"/><rect x="82" y="130" width="18" height="55" rx="4"/><rect x="110" y="101" width="18" height="84" rx="4"/><rect x="138" y="112" width="18" height="73" rx="4"/><rect x="166" y="87" width="18" height="98" rx="4"/></g><g fill="url(#forecast)" opacity=".76"><rect x="198" y="102" width="18" height="83" rx="4"/><rect x="226" y="80" width="18" height="105" rx="4"/><rect x="254" y="67" width="18" height="118" rx="4"/><rect x="282" y="43" width="18" height="142" rx="4"/></g><path d="M175 87C212 85 242 68 291 43" fill="none" stroke="#9c8aff" stroke-width="3" stroke-dasharray="6 7" stroke-linecap="round"/><text x="23" y="207" fill="#8fa9ca" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12">ФАКТ</text><text x="273" y="207" fill="#a9a1ff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12">ПРОГНОЗ</text></g>
+  <text x="80" y="577" fill="#6282a6" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15">FUNPAY  ·  PLAYEROK  ·  STARPETS  ·  STARVELL  ·  FIFO-СЕБЕСТОИМОСТЬ</text><text x="1120" y="578" fill="#28d9c8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" text-anchor="end">finzaro.ru</text>
 </svg>

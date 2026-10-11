@@ -80,7 +80,7 @@ All UI components must consume the existing theme variables (`--bg`, `--card`, `
 ## Automatic streak and recovery contract
 - A local-calendar-day visit to Finzaro automatically records that day once; no manual confirmation is required. Use the browser's local date, not UTC.
 - Merge legacy `visits` and the previous `streakCheckins` history into `streakVisits` without dropping the prior best streak.
-- The streak displays the consecutive run ending today and the all-time best. A single missed day may be restored for a limited window after return.
+- The streak displays the consecutive run ending today and the all-time best. If the user returns within the 48-hour window, the restore may fill one or two adjacent missed dates.
 - Provide two restore charges per calendar month. Restore fills the single missed calendar day, consumes one charge, and rebuilds the consecutive run. Never silently auto-spend a charge.
 - Present recovery as a clear, optional action when eligible; preserve the prior streak in the UI until recovery is chosen or the recovery window expires.
 - Evolve the flame's look at milestones; keep the current count, seven-day visit strip, remaining recovery charges, and next milestone visible. Historical milestones stay collapsed to reduce clutter.

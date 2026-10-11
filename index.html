@@ -3772,7 +3772,6 @@
         const chargeCount=streakCharges();
         if(!pending&&latest&&gap===2&&priorRun>=3&&chargeCount>0){
           pending={from:latest,missed:shiftStreakDate(latest,1),detectedAt:t,previousRun:priorRun};
-          localStorage.setItem("streakRecoveryPromptSeen","");
         }
         if(pending&&chargeCount<=0)pending=null;
         if(!set.has(t))set.add(t);
@@ -3804,8 +3803,8 @@
             setTimeout(()=>toast("🔥 Огонёк эволюционировал: "+milestone.title+"! "+milestone.benefit),600);
           }
         }
-        if(streakPendingRecovery&&LS("streakRecoveryPromptSeen","")!==t){
-          localStorage.setItem("streakRecoveryPromptSeen",t);
+        if(streakPendingRecovery&&LS("streakRecoveryPromptSeen","")!==streakPendingRecovery.detectedAt){
+          localStorage.setItem("streakRecoveryPromptSeen",streakPendingRecovery.detectedAt);
           setTimeout(()=>toast("🔥 Пропущен день. У тебя осталось "+streakCharges()+" восстановления — серия ещё спасаема.",{l:"Вернуть",f:()=>{renderStreakDialog();$("#dStreak").showModal();}}),850);
         }
       }
@@ -3838,7 +3837,7 @@
         const canRestore=!!streakPendingRecovery&&charges>0&&streakPendingRecovery.missed&&!checkinSet.has(streakPendingRecovery.missed);
         recovery.hidden=!canRestore;
         $("#streakRecoveryTitle").textContent=canRestore?"Верни огонёк":"Восстановления наготове";
-        $("#streakRecoveryText").textContent=canRestore?"Ты держал серию "+streakPendingRecovery.previousRun+" "+streakPlural(streakPendingRecovery.previousRun)+". Пропущен день "+streakPendingRecovery.missed.split("-").reverse().join(".")+". Вставим его в календарь и продолжим серию.":"Если пропустишь один день и вернёшься в течение 48 часов, сможешь восстановить серию.";
+        $("#streakRecoveryText").textContent=canRestore?"Ты держал серию "+streakPendingRecovery.previousRun+" "+streakPlural(streakPendingRecovery.previousRun)+". Пропущен день "+streakPendingRecovery.missed.split("-").reverse().join(".")+". Вставим его в календарь и продолжим серию.":"Если пропустишь один календарный день, при следующем входе появится возможность вернуть серию.";
         $("#streakRecoveryCount").textContent=charges+" из 2 восстановлений осталось в этом месяце.";
         $("#streakRecoveryButton").textContent="Вернуть серию · 1 ↻";
         $("#streakRecoveryButton").disabled=!canRestore;

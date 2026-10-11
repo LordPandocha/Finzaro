@@ -5430,7 +5430,7 @@
         const chosen = [...dates].sort();
         const dayLabel = (d) => d.slice(8) + "." + d.slice(5, 7) + "." + d.slice(0, 4);
         summary.textContent = chosen.length
-          ? "Предварительно выделено дней: " + chosen.length + " · " + dayLabel(chosen[0]) + (chosen.length > 1 ? " — " + dayLabel(chosen[chosen.length - 1]) : "")
+          ? (chartBrush ? "Предварительно выделено дней: " : "Выбрано дней: ") + chosen.length + " · " + dayLabel(chosen[0]) + (chosen.length > 1 ? " — " + dayLabel(chosen[chosen.length - 1]) : "")
           : "Выдели один день или протяни по столбцам, чтобы посчитать итоги.";
         if (chartBrush) {
           totals.hidden = false;
@@ -5440,6 +5440,8 @@
           totals.hidden = true;
           totals.classList.remove("is-preview");
           totals.innerHTML = "";
+        } else {
+          totals.classList.remove("is-preview");
         }
       };
       const moveChartBrush = (e) => {
@@ -5493,7 +5495,7 @@
         }
       };
       $("#chart2").addEventListener("pointerdown", (e) => {
-        if (e.button !== 0 || !e.isPrimary) return;
+        if (e.isPrimary === false || (e.pointerType === "mouse" && e.button !== 0)) return;
         const item = e.target.closest?.("[data-chart-item]"), date = item?.dataset.chartKey;
         if (!isoDay.test(date || "")) return;
         const byDate = new Map();

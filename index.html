@@ -4640,21 +4640,21 @@
 
       function gi(n) {
         n = String(n || "").trim(); if (!n) return "";
-        if (giC[n]) return giC[n];
-        const k = normGame(n), slug = BRAND[k], icon = slug && BI[slug];
+        const k = normGame(n);
+        if (giC[n]) {
+          if (ROBLOX_GAMES.has(k) && !rbxPending[k]) window.setTimeout(() => loadRbxGameIcon(n), 0);
+          return giC[n];
+        }
+        const slug = BRAND[k], icon = slug && BI[slug];
         if (ROBLOX_GAMES.has(k)) {
-          const cached = rbxIconCache[k]?.url;
           const fallback = k.split(" ").filter(Boolean).map((x) => x[0]).slice(0,2).join("").toUpperCase();
-          const inner = cached
-            ? '<img class="rbx-logo" alt="" loading="lazy" src="' + esc(cached) + '"><span class="brand-fallback">' + esc(fallback) + '</span>'
-            : '<span class="brand-fallback">' + esc(fallback) + '</span>';
-          if (!cached && !rbxPending[k]) window.setTimeout(() => loadRbxGameIcon(n), 0);
-          return (giC[n] = '<span class="gi roblox-game" data-rbx-key="' + esc(k) + '" aria-hidden="true">' + inner + '</span>');
+          if (!rbxPending[k]) window.setTimeout(() => loadRbxGameIcon(n), 0);
+          return (giC[n] = '<span class="gi roblox-game" data-rbx-key="' + esc(k) + '" aria-hidden="true"><span class="brand-fallback">' + esc(fallback) + '</span></span>');
         }
         if (icon) return (giC[n] = `<span class="gi brand" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" focusable="false">${icon}</svg></span>`);
         if (slug) {
           const initials = k.split(" ").filter(Boolean).map((x) => x[0]).slice(0, 2).join("").toUpperCase();
-          const logoUrl = "https://cdn.simpleicons.org/" + encodeURIComponent(slug) + "/FFFFFF";
+          const logoUrl = "https://cdn.simpleicons.org/" + encodeURIComponent(slug);
           return (giC[n] = '<span class="gi brand" aria-hidden="true"><span class="brand-fallback">' + esc(initials) + '</span><img class="brand-logo" alt="" loading="lazy" src="' + esc(logoUrl) + '" onerror="this.remove()"></span>');
         }
         const w = k.split(" ").filter(Boolean);

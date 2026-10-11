@@ -2997,6 +2997,14 @@
         hint();
       });
 
+      const STREAK_LEVELS=[
+        {days:1,title:"Первая искра",icon:"✦",note:"Начало привычки"},{days:3,title:"Искра",icon:"✧",note:"3 дня подряд"},
+        {days:7,title:"Неделя огня",icon:"🔥",note:"7 дней подряд"},{days:14,title:"Уверенное пламя",icon:"♨",note:"14 дней подряд"},
+        {days:30,title:"Жаркий месяц",icon:"☀",note:"30 дней подряд"},{days:60,title:"Хранитель огня",icon:"❖",note:"60 дней подряд"},
+        {days:100,title:"Легенда Finzaro",icon:"✹",note:"100 дней подряд"},{days:180,title:"Пламя полугодия",icon:"✺",note:"180 дней подряд"},
+        {days:365,title:"Вечный огонь",icon:"♛",note:"365 дней подряд"}
+      ];
+      let currentStreak=0,bestStreakValue=0;
       /* Серия огоньков: визиты по календарным дням + награды за этапы. */
       (() => {
         const key=(d)=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -3480,14 +3488,6 @@
           return '<button type="button" class="recent-item" data-e="'+esc(o.id)+'" title="Открыть операцию"><span class="recent-icon '+esc(o.type)+'">'+ico(o.type)+'</span><span class="recent-copy"><b>'+esc(title)+'</b><small>'+esc(secondary)+'</small></span><span class="recent-value '+tone+'">'+value+(fee&&o.type==="sale"?'<small>Комиссия −'+fmt(fee)+'</small>':fee&&o.type==="withdraw"?'<small>Комиссия '+fmt(fee)+'</small>':'')+'</span></button>';
         }).join("");
       }
-      const STREAK_LEVELS=[
-        {days:1,title:"Первая искра",icon:"✦",note:"Начало привычки"},{days:3,title:"Искра",icon:"✧",note:"3 дня подряд"},
-        {days:7,title:"Неделя огня",icon:"🔥",note:"7 дней подряд"},{days:14,title:"Уверенное пламя",icon:"♨",note:"14 дней подряд"},
-        {days:30,title:"Жаркий месяц",icon:"☀",note:"30 дней подряд"},{days:60,title:"Хранитель огня",icon:"❖",note:"60 дней подряд"},
-        {days:100,title:"Легенда Finzaro",icon:"✹",note:"100 дней подряд"},{days:180,title:"Пламя полугодия",icon:"✺",note:"180 дней подряд"},
-        {days:365,title:"Вечный огонь",icon:"♛",note:"365 дней подряд"}
-      ];
-      let currentStreak=0,bestStreakValue=0;
       function renderDashboardStreak(){
         const next=STREAK_LEVELS.find(x=>x.days>currentStreak),rank=STREAK_LEVELS.slice().reverse().find(x=>currentStreak>=x.days)||STREAK_LEVELS[0];
         $("#dashStreakContent").innerHTML='<div class="dash-streak-summary"><strong class="dash-streak-big">'+currentStreak+'<span> 🔥</span></strong><div class="dash-streak-detail"><b>'+esc(rank.title)+'</b><small>Рекорд: '+bestStreakValue+' дн.</small></div></div><div class="dash-streak-next">'+(next?'Следующая награда: <b>'+esc(next.title)+'</b> через '+(next.days-currentStreak)+' дн.':'<b>Все награды собраны.</b> Ты приручил вечный огонь!')+'</div>';

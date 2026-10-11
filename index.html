@@ -3629,11 +3629,11 @@
       });
 
       const STREAK_LEVELS=[
-        {days:1,title:"Первая отметка",icon:"✓",note:"Проверка засчитана",benefit:"Ты начал выстраивать привычку"},
-        {days:3,title:"Появился ритм",icon:"↗",note:"3 проверки подряд",benefit:"Первые данные для личной недельной рутины"},
-        {days:7,title:"Неделя под контролем",icon:"7",note:"7 дней подряд",benefit:"Недельная сводка дохода, расходов и прибыли"},
-        {days:14,title:"Две недели данных",icon:"Ⅱ",note:"14 дней подряд",benefit:"Сравнение текущей и прошлой недели"},
-        {days:30,title:"Месяц в фокусе",icon:"30",note:"30 дней подряд",benefit:"Месячный обзор и самый сильный день"},
+        {days:1,title:"Первая отметка",icon:"✓",note:"Проверка засчитана",benefit:"Ты сознательно проверил финансовую картину"},
+        {days:3,title:"Появился ритм",icon:"↗",note:"3 проверки подряд",benefit:"Три последовательные проверки — уже не случайный визит"},
+        {days:7,title:"Неделя под контролем",icon:"7",note:"7 дней подряд",benefit:"Ты прошёл полный недельный цикл регулярных проверок"},
+        {days:14,title:"Две недели данных",icon:"Ⅱ",note:"14 дней подряд",benefit:"Появилась устойчивость: две недели без пропусков"},
+        {days:30,title:"Месяц в фокусе",icon:"30",note:"30 дней подряд",benefit:"Месяц регулярного контроля становится системой"},
         {days:60,title:"Привычка закрепилась",icon:"60",note:"60 дней подряд",benefit:"Стабильный ритм контроля"},
         {days:100,title:"Система работает",icon:"100",note:"100 дней подряд",benefit:"Финансовая проверка стала регулярной"},
         {days:180,title:"Полгода в ритме",icon:"½",note:"180 дней подряд",benefit:"Полгода последовательности"},
@@ -3700,7 +3700,7 @@
         const diffText=(diff>0?"+":"")+fmt(diff);
         report.innerHTML=
           '<div class="streak-week-metrics"><div><small>Доход</small><b>'+fmt(current.sales)+'</b></div><div><small>Расходы</small><b>'+fmt(current.spent)+'</b></div><div class="streak-week-profit"><small>Чистая прибыль</small><b class="'+(current.profit<0?"neg":"pos")+'">'+fmt(current.profit)+'</b></div></div>'+
-          '<div class="streak-week-comparison"><span>Изменение прибыли к предыдущим 7 дням</span><b class="'+(diff<0?"neg":"pos")+'">'+diffText+'</b></div>';
+          '<div class="streak-week-comparison"><span>Разница прибыли с прошлой неделей</span><b class="'+(diff<0?"neg":"pos")+'">'+diffText+'</b></div>';
       }
       function renderStreakDialog(){
         const rank=streakLevel(currentStreak),next=STREAK_LEVELS.find(x=>x.days>currentStreak);
@@ -3722,10 +3722,11 @@
         }).join("");
         renderStreakWeeklyReview();
         const prior=STREAK_LEVELS.slice().reverse().find(x=>x.days<=currentStreak),base=prior?prior.days:0;
-        const pct=next?Math.max(0,Math.min(100,((currentStreak-base)/(next.days-base))*100)):100;
+        const pct=next?Math.max(0,Math.min(100,(currentStreak/next.days)*100)):100;
         $("#streakNextCount").textContent=next?(next.days-currentStreak)+" дн.":"100%";
+        $("#streakHistoryCount").textContent=STREAK_LEVELS.filter(x=>currentStreak>=x.days).length+"/"+STREAK_LEVELS.length;
         $("#streakProgressCopy").innerHTML=next?
-          '<b>'+esc(next.title)+'</b><span>'+esc(next.benefit)+'</span><div class="streak-progress-track"><i style="width:'+pct.toFixed(1)+'%"></i></div><small>'+currentStreak+' из '+next.days+' дней · рекорд '+bestStreakValue+'</small>':
+          '<b>'+esc(next.title)+'</b><span>'+esc(next.benefit)+'</span><div class="streak-progress-track"><i style="width:'+pct.toFixed(1)+'%"></i></div><small>'+currentStreak+' из '+next.days+' '+streakPlural(next.days)+' · рекорд '+bestStreakValue+'</small>':
           '<b>Год под контролем</b><span>Ты сохранил привычку финансовой проверки на длинной дистанции.</span><div class="streak-progress-track"><i style="width:100%"></i></div>';
         const seen=LS("streakMilestones",[]);
         $("#streakAchievements").innerHTML=STREAK_LEVELS.map(x=>{

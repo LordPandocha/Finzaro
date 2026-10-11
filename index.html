@@ -1325,8 +1325,9 @@
       .fc-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:.84rem; }
       .fc-table th, .fc-table td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.4; overflow-wrap:anywhere; }
       .fc-table th { color:var(--mut); font-size:.72rem; font-weight:750; text-align:left; background:color-mix(in srgb,var(--c2) 70%,transparent); }
-      .fc-table th:first-child, .fc-table td:first-child { width:58%; }
-      .fc-table th:last-child, .fc-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+      .fc-table th:first-child, .fc-table td:first-child { width:38%; }
+      .fc-table th:nth-child(2), .fc-table td:nth-child(2) { width:23%; text-align:right; font-variant-numeric:tabular-nums; }
+      .fc-table th:last-child, .fc-table td:last-child { text-align:left; color:var(--mut); font-size:.78rem; }
       .fc-table tr:last-child td { border-bottom:0; }
       .fc-table .fc-total-row td { font-weight:850; background:color-mix(in srgb,var(--acc) 10%,transparent); }
       .fc-estimate-note { margin:10px 2px 0; color:var(--mut); font-size:.78rem; line-height:1.5; }
@@ -1831,7 +1832,7 @@
             name="amount"
             type="number"
             inputmode="decimal"
-            step="0.01"
+            step="any"
             min="0"
             placeholder="0"
             required
@@ -1861,7 +1862,7 @@
         </div>
         <div id="qtyW" class="set" hidden>
           <label for="qty">Количество единиц</label>
-          <input id="qty" type="number" inputmode="decimal" min="0.0001" step="0.0001" value="1" placeholder="Например, 1000" />
+          <input id="qty" type="number" inputmode="decimal" min="0.0001" step="any" value="1" placeholder="Например, 1000" />
           <small class="mut">При закупке укажи общий объём, при продаже — сколько из него продал. Укажи одинаковую категорию и описание товара, чтобы связать одну закупку с продажами на разных площадках.</small>
           <p class="mut" id="inventoryHint">Заполни категорию и описание товара, чтобы увидеть доступный остаток.</p>
           <button type="button" id="inventoryCloseBtn" class="pill" hidden>Закрыть остаток без выручки</button>
@@ -2568,7 +2569,7 @@
         undoHideTimer = window.setTimeout(() => {
           undoFabVisible = false;
           refreshUndoButton();
-        }, 2500);
+        }, 1500);
       }
       function trackUndo(action) {
         if (undoing || !action) return;
@@ -2920,15 +2921,15 @@
       $("#bw").addEventListener("click", bwGo);
       $("#bw").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); bwGo(e); } });
 
-      /* Прибыль за месяц: дневные значения отдельно, прогноз как взвешенная оценка, а не накопительная линия. */
+      /* Прибыль за месяц: фактический результат считается по дням, прогноз — по дням после первой сделки. */
       function fcRender(list) {
         const el = $("#fc"), t = today();
         if (allT || ym !== t.slice(0, 7) || !list.length) { el.innerHTML = ""; return; }
         const parts = t.split("-").map(Number), Y = parts[0], M = parts[1], D = parts[2];
-        const N = new Date(Y, M, 0).getDate(), left = Math.max(0, N - D), by = {};
-        list.forEach((o) => {
-          if (o.date >= ym + "-01" && o.date <= t) (by[o.date] ??= []).push(o);
-        });
+        const N = new Date(Y, M, 0).getDate(), left = Math.max(0, N - D), firstMonthDay = ym + "-01";
+        const current = list.filter((o) => o.date >= firstMonthDay && o.date <= t);
+        const by = {};
+        current.forEach((o) => (by[o.date] ??= []).push(o));
         const daily = Array.from({ length: D }, (_, i) => {
           const key = ym + "-" + String(i + 1).padStart(2, "0");
           return by[key] ? agg(by[key]).profit : 0;
@@ -2938,42 +2939,54 @@
         const quantile = (arr, q) => {
           if (!arr.length) return 0;
           const sorted = arr.slice().sort((a, b) => a - b);
-          const position = (sorted.length - 1) * q;
-          const low = Math.floor(position), high = Math.ceil(position);
-          return sorted[low] + (sorted[high] - sorted[low]) * (position - low);
+          const pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+          return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
         };
-        const activeDates = new Set(list.filter((o) => o.date >= ym + "-01" && o.date <= t && o.type !== "withdraw").map((o) => o.date));
-        const now = sum(daily);
-        const monthAvg = now / Math.max(1, D);
-        const k7 = Math.min(7, D);
-        const recent = daily.slice(-k7);
-        const recentAvg = mean(recent);
-        /* Auto forecast: calendar-day average + recency-weighted last week, damped by the recent median.
-           Zero-activity days and loss days remain in the series; no manual forecast value is requested. */
-        const weightedRecent = recent.length
-          ? recent.reduce((total, value, i) => total + value * (i + 1), 0) / (recent.length * (recent.length + 1) / 2)
-          : 0;
-        const recentMedian = quantile(recent, .5);
-        const recentRate = weightedRecent * .7 + recentMedian * .3;
-        const dailyRate = left ? monthAvg * .4 + recentRate * .6 : 0;
-        const recentLow = quantile(recent, .2), recentHigh = quantile(recent, .8);
-        const lowRate = left ? monthAvg * .4 + recentLow * .6 : 0;
-        const highRate = left ? monthAvg * .4 + recentHigh * .6 : 0;
-        const expectedRemaining = dailyRate * left;
-        const projected = now + expectedRemaining;
-        const lowProjection = now + Math.min(lowRate, highRate) * left;
-        const highProjection = now + Math.max(lowRate, highRate) * left;
+        const activeDates = new Set(current.filter((o) => o.type !== "withdraw" && !String(o.id || "").startsWith("cogs-")).map((o) => o.date));
+        const firstDate = [...activeDates].sort()[0];
+        const firstDay = firstDate ? Number(firstDate.slice(8)) : D;
+        const firstIndex = Math.max(0, firstDay - 1);
+        /* Не используем нулевые дни до начала торговли: они искусственно занижали оценку. */
+        const history = D > firstDay ? daily.slice(firstIndex, D - 1) : [];
+        const historyActive = history.filter((_, i) => activeDates.has(ym + "-" + String(firstDay + i).padStart(2, "0")));
+        let lowCap = quantile(historyActive, .15), highCap = quantile(historyActive, .85);
+        if (historyActive.length < 5) { lowCap = -Infinity; highCap = Infinity; }
+        const clipped = history.map((v, i) => {
+          const day = firstDay + i;
+          return activeDates.has(ym + "-" + String(day).padStart(2, "0")) ? Math.max(lowCap, Math.min(highCap, v)) : 0;
+        });
+        const k7 = Math.min(7, D), recentAvg = mean(daily.slice(-k7));
+        const longRate = mean(clipped), recent = clipped.slice(-Math.min(7, clipped.length)), recentRate = mean(recent);
+        const todayPartial = daily[D - 1] || 0;
+        const dailyRate = history.length ? longRate * .4 + recentRate * .6 : todayPartial * .35;
+        let lowRate, highRate;
+        if (history.length && historyActive.length < 5) {
+          lowRate = Math.min(dailyRate, ...history);
+          highRate = Math.max(dailyRate, ...history);
+        } else if (history.length) {
+          lowRate = Math.min(dailyRate, longRate * .4 + quantile(recent, .25) * .6);
+          highRate = Math.max(dailyRate, longRate * .4 + quantile(recent, .75) * .6);
+        } else {
+          lowRate = Math.min(0, dailyRate);
+          highRate = Math.max(dailyRate, todayPartial);
+        }
+        const now = sum(daily), monthAvg = now / Math.max(1, D);
+        const projected = now + dailyRate * left;
+        const lowProjection = now + lowRate * left, highProjection = now + highRate * left;
+        const goal = Number(LS("goal", 0)) || 0;
         const money = (v) => (v > 0 ? "+" : "") + fmt(Math.round(v));
         const rows = [
-          ["Фактическая прибыль на сегодня", money(now), "Сумма дневных результатов с 1-го числа; каждый день считается отдельно"],
-          ["Среднее за календарный день", money(monthAvg), "Включает дни без операций — они считаются нулём"],
-          ["Среднее за последние " + k7 + " дн.", money(recentAvg), "Фактический результат каждого из последних календарных дней"],
-          ["Ожидается за оставшиеся " + left + " дн.", money(expectedRemaining), "Автоматическая оценка по среднему за месяц и взвешенному темпу последних дней"],
-          ["Примерная прибыль за месяц", money(projected), "Рассчитывается автоматически: факт на сегодня + оценка оставшихся дней"]
+          ["Фактическая прибыль на сегодня", money(now), "Сумма ежедневных результатов с 1-го числа по сегодня."],
+          ["Среднее за календарный день месяца", money(monthAvg), "Факт делится на число дней месяца, включая нулевые."],
+          ["Среднее за последние " + k7 + " дн.", money(recentAvg), "Включает только результат каждого дня, не накопительный итог."],
+          ["Средний темп для прогноза", money(dailyRate), history.length ? "Начинаем с первой сделки месяца; последние 7 завершённых дней весят больше." : "Истории до сегодняшнего дня пока нет; текущий день учитывается с пониженным весом."],
+          ["Осторожный сценарий на конец месяца", money(Math.min(lowProjection, highProjection)), "Факт + слабый наблюдавшийся темп на оставшиеся " + left + " дн."],
+          ["Примерная прибыль за месяц", money(projected), "Базовый ориентир: факт на сегодня + взвешенный темп × оставшиеся дни."],
+          ["Оптимистичный сценарий на конец месяца", money(Math.max(lowProjection, highProjection)), "Факт + сильный наблюдавшийся темп на оставшиеся " + left + " дн."]
         ];
-        if (left) rows.push(["Ориентировочный диапазон", fmt(Math.round(Math.min(lowProjection, highProjection))) + " … " + fmt(Math.round(Math.max(lowProjection, highProjection))), "Сценарный диапазон на основе колебаний дневной прибыли, не гарантия результата"]);
-        const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th></tr></thead><tbody>' +
-          rows.map((r, i) => '<tr' + (i === 4 ? ' class="fc-total-row"' : '') + '><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join("") +
+        if (goal > 0) rows.push(["Цель на месяц", fmt(goal) + " · " + (projected >= goal ? "прогноз выше на " + fmt(projected - goal) : "не хватает " + fmt(goal - projected)), "Сравнение цели с базовым ориентиром, не обещание дохода."]);
+        const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th><th>Как считается</th></tr></thead><tbody>' +
+          rows.map((r, i) => '<tr' + (i === 5 ? ' class="fc-total-row"' : '') + '><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>').join("") +
           '</tbody></table></div>';
         const W = 640, H = 210, pL = 12, pR = 14, pT = 18, pB = 28;
         const x = (day) => pL + ((day - 1) / Math.max(1, N - 1)) * (W - pL - pR);
@@ -2989,16 +3002,20 @@
         let forecastShape = "";
         if (left > 0) {
           forecastShape = '<polygon points="' + x(D).toFixed(1) + ',' + y(highRate).toFixed(1) + ' ' + x(N).toFixed(1) + ',' + y(highRate).toFixed(1) + ' ' + x(N).toFixed(1) + ',' + y(lowRate).toFixed(1) + ' ' + x(D).toFixed(1) + ',' + y(lowRate).toFixed(1) + '" fill="var(--acc)" opacity=".13"/>' +
-            '<line x1="' + x(D).toFixed(1) + '" y1="' + y(daily[D - 1]).toFixed(1) + '" x2="' + x(N).toFixed(1) + '" y2="' + y(dailyRate).toFixed(1) + '" stroke="var(--acc)" stroke-width="2.5" stroke-dasharray="4 6" stroke-linecap="round"/>';
+            '<line x1="' + x(D).toFixed(1) + '" y1="' + y(todayPartial).toFixed(1) + '" x2="' + x(N).toFixed(1) + '" y2="' + y(dailyRate).toFixed(1) + '" stroke="var(--acc)" stroke-width="2.5" stroke-dasharray="4 6" stroke-linecap="round"/>';
         }
-        const svg = '<svg class="fcs" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Дневная прибыль: каждый день от нуля; пунктир — примерный дневной темп">' +
+        const svg = '<svg class="fcs" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Дневная прибыль: каждый день отдельно; пунктир — примерный дневной темп">' +
           grid + forecastShape + '<path d="' + actualPath + '" fill="none" stroke="var(--acc)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>' + dots + '</svg>';
-        const confidence = activeDates.size < 3
-          ? "Автоматический прогноз: пока только " + activeDates.size + " активных " + pl(activeDates.size, ["день", "дня", "дней"]) + ", поэтому оценка предварительная."
-          : "Прогноз обновляется после каждой записи. Он учитывает прибыль и убыток каждого дня, дни без операций и недавнюю динамику.";
-        el.innerHTML = '<div class="fch"><div><small>Примерная прибыль за месяц · автоматически</small><div class="fcb fcn ' + (projected >= 0 ? "pos" : "neg") + '">' + money(projected) + '</div><small>Ничего вводить вручную не нужно · осталось ' + left + ' дн.</small></div>' +
-          '<div class="fcc"><span>Факт сейчас<b class="fcn">' + money(now) + '</b></span><span>В среднем за день<b class="fcn">' + money(monthAvg) + '</b></span><span>Последние ' + k7 + ' ' + pl(k7, ["день", "дня", "дней"]) + '<b class="fcn">' + money(recentAvg) + '</b></span></div></div>' +
-          svg + table + '<p class="fc-estimate-note">' + confidence + '</p>';
+        let confidence;
+        if (!history.length) confidence = "Прогноз предварительный: нет завершённых дней после первой операции. День сегодня входит в факт, но получает пониженный вес в оценке.";
+        else if (historyActive.length < 3) confidence = "Пока мало завершённых активных дней (" + historyActive.length + "): сценарии приблизительные и могут заметно измениться. Нулевые дни после начала торговли учитываются.";
+        else confidence = "Разовые большие дни сглаживаются, нулевые дни после начала торговли учитываются. Это ориентир, не гарантия результата.";
+        const goalNote = goal > 0
+          ? (projected >= goal ? "По базовому сценарию цель достижима; запас — " + fmt(projected - goal) + "." : "По базовому сценарию до цели не хватает " + fmt(goal - projected) + ".")
+          : "Добавьте месячную цель, чтобы сравнивать её с ориентиром.";
+        el.innerHTML = '<div class="fch"><div><small>Примерная прибыль за месяц</small><div class="fcb fcn ' + (projected >= 0 ? "pos" : "neg") + '">' + money(projected) + '</div><small>Факт на сегодня + оценка оставшихся ' + left + ' дн.</small></div>' +
+          '<div class="fcc"><span>Факт сейчас<b class="fcn">' + money(now) + '</b></span><span>Темп для прогноза<b class="fcn">' + money(dailyRate) + '</b></span><span>Активных дней<b class="fcn">' + activeDates.size + '</b></span></div></div>' +
+          svg + table + '<p class="fc-estimate-note">' + confidence + ' ' + goalNote + '</p>';
       }
 
       function marketplaceProfitOps(list, platform, untilDate = today()) {
@@ -3239,9 +3256,10 @@
               `<button class="pill ${k == view ? "on" : ""}" data-v="${esc(k)}">${k === "all" ? "" : `<i class="dt" style="background:${MPS[k].c}"></i>`}${esc(l)}</button>`,
           )
           .join("");
-        const inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym)),
+        const asOfDate = allT ? today() : (ym === today().slice(0, 7) ? today() : monthLastDay(ym)),
+          inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym)),
           list = view === "all" ? inP : inP.filter((o) => o.marketplace === view),
-          profitList = view !== "all" ? marketplaceProfitOps(list, view, allT ? today() : monthLastDay(ym)) : list,
+          profitList = marketplaceProfitOps(list.filter((o) => o.date <= asOfDate), view, asOfDate),
           T = agg(profitList);
         $("#gl").innerHTML = [...new Set([...ops.map((o) => o.game).filter(Boolean), ...GAMES])]
           .map((g) => `<option value="${esc(g)}">`)
@@ -3279,7 +3297,7 @@
           .map((s) => `<div class="st"><span>${s[0]}</span><b>${s[1]}</b></div>`)
           .join("");
         $("#lt").textContent = view === "all" ? "Прибыль по играм" : "Прибыль по играм · " + view;
-        $("#games").innerHTML = gamesHTML(list, view === "all", view !== "all" ? profitList : null);
+        $("#games").innerHTML = gamesHTML(list, view === "all", profitList);
         const sl = list.filter((o) => o.type === "sale"),
           byD = {};
         profitList.forEach((o) => (byD[o.date] ??= []).push(o));
@@ -3291,7 +3309,7 @@
           ? `<b>Коротко</b><div class="kpi"><div><small>Продаж</small><b>${sl.length}</b></div><div><small>Средний чек</small><b>${fmt(sl.length ? T.sales / sl.length : 0)}</b></div><div><small>Прибыль за активный день</small><b>${fmt(T.profit / dp.length)}</b></div><div><small>Лучший день</small><b>${dm(best[0])} · ${fmt(best[1])}</b></div></div>`
           : "";
         bwRender(profitList);
-        fcRender(view === "all" ? list : profitList);
+        fcRender(profitList);
         const PA = keys.map((k) => {
           const platformOps = inP.filter((o) => o.marketplace === k);
           return [k, agg(marketplaceProfitOps(platformOps, k)).profit];
@@ -3326,40 +3344,41 @@
           $("#pK").innerHTML = "";
         }
         let N, dl;
-        const days = [...new Set(list.map((o) => o.date))].sort();
+        const chartOps = profitList.filter((o) => o.date <= asOfDate);
+        const days = [...new Set(chartOps.map((o) => o.date))].sort();
         if (allT) {
           N = days.length;
-          dl = days.map((d) => agg(list.filter((o) => o.date === d)).profit);
+          dl = days.map((d) => agg(chartOps.filter((o) => o.date === d)).profit);
         } else {
           const [y, mo] = ym.split("-").map(Number);
           N = new Date(y, mo, 0).getDate();
-          dl = Array.from(
-            { length: N },
-            (_, i) => agg(list.filter((o) => +o.date.slice(8) === i + 1)).profit,
-          );
+          dl = Array.from({ length: N }, (_, i) => {
+            const day = String(i + 1).padStart(2, "0"), key = ym + "-" + day;
+            return agg(chartOps.filter((o) => o.date === key)).profit;
+          });
         }
-        let s = 0;
-        const cum = dl.map((v) => (s += v)),
-          W2 = 640,
-          H = 210,
-          P = 44,
-          mn = Math.min(0, ...cum),
-          mx = Math.max(1, ...cum),
-          X = (i) => P + (i / Math.max(N - 1, 1)) * (W2 - P - 14),
-          Y = (v) => 14 + ((mx - v) / (mx - mn || 1)) * (H - 40),
-          pts = cum.map((v, i) => X(i) + "," + Y(v)).join(" ");
-        $("#chart").innerHTML =
-          list.length && N
-            ? `<svg viewBox="0 0 ${W2} ${H}" style="width:100%"><line x1="${P}" x2="${W2 - 14}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)" stroke-dasharray="4"/><polygon points="${X(0)},${Y(0)} ${pts} ${X(N - 1)},${Y(0)}" fill="var(--acc)" opacity=".2"/><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round"/>` +
-              cum
-                .map((v, i) =>
-                  dl[i]
-                    ? `<circle cx="${X(i)}" cy="${Y(v)}" r="5" fill="var(--acc)"><title>${allT ? days[i] : i + 1 + " число"}: за день ${fmt(dl[i])}, всего ${fmt(v)}</title></circle>`
-                    : "",
-                )
-                .join("") +
-              `<text x="4" y="${Y(mx) + 4}" fill="var(--mut)" font-size="11">${fmt(mx)}</text><text x="4" y="${Y(mn) + 4}" fill="var(--mut)" font-size="11">${fmt(mn)}</text></svg>`
-            : `<span class="mut">Нет данных для графика</span>`;
+        const W2 = 640, H = 210, P = 44;
+        const mn = Math.min(0, ...dl), mx = Math.max(0, ...dl);
+        const X = (i) => P + (i / Math.max(N - 1, 1)) * (W2 - P - 14);
+        const Y = (v) => 14 + ((mx - v) / (mx - mn || 1)) * (H - 40);
+        const zeroY = Y(0), pts = dl.map((v, i) => X(i) + "," + Y(v)).join(" ");
+        const chartDots = dl.map((v, i) => {
+          if (Math.abs(v) < 0.005) return "";
+          const label = allT ? days[i] : ym + "-" + String(i + 1).padStart(2, "0");
+          return '<circle cx="' + X(i) + '" cy="' + Y(v) + '" r="5" fill="var(--acc)"><title>' + esc(label) + ': чистый результат за день ' + fmt(v) + (v < 0 ? " · расходы выше дохода на " + fmt(-v) : "") + '</title></circle>';
+        }).join("");
+        const chartTicks = allT ? days.filter((_, i) => i === 0 || i === days.length - 1 || i === Math.floor(days.length / 2))
+          : [...new Set([1, Math.max(1, Math.round(N / 3)), Math.max(1, Math.round(2 * N / 3)), N])].map((day) => ym + "-" + String(day).padStart(2, "0"));
+        const labels = chartTicks.map((d) => {
+          const dayNum = Number(d.slice(8));
+          return '<text x="' + X(allT ? days.indexOf(d) : dayNum - 1) + '" y="' + (H - 6) + '" text-anchor="middle" fill="var(--mut)" font-size="11">' + (allT ? d.slice(8,10) + "." + d.slice(5,7) : dayNum) + '</text>';
+        }).join("");
+        $("#chart").innerHTML = chartOps.length && N
+          ? '<svg viewBox="0 0 ' + W2 + ' ' + H + '" style="width:100%"><line x1="' + P + '" x2="' + (W2 - 14) + '" y1="' + zeroY + '" y2="' + zeroY + '" stroke="var(--line)" stroke-dasharray="4"/>' +
+            '<polygon points="' + X(0) + ',' + zeroY + ' ' + pts + ' ' + X(N - 1) + ',' + zeroY + '" fill="var(--acc)" opacity=".12"/>' +
+            '<polyline points="' + pts + '" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round"/>' + chartDots + labels +
+            '<text x="4" y="' + (Y(mx) + 4) + '" fill="var(--mut)" font-size="11">' + fmt(mx) + '</text><text x="4" y="' + (Y(mn) + 4) + '" fill="var(--mut)" font-size="11">' + fmt(mn) + '</text></svg>'
+          : '<span class="mut">Нет данных для графика</span>';
       }
       document.addEventListener(
         "toggle",
@@ -4718,7 +4737,7 @@
         "pet simulator 99": ["Huge-питомец", "Exclusive-питомец", "Diamonds"], "brookhaven": ["Game Pass", "Аккаунт"],
         "king legacy": ["Фрукт", "Gems", "Game Pass"], "anime vanguards": ["Юнит", "Gems", "Аккаунт"],
         "bee swarm simulator": ["Пчела", "Яйцо", "Материал"], "jailbreak": ["Автомобиль", "Ограниченный предмет"],
-        "dress to impress": ["VIP", "Game Pass"], "fisch": ["Рыба", "Удочка", "Приманка"], "sols rng": ["Аура", "Зелье", "Снаряжение"],
+        "dress to impress": ["VIP", "Game Pass"], "fisch": ["Рыба", "Удочка", "Приманка"], "sols rng": ["Аура", "Зелье", "Снаряжение", "Редкая аура", "Зелья удачи"],
         "cs2": ["Скин", "Наклейка", "Кейс"], "dota 2": ["Arcana", "Immortal", "Набор предметов"], "valorant": ["Valorant Points", "Подарочная карта"],
         "apex legends": ["Apex Coins", "Косметический предмет"], "overwatch 2": ["Overwatch Coins", "Скин"], "rainbow six siege": ["R6 Credits", "Скин"],
         "escape from tarkov": ["Roubles", "Предмет", "Снаряжение"], "call of duty": ["COD Points", "Скин"], "standoff 2": ["Gold", "Скин"],
@@ -4756,10 +4775,10 @@
       }
       const rbxIconCache = LS("rbxIcons2", {});
       const ROBLOX_GAMES = new Set(CATS.Roblox.filter((name) => name !== "Roblox").map(normGame));
-      const RBX_UNIVERSE_IDS = { "blade ball": 4777817887, "steal a brainrot": 7709344486 };
+      const RBX_UNIVERSE_IDS = {};
       let rbxCacheChanged = false;
-      for (const [key, universeId] of Object.entries(RBX_UNIVERSE_IDS)) {
-        if (rbxIconCache[key] && rbxIconCache[key].universeId !== universeId) { delete rbxIconCache[key]; rbxCacheChanged = true; }
+      for (const key of ["blade ball", "steal a brainrot"]) {
+        if (rbxIconCache[key]) { delete rbxIconCache[key]; rbxCacheChanged = true; }
       }
       if (rbxCacheChanged) localStorage.setItem("rbxIcons2", JSON.stringify(rbxIconCache));
       const STEAM_GAMES = new Set(["Шутеры", "Мобильные", "MMO и RPG", "Песочницы", "Техника"].flatMap((section) => CATS[section] || []).map(normGame));
@@ -4901,8 +4920,9 @@
         let h = 0; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0;
         let [ab, hue] = GK[k] || [null, h % 360];
         if (!ab) ab = (w.length > 1 ? w.map((x) => x[0]).slice(0, 2).join("") + (/^\d+$/.test(w.at(-1)) && w.length > 2 ? w.at(-1) : "") : k.slice(0, /\d/.test(k) ? 3 : 2)).toUpperCase();
-        const fs = ab.length > 2 ? 11 : ab.length > 1 ? 14 : 17, id = "gi" + hue;
-        return (giC[n] = `<span class="gi" aria-hidden="true"><svg viewBox="0 0 32 32"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue} 85% 62%)"/><stop offset="1" stop-color="hsl(${(hue + 28) % 360} 75% 40%)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#${id})"/><rect x="1" y="1" width="30" height="14" rx="8" fill="#fff" opacity=".18"/><text x="16" y="${16 + fs * .36}" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${fs}" fill="#fff">${ab.replace(/[<&]/g, "")}</text></svg></span>`);
+        const fs = ab.length > 2 ? 11 : ab.length > 1 ? 14 : 17;
+        const baseColor = "hsl(" + hue + " 82% 49%)", highlightColor = "hsl(" + ((hue + 28) % 360) + " 72% 35%)";
+        return (giC[n] = '<span class="gi" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="' + baseColor + '"/><path d="M1 1h30v14H1z" fill="' + highlightColor + '" opacity=".28"/><text x="16" y="' + (16 + fs * .36) + '" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="' + fs + '" fill="#fff">' + ab.replace(/[<&]/g, "") + '</text></svg></span>');
       }
       /* превью иконки под полем «Игра» в форме */
       $("#game").insertAdjacentHTML("afterend", '<span id="gPrev"></span>');

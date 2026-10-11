@@ -1321,25 +1321,26 @@
       svg.fcs { width: 100%; height: auto; display: block; margin-top: 12px; overflow: visible; }
       .fcs text { fill: var(--mut); font-size: 11px; font-family: inherit; }
       .fcg { margin-top: 10px; font-size: .88rem; padding: 10px 14px; border-radius: 14px; background: color-mix(in srgb, var(--acc) 11%, transparent); }
-      .fc { padding:18px; min-width:0; }
-      .fc-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+      .fc { margin-top:14px; padding:14px 16px; min-width:0; display:grid; gap:10px; }
+      .fc:empty { display:none; }
+      .fc-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:0; }
       .fc-head small { display:block; color:var(--mut); font-size:.68rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
       .fc-head h3 { margin:3px 0 0; font-size:1.15rem; line-height:1.25; letter-spacing:-.025em; }
       .fc-days { flex:none; padding:7px 10px; border-radius:999px; color:var(--mut); background:var(--c2); font-size:.75rem; font-weight:700; }
-      .fc-table-wrap { width:100%; overflow:hidden; margin-top:0; border:1px solid var(--line); border-radius:17px; background:color-mix(in srgb,var(--card) 72%,transparent); }
-      .fc-table { width:100%; border-collapse:collapse; table-layout:auto; font-size:.9rem; }
-      .fc-table th,.fc-table td { padding:13px 14px; border-bottom:1px solid var(--line); vertical-align:middle; line-height:1.35; }
-      .fc-table th { color:var(--mut); font-size:.7rem; font-weight:800; text-align:left; background:color-mix(in srgb,var(--c2) 72%,transparent); }
-      .fc-table th:last-child,.fc-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-      .fc-table td:first-child { color:var(--tx); font-weight:600; }
+      .fc-table-wrap { width:100%; overflow-x:auto; margin-top:0; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+      .fc-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:.86rem; }
+      .fc-table th,.fc-table td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle; line-height:1.4; overflow-wrap:anywhere; }
+      .fc-table th { color:var(--mut); font-size:.72rem; font-weight:750; text-align:left; background:var(--c2); }
+      .fc-table th:first-child,.fc-table td:first-child { width:68%; text-align:left; }
+      .fc-table th:last-child,.fc-table td:last-child { width:32%; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
       .fc-table tr:last-child td { border-bottom:0; }
       .fc-table .fc-actual-row td { color:var(--mut); }
-      .fc-table .fc-total-row td { font-weight:850; font-size:.95rem; background:color-mix(in srgb,var(--acc) 12%,transparent); }
-      .fc-table .fc-total-row td:last-child { color:var(--acl); font-size:1.02rem; }
-      .fc-table .fc-scenario-row td { color:var(--mut); font-size:.84rem; }
+      .fc-table .fc-total-row td { font-weight:850; background:color-mix(in srgb,var(--acc) 10%,var(--card)); }
+      .fc-table .fc-total-row td:last-child { color:var(--acl); font-size:1rem; }
+      .fc-table .fc-scenario-row td { color:var(--mut); }
       .fc-table .fc-scenario-row td:last-child { color:var(--tx); font-weight:750; }
       .fc-table .fc-goal-status { display:block; margin-top:3px; color:var(--mut); font-size:.7rem; font-weight:500; white-space:normal; }
-      @media (max-width:480px) { .fc { padding:14px; } .fc-head h3 { font-size:1.02rem; } .fc-days { font-size:.68rem; padding:6px 8px; } .fc-table { font-size:.82rem; } .fc-table th,.fc-table td { padding:11px 9px; } .fc-table .fc-scenario-row td { font-size:.78rem; } }
+      @media (max-width:480px) { .fc { padding:12px; } .fc-head h3 { font-size:1.02rem; } .fc-days { font-size:.68rem; padding:6px 8px; } .fc-table { font-size:.78rem; } .fc-table th,.fc-table td { padding:9px 8px; } .fc-table th:first-child,.fc-table td:first-child { width:63%; } .fc-table th:last-child,.fc-table td:last-child { width:37%; } }
       .pulse { transform-box: fill-box; transform-origin: center; animation: pls 2s ease-out infinite; }
       @keyframes pls { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(3); opacity: 0; } }
       .bw { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
@@ -2930,56 +2931,50 @@
       $("#bw").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); bwGo(e); } });
 
       /* Прибыль за месяц: фактический результат считается по дням, прогноз — по дням после первой сделки. */
-      function fcRender(list) {
+      function fcRender() {
         const el = $("#fc"), t = today();
-        if (allT || ym !== t.slice(0, 7) || !list.length) { el.innerHTML = ""; return; }
+        if (!el) return;
         const [Y, M, D] = t.split("-").map(Number);
-        const N = new Date(Y, M, 0).getDate(), left = Math.max(0, N - D), firstMonthDay = ym + "-01";
-        const forecastOps = view === "all" ? marketplaceProfitOps(list, "all", t) : list;
-        const current = forecastOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
+        const N = new Date(Y, M, 0).getDate(), left = Math.max(0, N - D);
+        const firstMonthDay = t.slice(0, 7) + "-01";
+        const selectedOps = ops.filter((o) => view === "all" || o.marketplace === view);
+        const profitOps = marketplaceProfitOps(selectedOps, view, t);
+        const current = profitOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
         const by = {};
         current.forEach((o) => (by[o.date] ??= []).push(o));
         const daily = Array.from({ length: D }, (_, i) => {
-          const key = ym + "-" + String(i + 1).padStart(2, "0");
+          const key = t.slice(0, 7) + "-" + String(i + 1).padStart(2, "0");
           return by[key] ? agg(by[key]).profit : 0;
         });
         const sum = (arr) => arr.reduce((a, b) => a + b, 0);
         const mean = (arr) => arr.length ? sum(arr) / arr.length : 0;
-        const quantile = (arr, q) => {
-          if (!arr.length) return 0;
-          const sorted = arr.slice().sort((a, b) => a - b);
-          const pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
-          return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
-        };
         const activeDates = new Set(current
           .filter((o) => o.type !== "withdraw" && !String(o.id || "").startsWith("cogs-"))
           .map((o) => o.date));
         const firstDate = [...activeDates].sort()[0];
         const firstDay = firstDate ? Number(firstDate.slice(8)) : D;
         const firstIndex = Math.max(0, firstDay - 1);
-        /* Only completed days determine the pace. Calendar days after tracking starts with no operations count as zero. */
+        /* Average completed days only; never project a lower total than actual positive month-to-date profit. */
         const history = daily.slice(firstIndex, Math.max(firstIndex, D - 1));
         const recent = history.slice(-3);
         const longRate = mean(history), recentRate = mean(recent);
-        let dailyRate = history.length >= 3 ? longRate * .55 + recentRate * .45 : longRate;
-        const now = sum(daily);
-        /* A positive month-to-date result should not be projected downward without any recorded future expense plan. */
-        if (now > 0) dailyRate = Math.max(0, dailyRate);
-        const window = history.slice(-Math.min(14, history.length));
-        let lowRate = window.length ? Math.min(dailyRate, quantile(window, .2)) : dailyRate;
-        let highRate = window.length ? Math.max(dailyRate, quantile(window, .8)) : dailyRate;
-        if (window.length > 0 && window.length < 5) {
-          lowRate = Math.min(lowRate, ...window);
-          highRate = Math.max(highRate, ...window);
-        }
-        if (now > 0) lowRate = Math.max(0, lowRate);
-        const projected = now + dailyRate * left;
-        const lowProjection = Math.max(now > 0 ? now : -Infinity, now + lowRate * left);
-        const highProjection = Math.max(projected, now + highRate * left);
+        let dailyRate;
+        if (history.length >= 4) dailyRate = longRate * .65 + recentRate * .35;
+        else if (history.length) dailyRate = longRate;
+        else dailyRate = daily[D - 1] || 0;
+        const actual = sum(daily);
+        if (actual > 0) dailyRate = Math.max(0, dailyRate);
+        const scenarioWindow = history.slice(-Math.min(7, history.length));
+        let lowRate = scenarioWindow.length ? Math.min(dailyRate, ...scenarioWindow) : dailyRate;
+        let highRate = scenarioWindow.length ? Math.max(dailyRate, ...scenarioWindow) : dailyRate;
+        if (actual > 0) lowRate = Math.max(0, lowRate);
+        const projected = actual + dailyRate * left;
+        const lowProjection = Math.max(actual > 0 ? actual : -Infinity, actual + lowRate * left);
+        const highProjection = Math.max(projected, actual + highRate * left);
         const goal = Number(LS("goal", 0)) || 0;
         const money = (v) => (v > 0 ? "+" : "") + fmt(Math.round(v));
         const rows = [
-          ["Факт с начала месяца", money(now), "fc-actual-row"],
+          ["Фактическая прибыль", money(actual), "fc-actual-row"],
           ["Примерная прибыль за месяц", money(projected), "fc-total-row"],
           ["Осторожный прогноз", money(Math.min(lowProjection, projected)), "fc-scenario-row"],
           ["Оптимистичный прогноз", money(Math.max(highProjection, projected)), "fc-scenario-row"]
@@ -2991,9 +2986,48 @@
         const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th></tr></thead><tbody>' +
           rows.map((r) => '<tr class="' + r[2] + '"><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join("") +
           '</tbody></table></div>';
-        el.innerHTML = '<div class="fc-head"><div><small>ФИНАНСЫ · ' + esc(MN[M - 1] || "") + '</small><h3>Прибыль на месяц</h3></div><span class="fc-days">' + (left ? "Осталось " + left + " дн." : "Последний день месяца") + '</span></div>' + table;
+        el.innerHTML = '<div class="fc-head"><div><small>ФИНАНСЫ · ' + esc(MN[M - 1] || "") + '</small><h3>Прибыль на месяц</h3></div><span class="fc-days">' +
+          (left ? "Осталось " + left + " дн." : "Последний день месяца") + '</span></div>' + table;
       }
 
+      function marketplaceProfitOps(list, platform, untilDate = today()) {
+        const inventory = computeInventoryState(ops, untilDate);
+        const out = [];
+        for (const o of list) {
+          if (o.date > untilDate) continue;
+          if (o.type === "purchase" && (+o.amount || 0) >= 0) {
+            const lot = inventory.remainingByPurchase.get(String(o.id));
+            if (!lot) out.push(o);
+            else if (lot.remainingCost > .005) out.push({ ...o, amount: r2(lot.remainingCost), fee: 0 });
+          } else {
+            out.push(o);
+          }
+          if (o.type === "sale") {
+            const cost = inventory.cogsBySale.get(String(o.id)) || 0;
+            if (cost > .005) out.push({
+              ...o, id: "cogs-" + String(o.id), type: "purchase", amount: r2(cost), fee: 0,
+              note: "Себестоимость проданных единиц · FIFO"
+            });
+          }
+        }
+        for (const closures of inventory.closuresByKey.values()) {
+          for (const closure of closures) {
+            const allocations = closure.closedCostByMarketplace || {};
+            const marketplaces = platform === "all" ? Object.keys(allocations) : [platform];
+            for (const marketplace of marketplaces) {
+              const amount = r2(Number(allocations[marketplace]) || 0);
+              if (amount <= .005) continue;
+              const qtyPart = closure.closedQty || closure.quantity || 0;
+              out.push({
+                id: "stock-writeoff-" + String(closure.id) + "-" + encodeURIComponent(marketplace),
+                marketplace, date: closure.date, game: closure.game, type: "other", amount, fee: 0,
+                note: "Списание товарного остатка без выручки · " + Number(qtyPart).toLocaleString("ru-RU") + " ед. · FIFO"
+              });
+            }
+          }
+        }
+        return out;
+      }
 
       /* Прибыль = продажи − возвраты − комиссия − закупки − поднятие лотов − прочие траты. Вывод в прибыль не входит. */
       const agg = (l) => {
@@ -3312,7 +3346,7 @@
           ? `<b>Коротко</b><div class="kpi"><div><small>Продаж</small><b>${sl.length}</b></div><div><small>Средний чек</small><b>${fmt(sl.length ? T.sales / sl.length : 0)}</b></div><div><small>Прибыль за активный день</small><b>${fmt(T.profit / dp.length)}</b></div><div><small>Лучший день</small><b>${dm(best[0])} · ${fmt(best[1])}</b></div></div>`
           : "";
         bwRender(profitList);
-        fcRender(profitList);
+        fcRender();
         const PA = keys.map((k) => {
           const platformOps = inP.filter((o) => o.marketplace === k);
           return [k, agg(marketplaceProfitOps(platformOps, k)).profit];

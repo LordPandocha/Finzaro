@@ -2323,6 +2323,8 @@
       .streak-week-day b{width:25px;height:25px;display:grid;place-items:center;border-radius:8px;background:color-mix(in srgb,var(--mut) 10%,var(--card));color:var(--tx);font-size:.77rem}
       .streak-week-day.marked{border-color:color-mix(in srgb,var(--acc) 55%,var(--line));background:color-mix(in srgb,var(--acc) 8%,var(--card));color:var(--tx)}
       .streak-week-day.marked b{background:var(--acc);color:var(--herotx)}
+      .streak-week-day.restored{border-color:color-mix(in srgb,var(--acc2) 70%,var(--line))}
+      .streak-week-day.restored b{background:var(--acc2);color:var(--herotx)}
       .streak-week-day.today{box-shadow:inset 0 0 0 1px var(--acc)}
       .streak-report-period{flex:none;padding:5px 7px;border-radius:7px;background:var(--ui-accent-soft);color:var(--acl);font-size:.68rem;font-weight:800;letter-spacing:.06em}
       .streak-week-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:13px}
@@ -3750,8 +3752,9 @@
         let pending=LS("streakPendingRecovery",null);
         if(pending&&(!pending.detectedAt||streakDayDiff(pending.detectedAt,t)>1||streakDayDiff(pending.detectedAt,t)<0))pending=null;
         const chargeCount=streakCharges();
-        if(!pending&&latest&&gap===2&&priorRun>=2&&chargeCount>0){
-          pending={from:latest,missed:shiftStreakDate(latest,1),detectedAt:t,previousRun:priorRun};
+        if(!pending&&latest&&gap>=2&&gap<=3&&priorRun>=2&&chargeCount>0){
+          const missedDates=Array.from({length:gap-1},(_,i)=>shiftStreakDate(latest,i+1));
+          pending={from:latest,missed:missedDates[0],missedDates,daysMissed:missedDates.length,detectedAt:t,previousRun:priorRun};
         }
         if(pending&&chargeCount<=0)pending=null;
         if(!set.has(t))set.add(t);
@@ -3806,18 +3809,21 @@
         $("#streakDialogBest").textContent=bestStreakValue+" "+streakPlural(bestStreakValue);
         $("#streakDialogRank").textContent=rank?rank.title:"Новая серия начинается сегодня";
         $("#streakHero").dataset.level=String(rank?rank.days:0);
-        const checkinSet=new Set(streakVisits),todayKey=today(),weekNames=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+        const checkinSet=new Set(streakVisits),restoredSet=new Set(LS("streakRestoredDates",[])),todayKey=today(),weekNames=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
         const weekDates=Array.from({length:7},(_,i)=>shiftStreakDate(todayKey,i-6));
         $("#streakWeekStrip").innerHTML=weekDates.map(d=>{
-          const dayIndex=(new Date(d+"T12:00:00").getDay()+6)%7,isMarked=checkinSet.has(d),isToday=d===todayKey;
-          return '<div class="streak-week-day '+(isMarked?"marked ":"")+(isToday?"today":"")+'" aria-label="'+d+(isMarked?", заход засчитан":", не было захода")+'"><span>'+weekNames[dayIndex]+'</span><b>'+(isMarked?"✓":d.slice(8))+'</b></div>';
+          const dayIndex=(new Date(d+"T12:00:00").getDay()+6)%7,isMarked=checkinSet.has(d),isRestored=restoredSet.has(d),isToday=d===todayKey;
+          return '<div class="streak-week-day '+(isMarked?"marked ":"")+(isRestored?"restored ":"")+(isToday?"today":"")+'" aria-label="'+d+(isRestored?", восстановленный день":isMarked?", заход засчитан":", не было захода")+'"><span>'+weekNames[dayIndex]+'</span><b>'+(isRestored?"↻":isMarked?"✓":d.slice(8))+'</b></div>';
         }).join("");
         $("#streakWeekCount").textContent=weekDates.filter(d=>checkinSet.has(d)).length+"/7";
         const recovery=$("#streakRecoveryCard");
-        const canRestore=!!streakPendingRecovery&&charges>0&&streakPendingRecovery.missed&&!checkinSet.has(streakPendingRecovery.missed);
+        const recoveryDates=streakPendingRecovery&&Array.isArray(streakPendingRecovery.missedDates)?streakPendingRecovery.missedDates:(streakPendingRecovery?[streakPendingRecovery.missed]:[]);
+        const canRestore=!!streakPendingRecovery&&charges>0&&recoveryDates.length>0&&recoveryDates.every(d=>d&&!checkinSet.has(d));
         recovery.hidden=!canRestore;
         $("#streakRecoveryTitle").textContent=canRestore?"Верни огонёк":"Восстановления наготове";
-        $("#streakRecoveryText").textContent=canRestore?"Ты держал серию "+streakPendingRecovery.previousRun+" "+streakPlural(streakPendingRecovery.previousRun)+". Пропущен день "+streakPendingRecovery.missed.split("-").reverse().join(".")+". Вставим его в календарь и продолжим серию.":"Если пропустишь один календарный день, при следующем входе появится возможность вернуть серию.";
+        const recoveryLabels=recoveryDates.map(d=>d.split("-").reverse().join("."));
+        const recoveryLabel=recoveryLabels.length>1?recoveryLabels[0]+" — "+recoveryLabels[recoveryLabels.length-1]:recoveryLabels[0]||"пропущенный день";
+        $("#streakRecoveryText").textContent=canRestore?"Ты держал серию "+streakPendingRecovery.previousRun+" "+streakPlural(streakPendingRecovery.previousRun)+". Пропуск: "+recoveryLabel+". Вернём огонёк к прежней серии.":"Если пропустишь день, вернись в течение 48 часов — огонёк можно спасти.";
         $("#streakRecoveryCount").textContent=charges+" из 2 восстановлений осталось в этом месяце.";
         $("#streakRecoveryButton").textContent="Вернуть серию · 1 ↻";
         $("#streakRecoveryButton").disabled=!canRestore;
@@ -3841,9 +3847,13 @@
       function restoreStreak(){
         if(!streakPendingRecovery||streakCharges()<=0)return;
         const recovery=streakPendingRecovery;
-        const missed=recovery.missed,visits=new Set(streakVisits);
-        if(!missed||visits.has(missed))return;
-        visits.add(missed);
+        const missedDates=Array.isArray(recovery.missedDates)?recovery.missedDates:[recovery.missed];
+        const visits=new Set(streakVisits);
+        if(!missedDates.length||missedDates.some(d=>!d||visits.has(d)))return;
+        missedDates.forEach(d=>visits.add(d));
+        const restoredDates=new Set(LS("streakRestoredDates",[]));
+        missedDates.forEach(d=>restoredDates.add(d));
+        localStorage.setItem("streakRestoredDates",JSON.stringify([...restoredDates].sort().slice(-450)));
         streakRestoreState.used++;
         localStorage.setItem("streakRestoreState",JSON.stringify(streakRestoreState));
         streakPendingRecovery=null;

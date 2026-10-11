@@ -2882,7 +2882,7 @@
       /* Прогноз до конца месяца */
       function fcRender(list) {
         const el = $("#fc"), t = today();
-        if (allT || ym !== t.slice(0, 7) || !list.some((o) => o.type === "sale")) { el.innerHTML = ""; return; }
+        if (allT || ym !== t.slice(0, 7) || !list.length) { el.innerHTML = ""; return; }
         const [Y, M, D] = t.split("-").map(Number), N = new Date(Y, M, 0).getDate(), by = {};
         list.forEach((o) => (by[o.date] ??= []).push(o));
         const cum = [0];
@@ -3184,7 +3184,7 @@
           ? `<b>Коротко</b><div class="kpi"><div><small>Продаж</small><b>${sl.length}</b></div><div><small>Средний чек</small><b>${fmt(sl.length ? T.sales / sl.length : 0)}</b></div><div><small>Прибыль за активный день</small><b>${fmt(T.profit / dp.length)}</b></div><div><small>Лучший день</small><b>${dm(best[0])} · ${fmt(best[1])}</b></div></div>`
           : "";
         bwRender(profitList);
-        fcRender(list);
+        fcRender(view === "all" ? list : profitList);
         const PA = keys.map((k) => {
           const platformOps = inP.filter((o) => o.marketplace === k);
           return [k, agg(marketplaceProfitOps(platformOps, k)).profit];

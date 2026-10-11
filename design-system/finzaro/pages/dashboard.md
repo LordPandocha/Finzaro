@@ -39,9 +39,10 @@
 - **Delete must trigger dependent recomputation:** after the database accepts removal, rebuild stock/FIFO, operation lists, summaries, KPI, marketplace/game tables, dashboard graphs and shortage flags; refresh the undo state. Server failure must leave the existing UI/data intact.
 
 
-## Streak UX contract
-- Replace automatic "visit streak" counting with explicit daily check-ins after the user confirms they've reviewed their finances. One check-in per local calendar day.
-- Migrate the old visit history into historical streak entries excluding today's automatic visit; preserve the saved best-run value.
-- Show a seven-day strip, current run, best run, current 7-day income/expenses/profit, comparison to the prior week, one next milestone, and a collapsed milestone list.
-- Milestones acknowledge habit progression; don't promise cosmetic items or gated functionality that doesn't exist.
-- The current selected-day/range totals should be the only detail block shown beneath expanded analytics while dates are selected. Hide the single-point hover/detail card when the range summary is active, and restore it once selection is cleared.
+## Automatic streak and restore UX contract
+- Every distinct local calendar day when the user opens Finzaro automatically adds that date to `streakVisits`; repeated reloads on the same day do not add extra days.
+- Preserve the legacy `visits`, former `streakCheckins`, and best-run data through migration.
+- A single missed day can be restored when the user returns within the recovery window. Give two restore credits per calendar month, show the remaining count, and require an explicit click to spend one credit. Never auto-consume recovery.
+- A return after a break should surface a recoverable-streak CTA via the modal and a one-time toast. If recovery is used, put the missed date back into the visit ledger and recalculate the streak/reward tier.
+- Use evolving flame styles and concise milestone language rather than a large grid of cosmetic cards. Show a seven-day visit calendar, next milestone, personal best, and restore credits.
+- Hide the analytic hover-detail card while one or more days are selected; only show the selected-range totals under the analytics chart. Restore the detail card when selection is cleared.

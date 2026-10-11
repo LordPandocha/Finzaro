@@ -2619,7 +2619,16 @@
         let success = false, errorMessage = "";
         try {
           if (action.type === "add") {
-            success = !!(await delMany(action.ids || [], true));
+            const ids = action.ids || [];
+            const rows = action.rows || [];
+            const changed = rows.filter((original) => {
+              const current = ops.find((o) => String(o.id) === String(original.id));
+              return !current || !undoRowsMatch(current, original);
+            });
+            if (changed.length) throw new Error("Эти записи позже изменялись или удалялись. Сначала верни более новые действия над ними, чтобы ничего не потерять.");
+            const existingIds = ids.filter((id) => ops.some((o) => String(o.id) === String(id)));
+            if (!existingIds.length) throw new Error("Записей этого действия уже нет.");
+            success = !!(await delMany(existingIds, true));
           } else if (action.type === "update") {
             const current = ops.find((o) => String(o.id) === String(action.row?.id));
             if (!current) throw new Error("Этой записи уже нет. Верни более позднее удаление или обнови страницу.");
@@ -2627,7 +2636,7 @@
             const patch = Object.fromEntries(Object.entries(action.row).filter(([k]) => !["id","user_id","created_at","updated_at"].includes(k)));
             success = !!(await upd(action.row.id, patch));
           } else if (action.type === "delete") {
-            const rows = (action.rows || []).filter((o) => !ops.some((cur) => String(cur.id) === String(o.id)));
+            const rows = (action.rows || []).filter((o) => !ops.some((cur) => undoRowsMatch(cur, o)));
             if (!rows.length) throw new Error("Эти записи уже восстановлены. Дубликаты не созданы.");
             const L = rows.map((o) => { const { id, user_id, created_at, updated_at, ...rest } = o; return user ? { ...rest, user_id: user.id } : rest; });
             success = !!(await add(L));
@@ -4369,8 +4378,15 @@
           resetChartInteraction();
           drawCh();
         } else {
-          chartBrushSuppressClick = false;
+          chartBrushSuppressClick = true;
+          setTimeout(() => { chartBrushSuppressClick = false; }, 180);
           paintChartBrushPreview(brush.baseSelected);
+          const item = chartPointItem(e?.clientX ?? brush.startX, e?.clientY ?? 0);
+          if (item) {
+            const next = readChartItem(item);
+            if (chartPin && chartPin.key === next.key) resetChartInteraction();
+            else { chartPin = next; hideChartTooltip(); setChartDetail(next, true); paintChartSelection(); }
+          }
         }
       };
       $("#chart2").addEventListener("pointerdown", (e) => {
@@ -4446,13 +4462,6 @@
           drawCh();
           return;
         }
-        if (e.target.closest("#chartPickToggle")) {
-          chartRange.pickDays = !chartRange.pickDays;
-          chartRange.pickerOpen = chartRange.pickDays || !chartRange.pickerOpen;
-          resetChartInteraction();
-          drawCh();
-          return;
-        }
         if (e.target.closest("#chartClearDays")) {
           chartRange.selectedDates.clear();
           saveChartRange();
@@ -4460,8 +4469,6 @@
           drawCh();
           return;
         }
-        const day = e.target.closest("[data-chart-day]")?.dataset.chartDay;
-        if (day) toggleChartDate(day);
       });
       $("#chartFilters").addEventListener("change", (e) => {
         if (!["chartDateStart", "chartDateEnd"].includes(e.target.id)) return;

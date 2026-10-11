@@ -2994,7 +2994,7 @@
       const hasFPMarker = (note) => /\[\[FZFP:[a-f0-9]{8,64}:[^:\]]+:[a-z-]+\]\]/.test(String(note || ""));
       const opQty = (o) => { const m = String(o?.note || "").match(QTY_VALUE_RE); const n = Number(m?.[1] ?? 1); return Number.isFinite(n) && n > 0 ? n : 1; };
       const noteWithQty = (note, qty) => [visibleNote(note), "[[FZQTY:" + Math.max(.0001, Number(qty) || 1).toFixed(4).replace(/0+$/, "").replace(/\.$/, "") + "]]"].filter(Boolean).join(" ");
-      const inventoryKey = (game, note) => [normGame(game || ""), normGame(visibleNote(note || ""))].join("|");
+      const inventoryKey = (game, note) => [normGame(game || ""), normGame(hasFPMarker(note) ? "" : visibleNote(note || ""))].join("|");
       function computeInventoryState(list = ops, until = today()) {
         const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map();
         const ordered = list.filter((o) => o.date <= until && ["purchase","sale"].includes(o.type))
@@ -3009,14 +3009,19 @@
             remainingByPurchase.set(String(o.id), lot);
           } else if (o.type === "sale") {
             let need = opQty(o), cost = 0;
-            for (const lot of (byKey.get(key) || [])) {
-              if (need <= .0000001) break;
-              if (lot.remainingQty <= .0000001) continue;
-              const units = Math.min(need, lot.remainingQty), partCost = lot.remainingCost * units / lot.remainingQty;
-              lot.remainingQty = Math.max(0, lot.remainingQty - units);
-              lot.remainingCost = Math.max(0, lot.remainingCost - partCost);
-              need -= units; cost += partCost;
-            }
+            const consume = (lots) => {
+              for (const lot of lots || []) {
+                if (need <= .0000001) break;
+                if (lot.remainingQty <= .0000001) continue;
+                const units = Math.min(need, lot.remainingQty), partCost = lot.remainingCost * units / lot.remainingQty;
+                lot.remainingQty = Math.max(0, lot.remainingQty - units);
+                lot.remainingCost = Math.max(0, lot.remainingCost - partCost);
+                need -= units; cost += partCost;
+              }
+            };
+            consume(byKey.get(key));
+            const genericKey = key.split("|")[0] + "|";
+            if (need > .0000001 && genericKey !== key) consume(byKey.get(genericKey));
             cogsBySale.set(String(o.id), cost);
           }
         }
@@ -3026,14 +3031,17 @@
         if (!String(game || "").trim()) return "Выбери категорию / игру / сервис.";
         const candidates = ops.filter((o) => String(o.id) !== String(excludeId));
         const state = computeInventoryState(candidates);
-        const key = inventoryKey(game, note), lots = state.byKey.get(key) || [];
+        const key = inventoryKey(game, note), exactLots = state.byKey.get(key) || [];
+        const genericLots = state.byKey.get(normGame(game || "") + "|") || [];
+        const usesGeneric = !exactLots.length && !key.endsWith("|") && genericLots.length > 0;
+        const lots = exactLots.length ? exactLots : genericLots;
         const available = lots.reduce((sum,lot)=>sum+lot.remainingQty,0), cost = lots.reduce((sum,lot)=>sum+lot.remainingCost,0);
         const avg = available > 0 ? cost / available : 0;
         if (type === "purchase") return "После сохранения в запас добавится " + qty + " ед. · " + (available ? "сейчас уже есть " + available.toLocaleString("ru-RU") + " ед. по средней себестоимости " + fmt(avg) + "/ед." : "это будет первая партия этой позиции.");
         let need = Math.max(.0001, Number(qty) || 1), estimate = 0;
         for (const lot of lots) { if (need <= .0000001) break; const units = Math.min(need, lot.remainingQty); estimate += units * (lot.remainingQty ? lot.remainingCost / lot.remainingQty : 0); need -= units; }
         return available > 0
-          ? "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед." : "") + "."
+          ? "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед." : "") + (usesGeneric ? " · использованы закупки FunPay без отдельного названия лота" : "") + "."
           : "Похожей закупки с таким же описанием пока нет — себестоимость для площадки автоматически распределить не из чего.";
       }
       const opRow = (o, sm, gm) =>

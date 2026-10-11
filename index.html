@@ -4712,7 +4712,7 @@
         const k = normGame(n);
         if (giC[n]) {
           if (ROBLOX_GAMES.has(k) && !rbxPending[k]) window.setTimeout(() => loadRbxGameIcon(n), 0);
-          if (STEAM_GAMES.has(k)) queueSteamGameIcon(n);
+          if (STEAM_GAMES.has(k) && !BRAND[k]) queueSteamGameIcon(n);
           return giC[n];
         }
         const slug = BRAND[k], icon = slug && BI[slug];

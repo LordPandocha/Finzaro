@@ -2299,6 +2299,9 @@
         #chartClearDays{min-height:44px}
         #chart2:not(.chart-picking){touch-action:pan-y}
       }
+
+      .stock-gap-chip{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin-top:5px;padding:4px 7px;border:1px solid color-mix(in srgb,var(--neg) 36%,var(--line));border-radius:7px;background:color-mix(in srgb,var(--neg) 8%,var(--card));color:var(--neg);font-size:.75rem!important;font-weight:700;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+      @media(max-width:680px){.stock-gap-chip{font-size:.72rem!important;padding:5px 7px}}
     </style>
   </head>
   <body>
@@ -2794,7 +2797,7 @@
         MPS = { ...BASE, ...custom };
       const TYPES = {
         sale: ["Продажа", "Покупатель заплатил вам"],
-        purchase: ["Закупка", "Вы купили товар для перепродажи"],
+        purchase: ["Закупка", "Товар поступает на склад; прибыль изменится при продаже или списании"],
         other: ["Расход", "Любая другая трата"],
         refund: ["Возврат", "Вы вернули деньги покупателю"],
         withdraw: ["Вывод", "Перевод денег на карту — это не расход"],
@@ -3411,32 +3414,35 @@
         return true;
       }
       async function delMany(ids, silent) {
-        const rows = ops.filter((o) => ids.includes(o.id));
+        const idSet = new Set(ids.map(String));
+        const rows = ops.filter((o) => idSet.has(String(o.id)));
         if (sb) {
           if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
           const { error } = await sb.from("operations").delete().in("id", ids).eq("user_id", user.id);
           if (error) return toast("Не удалось удалить: " + error.message);
-        } else {
-          ops = ops.filter((o) => !ids.includes(o.id));
-          localStorage.setItem("ops", JSON.stringify(ops));
         }
+        ops = ops.filter((o) => !idSet.has(String(o.id)));
+        if (!sb) localStorage.setItem("ops", JSON.stringify(ops));
         const trashIds = !silent && rows.length ? toTrash(rows) : [];
         if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
+        // Optimistically refresh every dependent table/chart before attempting a re-fetch.
+        render();
         await load();
         return true;
       }
       async function del(id, silent) {
-        const rows = ops.filter((o) => o.id == id);
+        const rows = ops.filter((o) => String(o.id) === String(id));
         if (sb) {
           if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
           const { error } = await sb.from("operations").delete().eq("id", id).eq("user_id", user.id);
           if (error) return toast("Не удалось удалить: " + error.message);
-        } else {
-          ops = ops.filter((o) => o.id != id);
-          localStorage.setItem("ops", JSON.stringify(ops));
         }
+        ops = ops.filter((o) => String(o.id) !== String(id));
+        if (!sb) localStorage.setItem("ops", JSON.stringify(ops));
         const trashIds = !silent && rows.length ? toTrash(rows) : [];
         if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
+        // Render immediately after the successful delete; don't leave stale tables if refresh fails.
+        render();
         await load();
         return true;
       }
@@ -3595,7 +3601,8 @@
         const selectedOps = ops.filter((o) => view === "all" || o.marketplace === view);
         const profitOps = marketplaceProfitOps(selectedOps, view, t);
         const current = profitOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
-        if (!current.length) {
+        const currentRaw = selectedOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
+        if (!currentRaw.length) {
           const emptyMonth=MN[M-1]||"";
           el.innerHTML='<div class="fc-head"><div><small>ФИНАНСЫ · '+esc(emptyMonth)+' '+Y+'</small><h3>Примерная прибыль за месяц</h3></div><span class="fc-days">Прогноз появится после первой операции</span></div>'+
             '<div class="fc-empty"><span class="fc-empty-icon">'+ico("chart")+'</span><div class="fc-empty-copy"><b>Пока нет данных для прогноза</b><small>Добавь продажу, закупку или импортируй историю FunPay. Finzaro покажет факт, осторожный темп и примерный итог месяца.</small></div><button type="button" class="pill" id="fcEmptyAdd">Добавить операцию</button></div>';
@@ -3726,18 +3733,16 @@
         }
       }
 
-      function marketplaceProfitOps(list, platform, untilDate = today()) {
+      function marketplaceProfitOps(list, platform, untilDate = today(), fromDate = "") {
         const inventory = computeInventoryState(ops, untilDate);
         const out = [];
         for (const o of list) {
           if (o.date > untilDate) continue;
-          if (o.type === "purchase" && (+o.amount || 0) >= 0) {
-            const lot = inventory.remainingByPurchase.get(String(o.id));
-            if (!lot) out.push(o);
-            else if (lot.remainingCost > .005) out.push({ ...o, amount: r2(lot.remainingCost), fee: 0 });
-          } else {
-            out.push(o);
-          }
+          // Purchases are inventory assets, not instant P&L expenses.
+          // Recognize their cost only as units are sold (synthetic FIFO COGS below)
+          // or written off. Missing stock never creates negative inventory or blocks sales.
+          if (o.type === "purchase") continue;
+          out.push(o);
           if (o.type === "sale") {
             const cost = inventory.cogsBySale.get(String(o.id)) || 0;
             if (cost > .005) out.push({
@@ -3753,6 +3758,7 @@
             for (const marketplace of marketplaces) {
               const amount = r2(Number(allocations[marketplace]) || 0);
               if (amount <= .005) continue;
+              if (fromDate && closure.date < fromDate) continue;
               const qtyPart = closure.closedQty || closure.quantity || 0;
               out.push({
                 id: "stock-writeoff-" + String(closure.id) + "-" + encodeURIComponent(marketplace),
@@ -3765,7 +3771,7 @@
         return out;
       }
 
-      /* Прибыль = продажи − возвраты − комиссия − закупки − поднятие лотов − прочие траты. Вывод в прибыль не входит. */
+      /* P&L input is a transformed ledger: purchases are inventory assets; only sold/write-off cost is added as COGS. Withdrawals remain transfers, except an enabled withdrawal fee. */
       const agg = (l) => {
         const t = { sales: 0, comm: 0, purch: 0, oth: 0, wd: 0, wfee: 0 };
         for (const o of l) {
@@ -3857,7 +3863,7 @@
       }
       const inventoryKey = (game, note) => [normGame(game || ""), inventoryItemKey(note)].join("|");
       function computeInventoryState(list = ops, until = today()) {
-        const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map(), closuresByKey = new Map();
+        const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map(), unmatchedQtyBySale = new Map(), closuresByKey = new Map();
         const operations = list.filter((o) => o.date <= until && ["purchase","sale"].includes(o.type))
           .map((o) => ({ kind:o.type, date:o.date, order:o.type === "purchase" ? 0 : 1, row:o }));
         const closures = LS("inventoryClosures2", [])
@@ -3906,9 +3912,10 @@
             const genericKey = key.split("|")[0] + "|";
             if (need > .0000001 && genericKey !== key) consume(byKey.get(genericKey));
             cogsBySale.set(String(o.id), cost);
+            if (need > .0000001) unmatchedQtyBySale.set(String(o.id), r2(need));
           }
         }
-        return { byKey, remainingByPurchase, cogsBySale, closuresByKey };
+        return { byKey, remainingByPurchase, cogsBySale, unmatchedQtyBySale, closuresByKey };
       }
       function inventoryHint(game, note, excludeId, type, qty) {
         const closeBtn = $("#inventoryCloseBtn"), closeHelp = $("#inventoryCloseHelp");
@@ -3929,14 +3936,14 @@
           closeBtn.dataset.item = exactLots.length ? visibleNote(note) : "";
           closeBtn.dataset.quantity = String(available);
         }
-        if (type === "purchase") return "После сохранения в запас добавится " + Number(qty || 1).toLocaleString("ru-RU") + " ед. · " + (available ? "сейчас уже есть " + available.toLocaleString("ru-RU") + " ед. по средней себестоимости " + fmt(avg) + "/ед." : "это будет первая партия этой позиции.");
+        if (type === "purchase") return "После сохранения в склад добавится " + Number(qty || 1).toLocaleString("ru-RU") + " ед. · закупка сама по себе не уменьшает прибыль. Себестоимость попадёт в расходы только по мере продажи единиц или явного списания остатка." + (available ? " Уже есть " + available.toLocaleString("ru-RU") + " ед. по средней себестоимости " + fmt(avg) + "/ед." : " Это первая партия этой позиции.");
         let need = Math.max(.0001, Math.round((Number(qty) || 1) * 10000) / 10000), estimate = 0;
         for (const lot of lots) { if (need <= .0000001) break; const units = Math.min(need, lot.remainingQty); estimate += units * (lot.remainingQty ? lot.remainingCost / lot.remainingQty : 0); need -= units; }
-        if (available > .0000001) return "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед." : "") + (usesGeneric ? " · использованы закупки без отдельного названия позиции" : "") + ".";
+        if (available > .0000001) return "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед. — продажа всё равно сохранится, недостающая часть не создаст минусовой склад и не получит себестоимость без учтённой закупки" : "") + (usesGeneric ? " · использованы закупки без отдельного названия позиции" : "") + ".";
         const latestClosed = (state.closuresByKey.get(key) || []).at(-1);
         return latestClosed
           ? "Остаток этой позиции списан " + String(latestClosed.date || "").split("-").reverse().join(".") + " (" + Number(latestClosed.closedQty || 0).toLocaleString("ru-RU") + " ед.). Выручки нет; себестоимость списанных единиц учитывается в расходах этой даты."
-          : "Похожей закупки с таким же описанием пока нет — себестоимость для площадки автоматически распределить не из чего.";
+          : "Учтённой закупки с такой игрой и названием пока нет. Продажу можно сохранить: она не заблокируется, отрицательного склада не будет, а себестоимость непривязанной части не будет выдумана.";
       }
       $("#inventoryCloseBtn").onclick = async () => {
         const button = $("#inventoryCloseBtn"), quantity = Number(button.dataset.quantity) || 0, game = String(button.dataset.game || ""), item = String(button.dataset.item || "");
@@ -3950,8 +3957,11 @@
         hint();
         toast("Остаток списан без выручки. Себестоимость учтена в расходах.");
       };
-      const opRow = (o, sm, gm) =>
-        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}${["sale","purchase"].includes(o.type) && QTY_VALUE_RE.test(String(o.note || "")) ? `<small class="qty-chip">Количество · ${opQty(o).toLocaleString("ru-RU")} ед.</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+      let unmatchedSaleQty = new Map();
+      const opRow = (o, sm, gm) => {
+        const unmatched = o.type === "sale" ? unmatchedSaleQty.get(String(o.id)) : 0;
+        return `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}${["sale","purchase"].includes(o.type) && QTY_VALUE_RE.test(String(o.note || "")) ? `<small class="qty-chip">Количество · ${opQty(o).toLocaleString("ru-RU")} ед.</small>` : ""}${unmatched > .0001 ? `<small class="stock-gap-chip">⚠ Без закупки в учёте: ${unmatched.toLocaleString("ru-RU")} ед. · себестоимость не списана</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+      };
       const ORD = ["purchase", "withdraw", "other", "refund", "sale"],
         GL = {
           purchase: "Закупки",
@@ -4006,7 +4016,7 @@
             const id = "g|" + g,
               ch = [
                 ["Комиссия", a.comm],
-                ["Закупка", a.purch],
+                ["Себестоимость проданного", a.purch],
                 ["Прочее", a.oth],
               ].filter((x) => x[1]);
             return `<details class="g card" data-id="${esc(id)}" ${opened.has(id) ? "open" : ""}><summary><span class="gn"><b class="ell">${gi(g)}${esc(g)}</b><small class="ell">Продано на ${fmt(a.sales)}${a.comm ? ` <em class="net">(${fmt(a.sales - a.comm)} после комиссии)</em>` : ""}</small></span><span class="gp">${col(a.profit)}</span></summary><div class="gb">${ch.length ? `<div class="mini">${ch.map((x) => `<span>${x[0]}: ${fmt(x[1])}</span>`).join("")}</div>` : ""}${l
@@ -4111,7 +4121,9 @@
           else if(o.type==="refund"){value="−"+fmt(Math.max(0,amount-fee));tone="negative";}
           else if(["purchase","other","ad"].includes(o.type)||amount<0){value="−"+fmt(Math.abs(amount));tone="negative";}
           else if(o.type==="withdraw"){value="↗ "+fmt(amount);tone="neutral";}
-          const title=typeLabel(o.type)+(o.marketplace?" ("+o.marketplace+")":""), secondary=[dm(o.date),o.game||visibleNote(o.note)].filter(Boolean).join(" · ");
+          const title=typeLabel(o.type)+(o.marketplace?" ("+o.marketplace+")":"");
+          const stockGap=unmatchedSaleQty.get(String(o.id))||0;
+          const secondary=[dm(o.date),o.game||visibleNote(o.note),stockGap>.0001?"⚠ Без закупки в учёте: "+stockGap.toLocaleString("ru-RU")+" ед.":""].filter(Boolean).join(" · ");
           return '<button type="button" class="recent-item" data-e="'+esc(o.id)+'" title="Открыть операцию"><span class="recent-icon '+esc(o.type)+'">'+ico(o.type)+'</span><span class="recent-copy"><b>'+esc(title)+'</b><small>'+esc(secondary)+'</small></span><span class="recent-value '+tone+'">'+value+(fee&&o.type==="sale"?'<small>Комиссия −'+fmt(fee)+'</small>':fee&&o.type==="withdraw"?'<small>Комиссия '+fmt(fee)+'</small>':'')+'</span></button>';
         }).join("");
       }
@@ -4141,6 +4153,7 @@
       $("#cStreak").addEventListener("click",()=>$("#dStreak").close());
       function render() {
         renderTpl();
+        unmatchedSaleQty = computeInventoryState(ops, today()).unmatchedQtyBySale;
         const keys = Object.keys(MPS);
         $("#ym").textContent = allT ? "Всё время" : MN[+ym.slice(5) - 1] + " " + ym.slice(0, 4);
         $("#allT").classList.toggle("on", allT);
@@ -4153,13 +4166,13 @@
         const asOfDate = allT ? today() : (ym === today().slice(0, 7) ? today() : monthLastDay(ym)),
           inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym)),
           list = view === "all" ? inP : inP.filter((o) => o.marketplace === view),
-          profitList = marketplaceProfitOps(list.filter((o) => o.date <= asOfDate), view, asOfDate),
+          profitList = marketplaceProfitOps(list.filter((o) => o.date <= asOfDate), view, asOfDate, allT ? "" : ym + "-01"),
           T = agg(profitList);
         let previousStats=null;
         if(!allT){
           const [cy,cm]=ym.split("-").map(Number),pd=new Date(cy,cm-2,1),pm=pd.getFullYear()+"-"+String(pd.getMonth()+1).padStart(2,"0");
           const previousRows=ops.filter(o=>o.date.startsWith(pm)&&(view==="all"||o.marketplace===view));
-          previousStats=agg(marketplaceProfitOps(previousRows,view,monthLastDay(pm)));
+          previousStats=agg(marketplaceProfitOps(previousRows,view,monthLastDay(pm),pm+"-01"));
         }
         const metricChange=(value,previous,invert=false)=>{
           if(allT)return '<span class="metric-meta">За всё время</span>';
@@ -4195,11 +4208,12 @@
           const [y, m] = ym.split("-").map(Number),
             pd = new Date(y, m - 2, 1),
             pk = pd.getFullYear() + "-" + String(pd.getMonth() + 1).padStart(2, "0"),
-            PV = agg(
-              (view === "all" ? ops : ops.filter((o) => o.marketplace === view)).filter((o) =>
-                o.date.startsWith(pk),
-              ),
-            );
+            PV = agg(marketplaceProfitOps(
+              (view === "all" ? ops : ops.filter((o) => o.marketplace === view)).filter((o) => o.date.startsWith(pk)),
+              view,
+              monthLastDay(pk),
+              pk + "-01",
+            ));
           if (PV.profit)
             dt = ` · к прошлому месяцу ${T.profit >= PV.profit ? "▲ +" : "▼ −"}${fmt(Math.abs(T.profit - PV.profit))}`;
         }
@@ -4225,10 +4239,11 @@
         const sl = list.filter((o) => o.type === "sale"),
           byD = {};
         profitList.forEach((o) => (byD[o.date] ??= []).push(o));
-        const dp = Object.entries(byD)
-            .map(([d, l]) => [d, agg(l).profit])
-            .sort((a, b) => b[1] - a[1]),
-          best = dp[0];
+        const profitDates = [...new Set([...list.map((o) => o.date), ...Object.keys(byD)])];
+        const dp = profitDates
+            .map((d) => [d, agg(byD[d] || []).profit])
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+        const best = dp[0] || [t.slice(0, 10), 0];
         $("#kpi").innerHTML = list.length
           ? `<b>Коротко</b><div class="kpi"><div><small>Продаж</small><b>${sl.length}</b></div><div><small>Средний чек</small><b>${fmt(sl.length ? T.sales / sl.length : 0)}</b></div><div><small>Прибыль за активный день</small><b>${fmt(T.profit / dp.length)}</b></div><div><small>Лучший день</small><b>${dm(best[0])} · ${fmt(best[1])}</b></div></div>`
           : "";
@@ -4236,7 +4251,7 @@
         fcRender();
         const PA = keys.map((k) => {
           const platformOps = inP.filter((o) => o.marketplace === k);
-          return [k, agg(marketplaceProfitOps(platformOps, k)).profit];
+          return [k, agg(marketplaceProfitOps(platformOps, k, asOfDate, allT ? "" : ym + "-01")).profit];
         }),
           pmx = Math.max(1, ...PA.map((x) => x[1]));
         const totalPositiveProfit=PA.reduce((sum,row)=>sum+Math.max(row[1],0),0);
@@ -4326,7 +4341,7 @@
         },
         true,
       );
-      document.addEventListener("click", (e) => {
+      document.addEventListener("click", async (e) => {
         const v = e.target.closest("[data-v]"),
           d = e.target.closest("[data-d]"),
           f = e.target.closest("[data-tf]"),
@@ -4344,7 +4359,11 @@
           const o = ops.find((x) => x.id == d.dataset.d);
           if (!o) return;
           const tids = toTrash([o]);
-          del(o.id, true);
+          const removed = await del(o.id, true);
+          if (!removed) {
+            trashSave(trashGet().filter((x) => !tids.includes(x.tid)));
+            return;
+          }
           toast(`Удалено: ${typeLabel(o.type)}${o.game ? " · " + o.game : ""} · ${fmt(+o.amount)}`, { l: "Вернуть", f: () => restoreOps(tids) });
         }
       });
@@ -4643,7 +4662,7 @@
               : t === "withdraw"
                 ? `Вы выводите ${fmt(amt)}. Комиссия ${wdFormula(mp, f.wm.value, $("#rate").value)} = ${fmt(fee)}, на карту придёт ${fmt(amt - fee)}. На прибыль это не влияет.` + (!wdRule(mp, f.wm.value) && wraw(mp, f.wm.value) == null && $("#rate").value === "" ? " ⚠️ Ставка этого способа не задана — комиссия сейчас 0%. Впишите её в «Комиссии и площадки» или в поле «Изменить»." : "")
                 : t === "purchase"
-                  ? `Закупка ${fmt(amt)} вычтется из прибыли.`
+                  ? `Закупка ${fmt(amt)} попадёт в склад. Прибыль не изменится, пока товар не будет продан или списан.`
                   : `Расход ${fmt(amt)} вычтется из прибыли.`;
         const rec = [...new Set(ops.filter((o) => o.marketplace === mp && o.game).map((o) => o.game))].slice(
           -4,
@@ -5342,7 +5361,7 @@
           el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%"><defs><linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".5"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)" stroke-dasharray="4"/><polygon points="${X(0)},${Y(0)} ${pts} ${X(N - 1)},${Y(0)}" fill="url(#gA)"/><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` +
             c.map((v, i) => {
               const label = `${S[i].d.slice(8)}.${S[i].d.slice(5, 7)}.${S[i].d.slice(0, 4)}`,
-                meta = (!selectedDates.size || selectedDates.has(S[i].d)) ? ("Продажи: " + fmt(S[i].s) + " · закупки: " + fmt(S[i].purch) + " · комиссия: " + fmt(S[i].comm) + " · прочее: " + fmt(S[i].other) + " · итог дня: " + fmt(S[i].p) + (S[i].p < 0 ? " · расходы превысили доход на " + fmt(-S[i].p) : " · после расходов осталось " + fmt(S[i].p))) : ("Вне выделенного промежутка · фактический результат дня: " + fmt(S[i].p)),
+                meta = (!selectedDates.size || selectedDates.has(S[i].d)) ? ("Выручка: " + fmt(S[i].s) + " · себестоимость проданного: " + fmt(S[i].purch) + " · комиссия: " + fmt(S[i].comm) + " · прочее: " + fmt(S[i].other) + " · итог дня: " + fmt(S[i].p) + (S[i].p < 0 ? " · расходы превысили доход на " + fmt(-S[i].p) : " · после расходов осталось " + fmt(S[i].p))) : ("Вне выделенного промежутка · фактический результат дня: " + fmt(S[i].p)),
                 aria = label + ((!selectedDates.size || selectedDates.has(S[i].d)) ? ": чистый результат за день " : ": вне выбранного промежутка, факт ") + fmt(S[i].p);
               const left = i === 0 ? 10 : X(i) - step / 2, right = i === N - 1 ? W - 10 : X(i) + step / 2;
               return `<rect x="${left}" y="12" width="${Math.max(1, right - left)}" height="${H - 34}" fill="${selectedDates.has(S[i].d) ? "var(--acc)" : "transparent"}" fill-opacity="${selectedDates.has(S[i].d) ? 0.14 : 0}" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
@@ -5648,7 +5667,9 @@
       const _render = render;
       render = function () {
         _render();
-        const T = agg(cur().list);
+        const { list: currentRawList } = cur();
+        const currentProfitList = marketplaceProfitOps(currentRawList, view, allT ? today() : monthLastDay(ym), allT ? "" : ym + "-01");
+        const T = agg(currentProfitList);
         $("#quip").textContent = quip(T);
         cnt(T.profit);
         drawCh();
@@ -6040,7 +6061,9 @@
         f.animate([{ transform: "translate(0,0) scale(1.2)", opacity: 1 }, { transform: `translate(${b.left - a.left}px,${b.top - a.top}px) scale(.6)`, opacity: .1 }], { duration: 850, easing: "cubic-bezier(.5,0,.2,1)" }).onfinish = () => { f.remove(); const n = $("#net"); n.animate([{ transform: "scale(1.12)" }, { transform: "scale(1)" }], { duration: 400, easing: "cubic-bezier(.3,1.6,.5,1)" }); };
       }
       function bestDay(date) {
-        const days = [...new Set(ops.map((o) => o.date))], p = (d) => agg(ops.filter((o) => o.date === d)).profit, mine = p(date);
+        const days = [...new Set(ops.map((o) => o.date))];
+        const p = (d) => agg(marketplaceProfitOps(ops.filter((o) => o.date <= d), "all", d).filter((o) => o.date === d)).profit;
+        const mine = p(date);
         const prev = Math.max(0, ...days.filter((d) => d !== date).map(p));
         if (days.length < 3 || mine <= 0 || mine <= prev) return;
         const b = document.createElement("div"); b.id = "best"; b.textContent = "🏆 Лучший день!"; document.body.append(b); setTimeout(() => b.remove(), 2700);
@@ -6106,7 +6129,7 @@
       $("#cShare").innerHTML = ico("x");
       const rr = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
       function drawShare() {
-        const cv = $("#shC"), c = cv.getContext("2d"), W = 1080, H = 1350, hide = $("#shHide").checked, { list } = cur(), T = agg(list), F = "system-ui,'Segoe UI',sans-serif";
+        const cv = $("#shC"), c = cv.getContext("2d"), W = 1080, H = 1350, hide = $("#shHide").checked, { list: rawList } = cur(), list = marketplaceProfitOps(rawList, view, allT ? today() : monthLastDay(ym), allT ? "" : ym + "-01"), T = agg(list), F = "system-ui,'Segoe UI',sans-serif";
         const money = (n) => (hide ? "•••• ₽" : (n > 0 ? "+" : "") + fmt(n)), plain = (n) => (hide ? "•••• ₽" : fmt(n));
         const bg = c.createLinearGradient(0, 0, W * .5, H); bg.addColorStop(0, "#fff1e6"); bg.addColorStop(.55, "#ffd9bf"); bg.addColorStop(1, "#ffb98a"); c.fillStyle = bg; c.fillRect(0, 0, W, H);
         [[880, 160, 200], [120, 1180, 170], [960, 1050, 110], [90, 260, 80]].forEach(([x, y, r]) => { const g = c.createRadialGradient(x - r * .3, y - r * .35, r * .05, x, y, r); g.addColorStop(0, "#fff"); g.addColorStop(.35, "#ffd2b0"); g.addColorStop(1, "#ff8a4c"); c.globalAlpha = .8; c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); });

@@ -4929,7 +4929,8 @@
       }
       const rbxIconCache = LS("rbxIcons2", {});
       const ROBLOX_GAMES = new Set(CATS.Roblox.filter((name) => name !== "Roblox").map(normGame));
-      const RBX_UNIVERSE_IDS = {};
+      // Official Roblox universe IDs avoid an ambiguous name search for the two categories used most often.
+      const RBX_UNIVERSE_IDS = { "blade ball": "4777817887", "steal a brainrot": "7709344486" };
       let rbxCacheChanged = false;
       for (const key of ["blade ball", "steal a brainrot"]) {
         if (rbxIconCache[key]) { delete rbxIconCache[key]; rbxCacheChanged = true; }

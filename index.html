@@ -1327,19 +1327,39 @@
       .fc-head small { display:block; color:var(--mut); font-size:.68rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
       .fc-head h3 { margin:3px 0 0; font-size:1.15rem; line-height:1.25; letter-spacing:-.025em; }
       .fc-days { flex:none; padding:7px 10px; border-radius:999px; color:var(--mut); background:var(--c2); font-size:.75rem; font-weight:700; }
-      .fc-table-wrap { width:100%; overflow-x:auto; margin-top:0; border:1px solid var(--line); border-radius:14px; background:var(--card); }
-      .fc-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:.86rem; }
-      .fc-table th,.fc-table td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle; line-height:1.4; overflow-wrap:anywhere; }
-      .fc-table th { color:var(--mut); font-size:.72rem; font-weight:750; text-align:left; background:var(--c2); }
-      .fc-table th:first-child,.fc-table td:first-child { width:68%; text-align:left; }
-      .fc-table th:last-child,.fc-table td:last-child { width:32%; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-      .fc-table tr:last-child td { border-bottom:0; }
-      .fc-table .fc-actual-row td { color:var(--mut); }
-      .fc-table .fc-total-row td { font-weight:850; background:color-mix(in srgb,var(--acc) 10%,var(--card)); }
-      .fc-table .fc-total-row td:last-child { color:var(--acl); font-size:1rem; }
-      .fc-table .fc-scenario-row td { color:var(--mut); }
-      .fc-table .fc-scenario-row td:last-child { color:var(--tx); font-weight:750; }
-      .fc-table .fc-goal-status { display:block; margin-top:3px; color:var(--mut); font-size:.7rem; font-weight:500; white-space:normal; }
+      .fc-overview { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; }
+      .fc-total-block { min-width:0; display:grid; gap:3px; }
+      .fc-total-block > small, .fc-pace-block small { display:block; color:var(--mut); font-size:.76rem; }
+      .fc-total-block strong { display:block; font-size:clamp(1.65rem,5vw,2.35rem); font-weight:900; line-height:1.1; letter-spacing:-.045em; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+      .fc-total-block strong.fc-positive { color:var(--acl); }
+      .fc-total-block strong.fc-negative { color:var(--neg); }
+      .fc-subline { color:var(--mut); font-size:.78rem; }
+      .fc-pace-block { display:flex; align-items:center; gap:9px; padding:10px 12px; border:1px solid var(--line); background:var(--c2); border-radius:14px; flex:none; }
+      .fc-pace-block b { display:block; margin-top:2px; font-size:.98rem; font-variant-numeric:tabular-nums; }
+      .fc-pace-mark { width:10px; height:10px; flex:none; border-radius:50%; background:var(--pos); box-shadow:0 0 0 4px color-mix(in srgb,var(--pos) 13%,transparent); }
+      .fc-discount { padding:4px 6px; border-radius:7px; font-size:.73rem; font-weight:850; color:var(--pos); background:color-mix(in srgb,var(--pos) 12%,transparent); }
+      .fc-chart-top { display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--mut); font-size:.8rem; margin-top:2px; }
+      .fc-legend { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; font-size:.74rem; }
+      .fc-legend span { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+      .fc-dot { width:8px; height:8px; display:inline-block; border-radius:3px; }
+      .fc-dot-actual { background:var(--acc); }
+      .fc-dot-forecast { background:var(--pos); opacity:.45; }
+      svg.fc-chart { width:100%; height:auto; display:block; overflow:visible; margin:0; }
+      .fc-axis { fill:var(--mut); font-size:11px; font-family:inherit; }
+      .fc-today-label { fill:var(--tx); font-size:10px; font-weight:850; letter-spacing:.06em; }
+      .fc-bottomline { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; color:var(--mut); font-size:.75rem; line-height:1.4; }
+      .fc-goal { color:var(--acl); font-weight:750; }
+      @media (max-width:540px) {
+        .fc { padding:13px 11px; gap:9px; }
+        .fc-head { align-items:flex-start; }
+        .fc-head h3 { font-size:1.05rem; }
+        .fc-days { padding:6px 8px; font-size:.68rem; }
+        .fc-overview { align-items:flex-start; flex-direction:column; gap:9px; }
+        .fc-pace-block { width:100%; box-sizing:border-box; justify-content:flex-start; }
+        .fc-chart-top { align-items:flex-start; flex-direction:column; gap:6px; }
+        .fc-legend { justify-content:flex-start; }
+        .fc-axis { font-size:12px; }
+      }
       @media (max-width:480px) { .fc { padding:12px; } .fc-head h3 { font-size:1.02rem; } .fc-days { font-size:.68rem; padding:6px 8px; } .fc-table { font-size:.78rem; } .fc-table th,.fc-table td { padding:9px 8px; } .fc-table th:first-child,.fc-table td:first-child { width:63%; } .fc-table th:last-child,.fc-table td:last-child { width:37%; } }
       .pulse { transform-box: fill-box; transform-origin: center; animation: pls 2s ease-out infinite; }
       @keyframes pls { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(3); opacity: 0; } }
@@ -2930,64 +2950,112 @@
       $("#bw").addEventListener("click", bwGo);
       $("#bw").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); bwGo(e); } });
 
-      /* Прибыль за месяц: фактический результат считается по дням, прогноз — по дням после первой сделки. */
+      /* Месячный прогноз: дневные результаты независимы; будущий темп снижен на 10%. */
+      function fcForecastFromDaily(daily, firstDay, dayOfMonth, daysLeft) {
+        const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+        const mean = (arr) => arr.length ? sum(arr) / arr.length : 0;
+        const startIndex = Math.max(0, Math.min(daily.length, firstDay - 1));
+        const history = daily.slice(startIndex, Math.max(startIndex, dayOfMonth - 1));
+        const recent = history.slice(-3);
+        const longRate = mean(history);
+        const recentRate = mean(recent);
+        const baseRate = history.length >= 3 ? longRate * .4 + recentRate * .6 : history.length ? longRate : (daily[dayOfMonth - 1] || 0);
+        const forecastRate = baseRate * .9;
+        const actual = sum(daily.slice(0, dayOfMonth));
+        return { actual, history, baseRate, forecastRate, projected: actual + forecastRate * daysLeft };
+      }
+
       function fcRender() {
         const el = $("#fc"), t = today();
         if (!el) return;
-        const [Y, M, D] = t.split("-").map(Number);
-        const N = new Date(Y, M, 0).getDate(), left = Math.max(0, N - D);
+        const parts = t.split("-").map(Number);
+        const Y = parts[0], M = parts[1], D = parts[2];
+        const N = new Date(Y, M, 0).getDate();
+        const left = Math.max(0, N - D);
         const firstMonthDay = t.slice(0, 7) + "-01";
         const selectedOps = ops.filter((o) => view === "all" || o.marketplace === view);
         const profitOps = marketplaceProfitOps(selectedOps, view, t);
         const current = profitOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
+        if (!current.length) { el.innerHTML = ""; return; }
+
         const by = {};
         current.forEach((o) => (by[o.date] ??= []).push(o));
         const daily = Array.from({ length: D }, (_, i) => {
           const key = t.slice(0, 7) + "-" + String(i + 1).padStart(2, "0");
           return by[key] ? agg(by[key]).profit : 0;
         });
-        const sum = (arr) => arr.reduce((a, b) => a + b, 0);
-        const mean = (arr) => arr.length ? sum(arr) / arr.length : 0;
-        const activeDates = new Set(current
+        const activeDates = [...new Set(current
           .filter((o) => o.type !== "withdraw" && !String(o.id || "").startsWith("cogs-"))
-          .map((o) => o.date));
-        const firstDate = [...activeDates].sort()[0];
-        const firstDay = firstDate ? Number(firstDate.slice(8)) : D;
-        const firstIndex = Math.max(0, firstDay - 1);
-        /* Average completed days only; never project a lower total than actual positive month-to-date profit. */
-        const history = daily.slice(firstIndex, Math.max(firstIndex, D - 1));
-        const recent = history.slice(-3);
-        const longRate = mean(history), recentRate = mean(recent);
-        let dailyRate;
-        if (history.length >= 4) dailyRate = longRate * .65 + recentRate * .35;
-        else if (history.length) dailyRate = longRate;
-        else dailyRate = daily[D - 1] || 0;
-        const actual = sum(daily);
-        if (actual > 0) dailyRate = Math.max(0, dailyRate);
-        const scenarioWindow = history.slice(-Math.min(7, history.length));
-        let lowRate = scenarioWindow.length ? Math.min(dailyRate, ...scenarioWindow) : dailyRate;
-        let highRate = scenarioWindow.length ? Math.max(dailyRate, ...scenarioWindow) : dailyRate;
-        if (actual > 0) lowRate = Math.max(0, lowRate);
-        const projected = actual + dailyRate * left;
-        const lowProjection = Math.max(actual > 0 ? actual : -Infinity, actual + lowRate * left);
-        const highProjection = Math.max(projected, actual + highRate * left);
+          .map((o) => o.date))].sort();
+        const firstDay = activeDates.length ? Number(activeDates[0].slice(8)) : D;
+        const forecast = fcForecastFromDaily(daily, firstDay, D, left);
+        const actual = forecast.actual;
+        const projected = forecast.projected;
+        const forecastRate = forecast.forecastRate;
         const goal = Number(LS("goal", 0)) || 0;
         const money = (v) => (v > 0 ? "+" : "") + fmt(Math.round(v));
-        const rows = [
-          ["Фактическая прибыль", money(actual), "fc-actual-row"],
-          ["Примерная прибыль за месяц", money(projected), "fc-total-row"],
-          ["Осторожный прогноз", money(Math.min(lowProjection, projected)), "fc-scenario-row"],
-          ["Оптимистичный прогноз", money(Math.max(highProjection, projected)), "fc-scenario-row"]
-        ];
-        if (goal > 0) {
-          const gap = projected >= goal ? "выше цели на " + fmt(Math.round(projected - goal)) : "до цели " + fmt(Math.round(goal - projected));
-          rows.push(["Цель на месяц", fmt(goal) + '<small class="fc-goal-status">' + gap + "</small>", "fc-goal-row"]);
+        const monthName = MN[M - 1] || "";
+        const W = 820, H = 278, L = 58, R = 18, T = 26, B = 37;
+        const plotW = W - L - R, plotH = H - T - B;
+        const actualValues = daily.slice(0, D);
+        const sourceValues = actualValues.concat(left ? [forecastRate] : []);
+        let minV = Math.min(0, ...sourceValues), maxV = Math.max(0, ...sourceValues);
+        const span = Math.max(1, maxV - minV);
+        minV -= span * .14; maxV += span * .14;
+        const y = (v) => T + ((maxV - v) / (maxV - minV)) * plotH;
+        const slot = plotW / N;
+        const xCenter = (day) => L + (day - .5) * slot;
+        const zeroY = y(0);
+        const formatAxis = (v) => (Math.abs(v) >= 1000 ? (v / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + "к" : String(Math.round(v)));
+        const grid = [];
+        for (let i = 0; i <= 4; i++) {
+          const val = maxV - (maxV - minV) * i / 4;
+          const yy = y(val);
+          grid.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '" stroke="var(--line)" stroke-dasharray="' + (Math.abs(val) < span * .01 ? "0" : "3 6") + '"/>');
+          grid.push('<text x="' + (L - 10) + '" y="' + (yy + 4).toFixed(1) + '" text-anchor="end" class="fc-axis">' + formatAxis(val) + '</text>');
         }
-        const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th></tr></thead><tbody>' +
-          rows.map((r) => '<tr class="' + r[2] + '"><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join("") +
-          '</tbody></table></div>';
-        el.innerHTML = '<div class="fc-head"><div><small>ФИНАНСЫ · ' + esc(MN[M - 1] || "") + '</small><h3>Прибыль на месяц</h3></div><span class="fc-days">' +
-          (left ? "Осталось " + left + " дн." : "Последний день месяца") + '</span></div>' + table;
+        const bars = [];
+        for (let day = 1; day <= N; day++) {
+          const isFuture = day > D;
+          const value = isFuture ? forecastRate : (daily[day - 1] || 0);
+          const xx = xCenter(day);
+          const yy = y(value);
+          const top = Math.min(yy, zeroY);
+          const height = Math.max(2, Math.abs(yy - zeroY));
+          const bw = Math.max(3, Math.min(15, slot * .56));
+          const fill = isFuture ? "var(--pos)" : value < 0 ? "var(--neg)" : "var(--acc)";
+          const opacity = isFuture ? .24 : day === D ? 1 : .78;
+          const title = (isFuture ? "Прогноз на " : "") + day + " " + monthName + ": " + money(value) + (isFuture ? " · темп с поправкой −10%" : " чистой прибыли за день");
+          bars.push('<rect x="' + (xx - bw / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + height.toFixed(1) + '" rx="' + Math.min(4, bw / 2) + '" fill="' + fill + '" opacity="' + opacity + '"><title>' + esc(title) + '</title></rect>');
+        }
+        const labels = [];
+        for (let day = 1; day <= N; day++) {
+          if (day === 1 || day === D || day === N || day % 5 === 0) {
+            const xx = xCenter(day);
+            labels.push('<text x="' + xx.toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle" class="fc-axis ' + (day === D ? "fc-today-label" : "") + '">' + day + '</text>');
+          }
+        }
+        const todayX = xCenter(D);
+        const todayLine = left > 0
+          ? '<line x1="' + (todayX + slot * .52).toFixed(1) + '" x2="' + (todayX + slot * .52).toFixed(1) + '" y1="' + T + '" y2="' + (H - B + 2) + '" stroke="var(--tx)" opacity=".42" stroke-dasharray="4 5"/><text x="' + (todayX + slot * .52 + 6).toFixed(1) + '" y="' + (T - 7) + '" class="fc-today-label">СЕГОДНЯ</text>'
+          : "";
+        const forecastLine = left > 0
+          ? '<line x1="' + (todayX + slot * .52).toFixed(1) + '" x2="' + (W - R) + '" y1="' + y(forecastRate).toFixed(1) + '" y2="' + y(forecastRate).toFixed(1) + '" stroke="var(--pos)" stroke-width="2" stroke-dasharray="5 5" opacity=".9"/>'
+          : "";
+        const svg = '<svg class="fc-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Дневная чистая прибыль по календарным дням месяца и осторожная оценка оставшихся дней">' +
+          '<defs><linearGradient id="fcActualGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc)"/><stop offset="100%" stop-color="var(--acc2)"/></linearGradient></defs>' +
+          grid.join("") + '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" stroke="var(--mut)" stroke-width="1.4" opacity=".8"/>' +
+          forecastLine + bars.join("") + todayLine + labels.join("") + '</svg>';
+        const totalClass = projected >= 0 ? "fc-positive" : "fc-negative";
+        const goalText = goal > 0 ? '<span class="fc-goal">Цель ' + fmt(goal) + (projected >= goal ? " · на " + fmt(projected - goal) + " выше" : " · не хватает " + fmt(goal - projected)) + '</span>' : "";
+        const leftLabel = left ? "До конца месяца " + left + " дн." : "Последний день месяца";
+        el.innerHTML =
+          '<div class="fc-head"><div><small>ФИНАНСЫ · ' + esc(monthName) + " " + Y + '</small><h3>Примерная прибыль за месяц</h3></div><span class="fc-days">' + leftLabel + '</span></div>' +
+          '<div class="fc-overview"><div class="fc-total-block"><small>Ожидаемый итог</small><strong class="' + totalClass + '">' + money(projected) + '</strong><span class="fc-subline">Факт ' + money(actual) + '</span></div>' +
+          '<div class="fc-pace-block"><span class="fc-pace-mark" aria-hidden="true"></span><div><small>' + (left ? "Осторожный темп на день" : "Итоговый день") + '</small><b>' + money(forecastRate) + '</b></div><span class="fc-discount">−10%</span></div></div>' +
+          '<div class="fc-chart-top"><span>Прибыль по дням · ₽</span><div class="fc-legend"><span><i class="fc-dot fc-dot-actual"></i>Факт</span><span><i class="fc-dot fc-dot-forecast"></i>Оценка</span></div></div>' +
+          svg +
+          '<div class="fc-bottomline"><span>Каждый день считается отдельно, с нуля.</span>' + goalText + '</div>';
       }
 
       function marketplaceProfitOps(list, platform, untilDate = today()) {

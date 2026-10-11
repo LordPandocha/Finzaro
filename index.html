@@ -3832,6 +3832,7 @@
           const dayIndex=(new Date(d+"T12:00:00").getDay()+6)%7,isMarked=checkinSet.has(d),isToday=d===todayKey;
           return '<div class="streak-week-day '+(isMarked?"marked ":"")+(isToday?"today":"")+'" aria-label="'+d+(isMarked?", заход засчитан":", не было захода")+'"><span>'+weekNames[dayIndex]+'</span><b>'+(isMarked?"✓":d.slice(8))+'</b></div>';
         }).join("");
+        $("#streakWeekCount").textContent=weekDates.filter(d=>checkinSet.has(d)).length+"/7";
         const recovery=$("#streakRecoveryCard");
         const canRestore=!!streakPendingRecovery&&charges>0&&streakPendingRecovery.missed&&!checkinSet.has(streakPendingRecovery.missed);
         recovery.hidden=!canRestore;

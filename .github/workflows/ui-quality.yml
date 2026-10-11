@@ -1,0 +1,28 @@
+name: Finzaro UI quality audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "scripts/audit-ui.mjs"
+      - ".github/workflows/ui-quality.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Audit syntax, theme surfaces, and contrast
+        run: node scripts/audit-ui.mjs

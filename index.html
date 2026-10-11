@@ -3759,7 +3759,9 @@
         return 2-streakRestoreState.used;
       };
       function loadStreakProgress(){
-        const t=today(),legacy=LS("visits",[]),manual=LS("streakCheckins",[]),existing=LS("streakVisits",null);
+        const t=today();
+        streakRestoreState=LS("streakRestoreState",{month:"",used:0});
+        const legacy=LS("visits",[]),manual=LS("streakCheckins",[]),existing=LS("streakVisits",null);
         // Migrate all known histories into the new auto-visit ledger without dropping the manual-checkin era.
         const imported=[...(Array.isArray(legacy)?legacy:[]),...(Array.isArray(manual)?manual:[]),...(Array.isArray(existing)?existing:[])];
         const clean=[...new Set(imported.filter(d=>typeof d==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&d<=t))].sort().slice(-450);

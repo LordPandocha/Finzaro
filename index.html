@@ -3842,7 +3842,7 @@
         const set=new Set(clean),latest=clean.at(-1)||"",gap=latest?streakDayDiff(latest,t):0,priorRun=latest?streakRunEnding(latest,set):0;
         const beforeSet=new Set(clean),beforeTodayRun=streakRunEnding(shiftStreakDate(t,-1),beforeSet);
         let pending=LS("streakPendingRecovery",null);
-        if(pending&&(!pending.detectedAt||streakDayDiff(pending.detectedAt,t)>1||streakDayDiff(pending.detectedAt,t)<0))pending=null;
+        if(pending&&(!pending.from||streakDayDiff(pending.from,t)>3||streakDayDiff(pending.from,t)<0))pending=null;
         const chargeCount=streakCharges();
         if(!pending&&latest&&gap>=2&&gap<=3&&priorRun>=2&&chargeCount>0){
           const missedDates=Array.from({length:gap-1},(_,i)=>shiftStreakDate(latest,i+1));

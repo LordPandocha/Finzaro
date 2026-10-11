@@ -2949,15 +2949,12 @@
         const inventory = computeInventoryState(ops);
         const out = [];
         for (const o of list) {
-          if (o.type !== "purchase" || (+o.amount || 0) < 0) {
+          if (o.type === "purchase" && (+o.amount || 0) >= 0) {
+            const lot = inventory.remainingByPurchase.get(String(o.id));
+            if (!lot) out.push(o);
+            else if (lot.remainingCost > .005) out.push({ ...o, amount: r2(lot.remainingCost), fee: 0 });
+          } else {
             out.push(o);
-            continue;
-          }
-          const lot = inventory.remainingByPurchase.get(String(o.id));
-          if (!lot) {
-            out.push(o);
-          } else if (lot.remainingCost > .005) {
-            out.push({ ...o, amount: r2(lot.remainingCost), fee: 0 });
           }
           if (o.type === "sale") {
             const cost = inventory.cogsBySale.get(String(o.id)) || 0;

@@ -21,7 +21,7 @@ Finzaro is a Russian-language profit tracker for sellers of digital goods across
 | Radius | 11–15 px | Cards and controls |
 | Motion | 150–250 ms | Short state feedback; respect reduced motion |
 
-Use the existing CSS custom properties for user-selected themes where practical. Dashboard surfaces intentionally retain the dark palette to match the approved reference.
+Use semantic CSS custom properties across every component. The active user-selected theme must colour the sidebar, cards, tables, inputs, charts, dialogs, badges, hover/focus states and achievement surfaces consistently. Never pin the dashboard to a fixed dark palette; Obsidian is one theme option, not the design-system baseline.
 
 ## Information architecture
 1. **Header:** section heading, month navigation, marketplace filters.
@@ -55,3 +55,14 @@ Rewards are cosmetic acknowledgements saved in local storage. Do not gate accoun
 
 ## Maintenance notes
 This is a static GitHub Pages-style app; most implementation lives in `index.html`. Many renderer functions query elements by ID, so before moving a node, preserve its ID and ensure there is still exactly one copy. The social preview and icon are maintained in `assets/finzaro-og.svg` and `assets/finzaro-icon.svg`.
+
+
+## Global semantic theme bridge
+All UI components must consume the existing theme variables (`--bg`, `--card`, `--c2`, `--pop`, `--tx`, `--mut`, `--line`, `--acc`, `--acc2`, `--acl`, `--pos`, `--neg`, `--b1`, `--b2`, `--b3`, `--sh`). Components should not copy a dark palette's hex values into component CSS. A semantic bridge in `:root` maps theme tokens into surface/text/border/interaction roles.
+
+- Surface hierarchy: `--bg` canvas, `--card` cards, `--c2` nested surfaces/inputs, `--pop` dialogs/overlays.
+- Text hierarchy: `--tx` primary content, `--mut` supporting copy, `--acl` accent link/action text where contrast is appropriate.
+- Interactive: `--acc` primary accent, `--acc2` secondary accent, `--line` dividers, `--sh` elevation, semantic `--pos` / `--neg` states.
+- Use `color-mix(in srgb, <semantic token> X%, var(--card))` for tinted surfaces and selected/hover states. Don't use hard-coded navy, white, teal, orange or violet for structural surfaces.
+- Data visualizations can use `--acc`, `--acc2`, `--b1`, `--b2`, `--b3`, `--pos` and `--neg` as a theme-derived series palette. Keep status meaning clear and keep axis/legend contrast.
+- Theme-specific style differences (e.g. maximal's thicker border/shadow) are allowed, but semantic colour roles still come from tokens.

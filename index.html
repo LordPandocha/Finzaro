@@ -2299,6 +2299,9 @@
         #chartClearDays{min-height:44px}
         #chart2:not(.chart-picking){touch-action:pan-y}
       }
+
+      .stock-gap-chip{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;margin-top:5px;padding:4px 7px;border:1px solid color-mix(in srgb,var(--neg) 36%,var(--line));border-radius:7px;background:color-mix(in srgb,var(--neg) 8%,var(--card));color:var(--neg);font-size:.75rem!important;font-weight:700;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+      @media(max-width:680px){.stock-gap-chip{font-size:.72rem!important;padding:5px 7px}}
     </style>
   </head>
   <body>
@@ -3861,7 +3864,7 @@
       }
       const inventoryKey = (game, note) => [normGame(game || ""), inventoryItemKey(note)].join("|");
       function computeInventoryState(list = ops, until = today()) {
-        const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map(), closuresByKey = new Map();
+        const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map(), unmatchedQtyBySale = new Map(), closuresByKey = new Map();
         const operations = list.filter((o) => o.date <= until && ["purchase","sale"].includes(o.type))
           .map((o) => ({ kind:o.type, date:o.date, order:o.type === "purchase" ? 0 : 1, row:o }));
         const closures = LS("inventoryClosures2", [])
@@ -3910,9 +3913,10 @@
             const genericKey = key.split("|")[0] + "|";
             if (need > .0000001 && genericKey !== key) consume(byKey.get(genericKey));
             cogsBySale.set(String(o.id), cost);
+            if (need > .0000001) unmatchedQtyBySale.set(String(o.id), r2(need));
           }
         }
-        return { byKey, remainingByPurchase, cogsBySale, closuresByKey };
+        return { byKey, remainingByPurchase, cogsBySale, unmatchedQtyBySale, closuresByKey };
       }
       function inventoryHint(game, note, excludeId, type, qty) {
         const closeBtn = $("#inventoryCloseBtn"), closeHelp = $("#inventoryCloseHelp");
@@ -3954,8 +3958,11 @@
         hint();
         toast("Остаток списан без выручки. Себестоимость учтена в расходах.");
       };
-      const opRow = (o, sm, gm) =>
-        `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}${["sale","purchase"].includes(o.type) && QTY_VALUE_RE.test(String(o.note || "")) ? `<small class="qty-chip">Количество · ${opQty(o).toLocaleString("ru-RU")} ед.</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+      let unmatchedSaleQty = new Map();
+      const opRow = (o, sm, gm) => {
+        const unmatched = o.type === "sale" ? unmatchedSaleQty.get(String(o.id)) : 0;
+        return `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}${["sale","purchase"].includes(o.type) && QTY_VALUE_RE.test(String(o.note || "")) ? `<small class="qty-chip">Количество · ${opQty(o).toLocaleString("ru-RU")} ед.</small>` : ""}${unmatched > .0001 ? `<small class="stock-gap-chip">⚠ Без закупки в учёте: ${unmatched.toLocaleString("ru-RU")} ед. · себестоимость не списана</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
+      };
       const ORD = ["purchase", "withdraw", "other", "refund", "sale"],
         GL = {
           purchase: "Закупки",
@@ -4115,7 +4122,9 @@
           else if(o.type==="refund"){value="−"+fmt(Math.max(0,amount-fee));tone="negative";}
           else if(["purchase","other","ad"].includes(o.type)||amount<0){value="−"+fmt(Math.abs(amount));tone="negative";}
           else if(o.type==="withdraw"){value="↗ "+fmt(amount);tone="neutral";}
-          const title=typeLabel(o.type)+(o.marketplace?" ("+o.marketplace+")":""), secondary=[dm(o.date),o.game||visibleNote(o.note)].filter(Boolean).join(" · ");
+          const title=typeLabel(o.type)+(o.marketplace?" ("+o.marketplace+")":"");
+          const stockGap=unmatchedSaleQty.get(String(o.id))||0;
+          const secondary=[dm(o.date),o.game||visibleNote(o.note),stockGap>.0001?"⚠ Без закупки в учёте: "+stockGap.toLocaleString("ru-RU")+" ед.":""].filter(Boolean).join(" · ");
           return '<button type="button" class="recent-item" data-e="'+esc(o.id)+'" title="Открыть операцию"><span class="recent-icon '+esc(o.type)+'">'+ico(o.type)+'</span><span class="recent-copy"><b>'+esc(title)+'</b><small>'+esc(secondary)+'</small></span><span class="recent-value '+tone+'">'+value+(fee&&o.type==="sale"?'<small>Комиссия −'+fmt(fee)+'</small>':fee&&o.type==="withdraw"?'<small>Комиссия '+fmt(fee)+'</small>':'')+'</span></button>';
         }).join("");
       }
@@ -4145,6 +4154,7 @@
       $("#cStreak").addEventListener("click",()=>$("#dStreak").close());
       function render() {
         renderTpl();
+        unmatchedSaleQty = computeInventoryState(ops, today()).unmatchedQtyBySale;
         const keys = Object.keys(MPS);
         $("#ym").textContent = allT ? "Всё время" : MN[+ym.slice(5) - 1] + " " + ym.slice(0, 4);
         $("#allT").classList.toggle("on", allT);

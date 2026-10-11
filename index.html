@@ -4039,14 +4039,16 @@
           const a = agg(group[d] || []);
           return { d, sales: a.sales, spent: a.spent, profit: a.profit };
         });
-        const maxV = Math.max(1, ...rows.map((r) => Math.max(r.sales, r.spent)));
+        const minV = Math.min(0, ...rows.flatMap((r) => [r.sales, r.spent]));
+        const maxV = Math.max(1, ...rows.flatMap((r) => [r.sales, r.spent]));
         const W = 420, H = 142, L = 9, R = 7, T = 8, B = 23;
         const x = (i) => L + (i / Math.max(1, rows.length - 1)) * (W - L - R);
-        const y = (v) => T + (1 - v / maxV) * (H - T - B);
+        const y = (v) => T + ((maxV - v) / (maxV - minV || 1)) * (H - T - B);
+        const zeroY = y(0);
         const step = (W - L - R) / Math.max(1, rows.length - 1);
         const pathFor = (key) => rows.map((r, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(r[key]).toFixed(1)).join(" ");
         const salesPath = pathFor("sales"), spentPath = pathFor("spent");
-        const saleArea = salesPath + " L " + x(rows.length - 1).toFixed(1) + " " + (H - B) + " L " + x(0).toFixed(1) + " " + (H - B) + " Z";
+        const saleArea = salesPath + " L " + x(rows.length - 1).toFixed(1) + " " + zeroY.toFixed(1) + " L " + x(0).toFixed(1) + " " + zeroY.toFixed(1) + " Z";
         const ticks = [0, Math.floor((rows.length - 1) / 2), rows.length - 1].filter((v, i, a) => a.indexOf(v) === i);
         const grid = [0.25, 0.5, 0.75, 1].map((k) => {
           const yy = y(maxV * k);
@@ -4070,7 +4072,8 @@
         '</div><small class="dash-trend-hint">Наведи, нажми или перейди клавишей Tab на любой день — значения останутся видны ниже.</small>';
         host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="group" aria-label="Динамика дохода и расходов по дням">' +
           '<defs><linearGradient id="dashTrendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>' +
-          grid + '<path d="' + saleArea + '" fill="url(#dashTrendFill)" pointer-events="none"/>' +
+          grid + '<line class="trend-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" pointer-events="none"/>' +
+          '<path d="' + saleArea + '" fill="url(#dashTrendFill)" pointer-events="none"/>' +
           '<path d="' + salesPath + '" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
           '<path d="' + spentPath + '" fill="none" stroke="var(--neg)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/>' +
           '<circle cx="' + x(rows.length - 1).toFixed(1) + '" cy="' + y(last.sales).toFixed(1) + '" r="3" fill="var(--acc)" pointer-events="none"/>' +

@@ -3897,7 +3897,7 @@
         if (!o || typeof o !== "object" || Array.isArray(o)) throw new Error("В копии есть некорректная запись.");
         const date = String(o.date || ""), marketplace = String(o.marketplace || "").trim(), type = String(o.type || "");
         const amount = Number(o.amount), fee = Number(o.fee ?? 0);
-        if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date) || !marketplace || !BACKUP_TYPES.has(type) || !Number.isFinite(amount) || !Number.isFinite(fee))
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !marketplace || !BACKUP_TYPES.has(type) || !Number.isFinite(amount) || !Number.isFinite(fee))
           throw new Error("В копии есть запись с неверной датой, площадкой, типом или суммой.");
         return { date, marketplace, game: String(o.game || ""), type, amount: r2(amount), fee: r2(fee), note: String(o.note || "") };
       }

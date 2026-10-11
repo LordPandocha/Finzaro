@@ -42,7 +42,7 @@
 ## Automatic streak and restore UX contract
 - Every distinct local calendar day when the user opens Finzaro automatically adds that date to `streakVisits`; repeated reloads on the same day do not add extra days.
 - Preserve the legacy `visits`, former `streakCheckins`, and best-run data through migration.
-- A single missed day can be restored when the user returns within the recovery window. Give two restore credits per calendar month, show the remaining count, and require an explicit click to spend one credit. Never auto-consume recovery.
-- A return after a break should surface a recoverable-streak CTA via the modal and a one-time toast. If recovery is used, put the missed date back into the visit ledger and recalculate the streak/reward tier.
+- A gap of one or two adjacent missed dates can be restored if the user returns within 48 hours. Give two restore credits per calendar month, show the remaining count, and require an explicit click to spend one credit. Never auto-consume recovery.
+- A return after a break should surface a recoverable-streak CTA via the modal and a one-time toast. If recovery is used, put the eligible missed date(s) back into the visit ledger, mark them distinctly, and recalculate the streak/reward tier.
 - Use evolving flame styles and concise milestone language rather than a large grid of cosmetic cards. Show a seven-day visit calendar, next milestone, personal best, and restore credits.
 - Hide the analytic hover-detail card while one or more days are selected; only show the selected-range totals under the analytics chart. Restore the detail card when selection is cleared.

@@ -1321,17 +1321,25 @@
       svg.fcs { width: 100%; height: auto; display: block; margin-top: 12px; overflow: visible; }
       .fcs text { fill: var(--mut); font-size: 11px; font-family: inherit; }
       .fcg { margin-top: 10px; font-size: .88rem; padding: 10px 14px; border-radius: 14px; background: color-mix(in srgb, var(--acc) 11%, transparent); }
-      .fc-table-wrap { width:100%; overflow-x:auto; margin-top:12px; border:1px solid var(--line); border-radius:14px; }
-      .fc-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:.84rem; }
-      .fc-table th, .fc-table td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.4; overflow-wrap:anywhere; }
-      .fc-table th { color:var(--mut); font-size:.72rem; font-weight:750; text-align:left; background:color-mix(in srgb,var(--c2) 70%,transparent); }
-      .fc-table th:first-child, .fc-table td:first-child { width:38%; }
-      .fc-table th:nth-child(2), .fc-table td:nth-child(2) { width:23%; text-align:right; font-variant-numeric:tabular-nums; }
-      .fc-table th:last-child, .fc-table td:last-child { text-align:left; color:var(--mut); font-size:.78rem; }
+      .fc { padding:18px; min-width:0; }
+      .fc-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+      .fc-head small { display:block; color:var(--mut); font-size:.68rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+      .fc-head h3 { margin:3px 0 0; font-size:1.15rem; line-height:1.25; letter-spacing:-.025em; }
+      .fc-days { flex:none; padding:7px 10px; border-radius:999px; color:var(--mut); background:var(--c2); font-size:.75rem; font-weight:700; }
+      .fc-table-wrap { width:100%; overflow:hidden; margin-top:0; border:1px solid var(--line); border-radius:17px; background:color-mix(in srgb,var(--card) 72%,transparent); }
+      .fc-table { width:100%; border-collapse:collapse; table-layout:auto; font-size:.9rem; }
+      .fc-table th,.fc-table td { padding:13px 14px; border-bottom:1px solid var(--line); vertical-align:middle; line-height:1.35; }
+      .fc-table th { color:var(--mut); font-size:.7rem; font-weight:800; text-align:left; background:color-mix(in srgb,var(--c2) 72%,transparent); }
+      .fc-table th:last-child,.fc-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+      .fc-table td:first-child { color:var(--tx); font-weight:600; }
       .fc-table tr:last-child td { border-bottom:0; }
-      .fc-table .fc-total-row td { font-weight:850; background:color-mix(in srgb,var(--acc) 10%,transparent); }
-      .fc-estimate-note { margin:10px 2px 0; color:var(--mut); font-size:.78rem; line-height:1.5; }
-      @media (max-width:480px) { .fc-table { font-size:.78rem; } .fc-table th,.fc-table td { padding:9px 8px; } .fc-table th:first-child,.fc-table td:first-child { width:55%; } }
+      .fc-table .fc-actual-row td { color:var(--mut); }
+      .fc-table .fc-total-row td { font-weight:850; font-size:.95rem; background:color-mix(in srgb,var(--acc) 12%,transparent); }
+      .fc-table .fc-total-row td:last-child { color:var(--acl); font-size:1.02rem; }
+      .fc-table .fc-scenario-row td { color:var(--mut); font-size:.84rem; }
+      .fc-table .fc-scenario-row td:last-child { color:var(--tx); font-weight:750; }
+      .fc-table .fc-goal-status { display:block; margin-top:3px; color:var(--mut); font-size:.7rem; font-weight:500; white-space:normal; }
+      @media (max-width:480px) { .fc { padding:14px; } .fc-head h3 { font-size:1.02rem; } .fc-days { font-size:.68rem; padding:6px 8px; } .fc-table { font-size:.82rem; } .fc-table th,.fc-table td { padding:11px 9px; } .fc-table .fc-scenario-row td { font-size:.78rem; } }
       .pulse { transform-box: fill-box; transform-origin: center; animation: pls 2s ease-out infinite; }
       @keyframes pls { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(3); opacity: 0; } }
       .bw { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
@@ -2925,9 +2933,8 @@
       function fcRender(list) {
         const el = $("#fc"), t = today();
         if (allT || ym !== t.slice(0, 7) || !list.length) { el.innerHTML = ""; return; }
-        const parts = t.split("-").map(Number), Y = parts[0], M = parts[1], D = parts[2];
+        const [Y, M, D] = t.split("-").map(Number);
         const N = new Date(Y, M, 0).getDate(), left = Math.max(0, N - D), firstMonthDay = ym + "-01";
-        /* Прогноз строится по чистому дневному результату после FIFO-себестоимости. */
         const forecastOps = view === "all" ? marketplaceProfitOps(list, "all", t) : list;
         const current = forecastOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
         const by = {};
@@ -2950,130 +2957,43 @@
         const firstDate = [...activeDates].sort()[0];
         const firstDay = firstDate ? Number(firstDate.slice(8)) : D;
         const firstIndex = Math.max(0, firstDay - 1);
-        /* Дни до первой операции не участвуют в среднем. Нулевые дни после старта учёта участвуют. */
-        const history = D > firstDay ? daily.slice(firstIndex, D - 1) : [];
-        const historyDates = history.map((_, i) => ym + "-" + String(firstDay + i).padStart(2, "0"));
-        const activeHistory = history.filter((_, i) => activeDates.has(historyDates[i]));
-        const clippedLow = quantile(activeHistory, .15), clippedHigh = quantile(activeHistory, .85);
-        const clipped = history.map((value, i) => {
-          if (activeHistory.length < 5 || !activeDates.has(historyDates[i])) return value;
-          return Math.max(clippedLow, Math.min(clippedHigh, value));
-        });
-        const recentStart = Math.max(firstIndex, D - 7);
-        const recentDaily = daily.slice(recentStart, D);
-        const recentAvg = mean(recentDaily);
-        const longRate = mean(clipped);
-        const recentClosedDays = clipped.slice(-Math.min(7, clipped.length));
-        const recentRate = mean(recentClosedDays);
-        const todayPartial = daily[D - 1] || 0;
-
-        /* Главное: больше НЕ умножаем темп на коэффициент «надёжности» — он урезал ранний прогноз в несколько раз.
-           Берём фактические завершённые дни, сильнее взвешиваем последнюю неделю и сохраняем нулевые/минусовые дни. */
-        const dailyRate = history.length ? longRate * .4 + recentRate * .6 : todayPartial * .5;
-        const scenarioWindow = clipped.slice(-Math.min(14, clipped.length));
-        let lowRate, highRate;
-        if (scenarioWindow.length) {
-          lowRate = Math.min(dailyRate, quantile(scenarioWindow, .2));
-          highRate = Math.max(dailyRate, quantile(scenarioWindow, .8));
-          if (scenarioWindow.length < 4) {
-            lowRate = Math.min(lowRate, ...scenarioWindow);
-            highRate = Math.max(highRate, ...scenarioWindow);
-          }
-        } else {
-          lowRate = Math.min(0, dailyRate);
-          highRate = Math.max(todayPartial, dailyRate);
-        }
-
+        /* Only completed days determine the pace. Calendar days after tracking starts with no operations count as zero. */
+        const history = daily.slice(firstIndex, Math.max(firstIndex, D - 1));
+        const recent = history.slice(-3);
+        const longRate = mean(history), recentRate = mean(recent);
+        let dailyRate = history.length >= 3 ? longRate * .55 + recentRate * .45 : longRate;
         const now = sum(daily);
-        const trackingDays = Math.max(1, D - firstDay + 1);
-        const monthAvg = now / trackingDays;
+        /* A positive month-to-date result should not be projected downward without any recorded future expense plan. */
+        if (now > 0) dailyRate = Math.max(0, dailyRate);
+        const window = history.slice(-Math.min(14, history.length));
+        let lowRate = window.length ? Math.min(dailyRate, quantile(window, .2)) : dailyRate;
+        let highRate = window.length ? Math.max(dailyRate, quantile(window, .8)) : dailyRate;
+        if (window.length > 0 && window.length < 5) {
+          lowRate = Math.min(lowRate, ...window);
+          highRate = Math.max(highRate, ...window);
+        }
+        if (now > 0) lowRate = Math.max(0, lowRate);
         const projected = now + dailyRate * left;
-        const lowProjection = now + lowRate * left, highProjection = now + highRate * left;
+        const lowProjection = Math.max(now > 0 ? now : -Infinity, now + lowRate * left);
+        const highProjection = Math.max(projected, now + highRate * left);
         const goal = Number(LS("goal", 0)) || 0;
         const money = (v) => (v > 0 ? "+" : "") + fmt(Math.round(v));
         const rows = [
-          ["Фактическая прибыль на сегодня", money(now), "Сумма дневной чистой прибыли с начала месяца по сегодня; не накопительный график."],
-          ["Среднее за день с начала учёта", money(monthAvg), "Факт делится на календарные дни с первой операцией месяца; дни до начала учёта не считаются."],
-          ["Среднее за последние " + recentDaily.length + " дн.", money(recentAvg), "Считается по ежедневной чистой прибыли; дни после старта без операций дают 0 ₽."],
-          ["Средний темп для прогноза", money(dailyRate), history.length ? "40% — средний темп с начала учёта, 60% — последние завершённые дни; без дополнительного штрафа за малую выборку." : "Пока нет завершённого дня: предварительно взята половина результата сегодня."],
-          ["Осторожный сценарий на конец месяца", money(Math.min(lowProjection, highProjection)), "Факт + более слабый наблюдавшийся дневной результат × " + left + " оставшихся дн."],
-          ["Примерная прибыль за месяц", money(projected), "Фактический результат + средний дневной темп × оставшиеся " + left + " дн."],
-          ["Оптимистичный сценарий на конец месяца", money(Math.max(lowProjection, highProjection)), "Факт + более сильный наблюдавшийся дневной результат × " + left + " оставшихся дн."]
+          ["Факт с начала месяца", money(now), "fc-actual-row"],
+          ["Примерная прибыль за месяц", money(projected), "fc-total-row"],
+          ["Осторожный прогноз", money(Math.min(lowProjection, projected)), "fc-scenario-row"],
+          ["Оптимистичный прогноз", money(Math.max(highProjection, projected)), "fc-scenario-row"]
         ];
-        if (goal > 0) rows.push(["Цель на месяц", fmt(goal) + " · " + (projected >= goal ? "прогноз выше на " + fmt(projected - goal) : "не хватает " + fmt(goal - projected)), "Сравнение цели с ориентировочным итогом; не гарантия дохода."]);
-        const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th><th>Как считается</th></tr></thead><tbody>' +
-          rows.map((r, i) => '<tr' + (i === 5 ? ' class="fc-total-row"' : '') + '><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>').join("") +
+        if (goal > 0) {
+          const gap = projected >= goal ? "выше цели на " + fmt(Math.round(projected - goal)) : "до цели " + fmt(Math.round(goal - projected));
+          rows.push(["Цель на месяц", fmt(goal) + '<small class="fc-goal-status">' + gap + "</small>", "fc-goal-row"]);
+        }
+        const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th></tr></thead><tbody>' +
+          rows.map((r) => '<tr class="' + r[2] + '"><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join("") +
           '</tbody></table></div>';
-
-        const W = 640, H = 210, pL = 12, pR = 14, pT = 18, pB = 28;
-        const x = (day) => pL + ((day - 1) / Math.max(1, N - 1)) * (W - pL - pR);
-        const vals = daily.concat(left ? [dailyRate, lowRate, highRate] : []);
-        let vMin = Math.min(0, ...vals), vMax = Math.max(0, ...vals);
-        const pad = Math.max(50, (vMax - vMin) * .12); vMin -= pad; vMax += pad;
-        const y = (v) => pT + (1 - (v - vMin) / Math.max(1, vMax - vMin)) * (H - pT - pB);
-        const ticks = [...new Set([1, Math.max(1, Math.round(N / 3)), Math.max(1, Math.round(2 * N / 3)), N])];
-        let grid = '<line x1="' + pL + '" x2="' + (W - pR) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="var(--line)" stroke-width="1"/>';
-        grid += ticks.map((day) => '<text x="' + x(day).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + (day === 1 ? "start" : day === N ? "end" : "middle") + '">' + day + '</text>').join("");
-        const actualPath = daily.map((value, i) => (i ? "L" : "M") + x(i + 1).toFixed(1) + "," + y(value).toFixed(1)).join(" ");
-        const dots = daily.map((value, i) => '<circle cx="' + x(i + 1).toFixed(1) + '" cy="' + y(value).toFixed(1) + '" r="' + (i === D - 1 ? "4.5" : "2.5") + '" fill="var(--acc)" opacity="' + (i === D - 1 ? "1" : ".72") + '"><title>' + (i + 1) + " " + new Date(Y, M - 1, 1).toLocaleDateString("ru-RU", { month: "short" }).replace(".", "") + ": " + fmt(value) + '</title></circle>').join("");
-        let forecastShape = "";
-        if (left > 0) {
-          forecastShape = '<polygon points="' + x(D).toFixed(1) + ',' + y(highRate).toFixed(1) + ' ' + x(N).toFixed(1) + ',' + y(highRate).toFixed(1) + ' ' + x(N).toFixed(1) + ',' + y(lowRate).toFixed(1) + ' ' + x(D).toFixed(1) + ',' + y(lowRate).toFixed(1) + '" fill="var(--acc)" opacity=".13"/>' +
-            '<line x1="' + x(D).toFixed(1) + '" y1="' + y(todayPartial).toFixed(1) + '" x2="' + x(N).toFixed(1) + '" y2="' + y(dailyRate).toFixed(1) + '" stroke="var(--acc)" stroke-width="2.5" stroke-dasharray="4 6" stroke-linecap="round"/>';
-        }
-        const svg = '<svg class="fcs" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Чистая прибыль за каждый день отдельно; пунктир показывает примерный темп">' +
-          grid + forecastShape + '<path d="' + actualPath + '" fill="none" stroke="var(--acc)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>' + dots + '</svg>';
-        let confidence;
-        if (!history.length) confidence = "Прогноз предварительный: ещё нет завершённых дней. По мере накопления ежедневных результатов оценка будет уточняться.";
-        else if (activeHistory.length < 3) confidence = "Есть " + activeHistory.length + " завершённых активных дн. Прогноз использует средние за фактические дни и не занижает их искусственным коэффициентом; диапазон пока приблизительный.";
-        else confidence = "Прогноз учитывает нулевые дни после начала учёта, отрицательные результаты и сглаживает разовые пики при достаточном количестве данных. Это ориентир, не гарантия дохода.";
-        const goalNote = goal > 0
-          ? (projected >= goal ? "По базовому сценарию цель достижима; ориентировочный запас — " + fmt(projected - goal) + "." : "По базовому сценарию до цели не хватает " + fmt(goal - projected) + ".")
-          : "Добавь месячную цель, если хочешь сравнивать её с прогнозом.";
-        el.innerHTML = '<div class="fch"><div><small>Примерная прибыль за месяц</small><div class="fcb fcn ' + (projected >= 0 ? "pos" : "neg") + '">' + money(projected) + '</div><small>Факт на сегодня + оценка оставшихся ' + left + ' дн.</small></div>' +
-          '<div class="fcc"><span>Факт сейчас<b class="fcn">' + money(now) + '</b></span><span>Темп для прогноза<b class="fcn">' + money(dailyRate) + '</b></span><span>Дней с операциями<b class="fcn">' + activeDates.size + '</b></span></div></div>' +
-          svg + table + '<p class="fc-estimate-note">' + confidence + ' ' + goalNote + '</p>';
+        el.innerHTML = '<div class="fc-head"><div><small>ФИНАНСЫ · ' + esc(MN[M - 1] || "") + '</small><h3>Прибыль на месяц</h3></div><span class="fc-days">' + (left ? "Осталось " + left + " дн." : "Последний день месяца") + '</span></div>' + table;
       }
 
-      function marketplaceProfitOps(list, platform, untilDate = today()) {
-        const inventory = computeInventoryState(ops, untilDate);
-        const out = [];
-        for (const o of list) {
-          if (o.type === "purchase" && (+o.amount || 0) >= 0) {
-            const lot = inventory.remainingByPurchase.get(String(o.id));
-            if (!lot) out.push(o);
-            else if (lot.remainingCost > .005) out.push({ ...o, amount: r2(lot.remainingCost), fee: 0 });
-          } else {
-            out.push(o);
-          }
-          if (o.type === "sale") {
-            const cost = inventory.cogsBySale.get(String(o.id)) || 0;
-            if (cost > .005) out.push({
-              ...o, id: "cogs-" + String(o.id), type: "purchase", amount: r2(cost), fee: 0,
-              note: "Себестоимость проданных единиц · FIFO"
-            });
-          }
-        }
-        /* Остаток, закрытый без продажи, становится расходом себестоимости на дату закрытия.
-           Расход распределяется по площадкам, где были куплены закрытые партии. */
-        for (const closures of inventory.closuresByKey.values()) {
-          for (const closure of closures) {
-            const allocations = closure.closedCostByMarketplace || {};
-            const marketplaces = platform === "all" ? Object.keys(allocations) : [platform];
-            for (const marketplace of marketplaces) {
-              const amount = r2(Number(allocations[marketplace]) || 0);
-              if (amount <= .005) continue;
-              const qtyPart = closure.closedQty || closure.quantity || 0;
-              out.push({
-                id: "stock-writeoff-" + String(closure.id) + "-" + encodeURIComponent(marketplace),
-                marketplace, date: closure.date, game: closure.game, type: "other", amount, fee: 0,
-                note: "Списание товарного остатка без выручки · " + Number(qtyPart).toLocaleString("ru-RU") + " ед. · FIFO"
-              });
-            }
-          }
-        }
-        return out;
-      }
 
       /* Прибыль = продажи − возвраты − комиссия − закупки − поднятие лотов − прочие траты. Вывод в прибыль не входит. */
       const agg = (l) => {
@@ -4340,7 +4260,7 @@
       const catOf = (g) => Object.keys(CATS).find((c) => CATS[c].includes(g)) || "Прочее";
       const CE = { Roblox: "🧱", Шутеры: "🔫", Мобильные: "📱", "MMO и RPG": "🐉", Песочницы: "⛏️", Техника: "🚜", Сервисы: "🧩", Консоли: "🎮", Прочее: "📦" };
       const PAL = ["#a3e635", "#22d3ee", "#c084fc", "#fb923c", "#f472b6", "#facc15", "#60a5fa", "#34d399"];
-      let ch = { t: "cum", c: "all" },
+      let ch = { t: "bar", c: "all" },
         GR = LS("gr", {}),
         rt = 0,
         _net = 0;
@@ -4443,7 +4363,7 @@
           L = selectedDates.size ? allL.filter((o) => selectedDates.has(o.date)) : allL,
           B = (k, l, v, a) => `<button type="button" class="pill ${v === a ? "on" : ""}" data-${k}="${esc(l[0])}">${l[1]}</button>`;
         renderChartFilters(base, w);
-        $("#chT").innerHTML = [["cum", "Чистый результат"], ["bar", ico("chart") + " По дням"], ["don", ico("pie") + " По играм"], ["mp", ico("store") + " Площадки"], ["wk", ico("calendar") + " Дни недели"]].map((l) => B("ct", l, l[0], ch.t)).join("");
+        $("#chT").innerHTML = [["cum", "Динамика"], ["bar", ico("chart") + " Прибыль по дням"], ["don", ico("pie") + " По играм"], ["mp", ico("store") + " Площадки"], ["wk", ico("calendar") + " Дни недели"]].map((l) => B("ct", l, l[0], ch.t)).join("");
         $("#chC").innerHTML = cats.length > 1 ? [["all", "Все категории"], ...cats.map((c) => [c, (CE[c] || "") + " " + c])].map((l) => B("cc", l, l[0], ch.c)).join("") : "";
         const el = $("#chart2");
         if (!rangeOps.length) return (el.innerHTML = '<span class="mut">Нет операций за этот период. Попробуй изменить даты.</span>');

@@ -1321,6 +1321,16 @@
       svg.fcs { width: 100%; height: auto; display: block; margin-top: 12px; overflow: visible; }
       .fcs text { fill: var(--mut); font-size: 11px; font-family: inherit; }
       .fcg { margin-top: 10px; font-size: .88rem; padding: 10px 14px; border-radius: 14px; background: color-mix(in srgb, var(--acc) 11%, transparent); }
+      .fc-table-wrap { width:100%; overflow-x:auto; margin-top:12px; border:1px solid var(--line); border-radius:14px; }
+      .fc-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:.84rem; }
+      .fc-table th, .fc-table td { padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.4; overflow-wrap:anywhere; }
+      .fc-table th { color:var(--mut); font-size:.72rem; font-weight:750; text-align:left; background:color-mix(in srgb,var(--c2) 70%,transparent); }
+      .fc-table th:first-child, .fc-table td:first-child { width:58%; }
+      .fc-table th:last-child, .fc-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+      .fc-table tr:last-child td { border-bottom:0; }
+      .fc-table .fc-total-row td { font-weight:850; background:color-mix(in srgb,var(--acc) 10%,transparent); }
+      .fc-estimate-note { margin:10px 2px 0; color:var(--mut); font-size:.78rem; line-height:1.5; }
+      @media (max-width:480px) { .fc-table { font-size:.78rem; } .fc-table th,.fc-table td { padding:9px 8px; } .fc-table th:first-child,.fc-table td:first-child { width:55%; } }
       .pulse { transform-box: fill-box; transform-origin: center; animation: pls 2s ease-out infinite; }
       @keyframes pls { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(3); opacity: 0; } }
       .bw { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
@@ -2910,70 +2920,81 @@
       $("#bw").addEventListener("click", bwGo);
       $("#bw").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); bwGo(e); } });
 
-      /* Прогноз до конца месяца */
+      /* Прибыль за месяц: дневные значения отдельно, прогноз как взвешенная оценка, а не накопительная линия. */
       function fcRender(list) {
         const el = $("#fc"), t = today();
         if (allT || ym !== t.slice(0, 7) || !list.length) { el.innerHTML = ""; return; }
-        const [Y, M, D] = t.split("-").map(Number), N = new Date(Y, M, 0).getDate(), by = {};
-        list.forEach((o) => (by[o.date] ??= []).push(o));
-        const cum = [0];
-        for (let i = 1; i <= D; i++) { const k = ym + "-" + String(i).padStart(2, "0"); cum.push(cum[i - 1] + (by[k] ? agg(by[k]).profit : 0)); }
-        const daily = cum.slice(1).map((v, i) => v - cum[i]);
+        const parts = t.split("-").map(Number), Y = parts[0], M = parts[1], D = parts[2];
+        const N = new Date(Y, M, 0).getDate(), left = Math.max(0, N - D), by = {};
+        list.forEach((o) => {
+          if (o.date >= ym + "-01" && o.date <= t) (by[o.date] ??= []).push(o);
+        });
+        const daily = Array.from({ length: D }, (_, i) => {
+          const key = ym + "-" + String(i + 1).padStart(2, "0");
+          return by[key] ? agg(by[key]).profit : 0;
+        });
+        const sum = (arr) => arr.reduce((a, b) => a + b, 0);
+        const mean = (arr) => arr.length ? sum(arr) / arr.length : 0;
+        const quantile = (arr, q) => {
+          if (!arr.length) return 0;
+          const sorted = arr.slice().sort((a, b) => a - b);
+          return sorted[Math.min(sorted.length - 1, Math.max(0, Math.floor((sorted.length - 1) * q)))];
+        };
         const activeDates = new Set(list.filter((o) => o.date >= ym + "-01" && o.date <= t && o.type !== "withdraw").map((o) => o.date));
-        const now = cum[D], left = N - D, avg = now / Math.max(1, D), k7 = Math.min(7, D);
-        const avg7 = daily.slice(-k7).reduce((sum, value) => sum + value, 0) / Math.max(1, k7);
-        if (D < 3 || activeDates.size < 3) {
-          el.innerHTML = '<div class="fch"><div><small>Прогноз на конец месяца</small><div class="fcb fcn ' + (now >= 0 ? "pos" : "neg") + '">' + sg(Math.round(now)) + '</div><small>Фактический результат на сегодня</small></div></div><p class="mut" style="margin:8px 0 0">Пока всего ' + activeDates.size + ' активных дней. Прогноз пока скрыт, чтобы одна случайная продажа или закупка не рисовала нереалистичный конец месяца.</p>';
-          return;
+        const now = sum(daily), monthAvg = now / Math.max(1, D), k7 = Math.min(7, D);
+        const rawRecent = daily.slice(-k7), recentAvg = mean(rawRecent);
+        /* Cap daily outliers at the 15th/85th percentile, then blend the month's pace with the latest week. */
+        const lowCap = quantile(daily, .15), highCap = quantile(daily, .85);
+        const clipped = daily.map((v) => Math.max(lowCap, Math.min(highCap, v)));
+        const longRate = mean(clipped), recentClipped = clipped.slice(-k7), recentRate = mean(recentClipped);
+        const dailyRate = left ? longRate * .4 + recentRate * .6 : 0;
+        const recentLow = quantile(recentClipped, .25), recentHigh = quantile(recentClipped, .75);
+        const lowRate = left ? Math.min(dailyRate, longRate * .4 + recentLow * .6) : 0;
+        const highRate = left ? Math.max(dailyRate, longRate * .4 + recentHigh * .6) : 0;
+        const expectedRemaining = dailyRate * left;
+        const projected = now + expectedRemaining;
+        const lowProjection = now + lowRate * left, highProjection = now + highRate * left;
+        const goal = Number(LS("goal", 0)) || 0;
+        const money = (v) => (v > 0 ? "+" : "") + fmt(Math.round(v));
+        const rows = [
+          ["Фактическая прибыль на сегодня", money(now), "Сумма фактических дневных результатов с 1-го числа"],
+          ["Среднее за календарный день", money(monthAvg), "Включает дни без операций — они считаются нулём"],
+          ["Среднее за последние " + k7 + " дн.", money(recentAvg), "Результат каждого дня считается отдельно"],
+          ["Ожидается за оставшиеся " + left + " дн.", money(expectedRemaining), "Оценка по темпу месяца и недавним дням"],
+          ["Примерная прибыль за месяц", money(projected), "Факт на сегодня + оценка оставшихся дней"]
+        ];
+        if (left) rows.push(["Ориентировочный диапазон", fmt(Math.round(Math.min(lowProjection, highProjection))) + " … " + fmt(Math.round(Math.max(lowProjection, highProjection))), "Сценарный диапазон, не гарантия результата"]);
+        if (goal > 0) rows.push(["Цель на месяц", fmt(goal) + " · " + (projected >= goal ? "прогноз выше цели на " + fmt(projected - goal) : "по прогнозу не хватает " + fmt(goal - projected)), "Сравнение с примерным итогом месяца"]);
+        const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th></tr></thead><tbody>' +
+          rows.map((r, i) => '<tr' + (i === 4 ? ' class="fc-total-row"' : '') + '><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join("") +
+          '</tbody></table></div>';
+        const W = 640, H = 210, pL = 12, pR = 14, pT = 18, pB = 28;
+        const x = (day) => pL + ((day - 1) / Math.max(1, N - 1)) * (W - pL - pR);
+        const vals = daily.concat(left ? [dailyRate, lowRate, highRate] : []);
+        let vMin = Math.min(0, ...vals), vMax = Math.max(0, ...vals);
+        const pad = Math.max(50, (vMax - vMin) * .12); vMin -= pad; vMax += pad;
+        const y = (v) => pT + (1 - (v - vMin) / Math.max(1, vMax - vMin)) * (H - pT - pB);
+        const ticks = [...new Set([1, Math.max(1, Math.round(N / 3)), Math.max(1, Math.round(2 * N / 3)), N])];
+        let grid = '<line x1="' + pL + '" x2="' + (W - pR) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="var(--line)" stroke-width="1"/>';
+        grid += ticks.map((day) => '<text x="' + x(day).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + (day === 1 ? "start" : day === N ? "end" : "middle") + '">' + day + '</text>').join("");
+        const actualPath = daily.map((value, i) => (i ? "L" : "M") + x(i + 1).toFixed(1) + "," + y(value).toFixed(1)).join(" ");
+        const dots = daily.map((value, i) => '<circle cx="' + x(i + 1).toFixed(1) + '" cy="' + y(value).toFixed(1) + '" r="' + (i === D - 1 ? "4.5" : "2.5") + '" fill="var(--acc)" opacity="' + (i === D - 1 ? "1" : ".72") + '"><title>' + (i + 1) + " " + new Date(Y, M - 1, 1).toLocaleDateString("ru-RU", { month: "short" }).replace(".", "") + ": " + fmt(value) + '</title></circle>').join("");
+        let forecastShape = "";
+        if (left > 0) {
+          forecastShape = '<polygon points="' + x(D).toFixed(1) + ',' + y(highRate).toFixed(1) + ' ' + x(N).toFixed(1) + ',' + y(highRate).toFixed(1) + ' ' + x(N).toFixed(1) + ',' + y(lowRate).toFixed(1) + ' ' + x(D).toFixed(1) + ',' + y(lowRate).toFixed(1) + '" fill="var(--acc)" opacity=".13"/>' +
+            '<line x1="' + x(D).toFixed(1) + '" y1="' + y(daily[D - 1]).toFixed(1) + '" x2="' + x(N).toFixed(1) + '" y2="' + y(dailyRate).toFixed(1) + '" stroke="var(--acc)" stroke-width="2.5" stroke-dasharray="4 6" stroke-linecap="round"/>';
         }
-        const sorted = daily.slice().sort((a,b) => a-b);
-        const median = sorted[Math.floor(sorted.length / 2)] || 0;
-        const deviations = sorted.map((value) => Math.abs(value - median)).sort((a,b) => a-b);
-        const mad = deviations[Math.floor(deviations.length / 2)] || 0;
-        const extreme = Math.max(100, ...daily.map((value) => Math.abs(value)));
-        const limit = Math.max(3 * 1.4826 * mad, extreme * 0.72, 100);
-        const clipped = daily.map((value) => Math.max(median - limit, Math.min(median + limit, value)));
-        const mean = (arr) => arr.length ? arr.reduce((sum,value) => sum + value, 0) / arr.length : 0;
-        const longRate = mean(clipped), k14 = Math.min(14, D), recentRate = mean(clipped.slice(-k14));
-        const dailyRate = longRate * 0.35 + recentRate * 0.65;
-        const ex = now + dailyRate * left;
-        const lo = now + Math.min(longRate, recentRate) * left;
-        const hi = now + Math.max(longRate, recentRate) * left;
-        const GO = +LS("goal", 0);
-        const W = 640, H = 210, pL = 10, pR = 14, pT = 18, pB = 26,
-          mn = Math.min(0, ...cum, lo), mx0 = Math.max(hi, ex, now, GO || 0, 1), mx = mx0 + (mx0 - mn) * 0.08,
-          X = (i) => pL + ((i - 1) / (N - 1)) * (W - pL - pR), Y_ = (v) => pT + (1 - (v - mn) / (mx - mn)) * (H - pT - pB),
-          base = Y_(Math.max(mn, 0));
-        const act = cum.slice(1).map((v, i) => `${i ? "L" : "M"}${X(i + 1).toFixed(1)},${Y_(v).toFixed(1)}`).join(" ");
-        const ticks = [...new Set([1, Math.round(N / 3), Math.round((2 * N) / 3), N])];
-        let g = "";
-        if (GO > 0) g += `<line x1="${pL}" x2="${W - pR}" y1="${Y_(GO)}" y2="${Y_(GO)}" style="stroke:var(--acl);opacity:.55" stroke-dasharray="2 5" stroke-width="1.5"/><text x="${W - pR}" y="${Y_(GO) - 6}" text-anchor="end">Цель</text>`;
-        if (mn < 0) g += `<line x1="${pL}" x2="${W - pR}" y1="${Y_(0)}" y2="${Y_(0)}" style="stroke:var(--line)" stroke-width="1"/>`;
-        const svg = `<svg class="fcs" viewBox="0 0 ${W} ${H}" role="img" aria-label="График прибыли и прогноз до конца месяца"><defs><linearGradient id="fcg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--acc);stop-opacity:.4"/><stop offset="1" style="stop-color:var(--acc);stop-opacity:0"/></linearGradient></defs>
-          ${g}
-          <path d="${act} L${X(D)},${base} L${X(1)},${base}Z" fill="url(#fcg)"/>
-          <polygon points="${X(D)},${Y_(now)} ${X(N)},${Y_(hi)} ${X(N)},${Y_(lo)}" style="fill:var(--acc);opacity:.16"/>
-          <line x1="${X(D)}" y1="${Y_(now)}" x2="${X(N)}" y2="${Y_(ex)}" style="stroke:var(--acc)" stroke-width="2.5" stroke-dasharray="3 7" stroke-linecap="round"/>
-          <path d="${act}" fill="none" style="stroke:var(--acc)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="${X(N)}" cy="${Y_(ex)}" r="5" style="fill:var(--card);stroke:var(--acc)" stroke-width="2.5"/>
-          <circle class="pulse" cx="${X(D)}" cy="${Y_(now)}" r="5" style="fill:var(--acc)"/>
-          <circle cx="${X(D)}" cy="${Y_(now)}" r="5.5" style="fill:var(--acc);stroke:var(--card)" stroke-width="2"/>
-          ${ticks.map((d) => `<text x="${X(d)}" y="${H - 6}" text-anchor="${d === 1 ? "start" : d === N ? "end" : "middle"}">${d} ${new Date(Y, M - 1, 1).toLocaleDateString("ru-RU", { month: "short" }).replace(".", "")}</text>`).join("")}
-        </svg>`;
-        let goal;
-        if (GO > 0) {
-          if (now >= GO) goal = "🎉 Цель " + fmt(GO) + " уже выполнена. Прогноз учитывает и будущие доходы, и расходы.";
-          else if (dailyRate > 0 && ex >= GO) {
-            const dd = new Date(Y, M - 1, D + Math.ceil((GO - now) / dailyRate)).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
-            goal = "✅ При текущем сглаженном темпе цель может быть достигнута примерно " + dd + ".";
-          } else {
-            goal = left > 0
-              ? "До цели " + fmt(GO) + " по прогнозу не хватает " + fmt(Math.max(0, GO - ex)) + ". Чтобы успеть, нужно ≈ " + fmt((GO - now) / left) + " чистыми в день; прогнозный темп — " + fmt(dailyRate) + "."
-              : "До цели " + fmt(GO) + " не хватило " + fmt(GO - now) + ".";
-          }
-        } else goal = "Поставьте цель на месяц в карточке выше — сравню её со сглаженным прогнозом.";
-        el.innerHTML = `<div class="fch"><div><small>Прогноз на конец месяца</small><div class="fcb fcn ${ex >= 0 ? "pos" : "neg"}">≈ ${sg(Math.round(ex))}</div><small>Сглажены единичные выбросы · осталось ${left} ${pl(left, ["день", "дня", "дней"])}</small></div>
-          <div class="fcc"><span>Сейчас<b class="fcn">${sg(Math.round(now))}</b></span><span>Среднее факт./день<b class="fcn">${sg(Math.round(avg))}</b></span><span>Прогнозный темп/день<b class="fcn">${sg(Math.round(dailyRate))}</b></span><span>Последние ${k7} дн.<b class="fcn">${sg(Math.round(avg7))} в день</b></span>${Math.abs(hi - lo) > 1 ? `<span>Коридор<b class="fcn">${fmt(Math.round(lo))} … ${fmt(Math.round(hi))}</b></span>` : ""}</div></div>${svg}<div class="fcg">${goal}</div>`;
+        const svg = '<svg class="fcs" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Дневная прибыль: каждый день от нуля; пунктир — примерный дневной темп">' +
+          grid + forecastShape + '<path d="' + actualPath + '" fill="none" stroke="var(--acc)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>' + dots + '</svg>';
+        const confidence = activeDates.size < 3
+          ? "Пока мало данных (" + activeDates.size + " активных дней): прогноз предварительный и может сильно измениться."
+          : "Прогноз не гарантирует доход: разовые пики сглаживаются, а дни без операций считаются нулевыми.";
+        const goalNote = goal > 0
+          ? (projected >= goal ? "По текущей оценке цель достижима; ориентировочный запас — " + fmt(projected - goal) + "." : "По текущей оценке до цели не хватает " + fmt(goal - projected) + ".")
+          : "Добавьте месячную цель, чтобы сравнивать её с прогнозом.";
+        el.innerHTML = '<div class="fch"><div><small>Примерная прибыль за месяц</small><div class="fcb fcn ' + (projected >= 0 ? "pos" : "neg") + '">' + money(projected) + '</div><small>Факт на сегодня + оценка оставшихся ' + left + ' дн.</small></div>' +
+          '<div class="fcc"><span>Факт сейчас<b class="fcn">' + money(now) + '</b></span><span>В среднем за день<b class="fcn">' + money(monthAvg) + '</b></span><span>Последние 7 дней<b class="fcn">' + money(recentAvg) + '</b></span></div></div>' +
+          svg + table + '<p class="fc-estimate-note">' + confidence + ' ' + goalNote + '</p>';
       }
 
       function marketplaceProfitOps(list, platform, untilDate = today()) {

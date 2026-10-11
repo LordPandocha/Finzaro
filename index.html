@@ -1776,7 +1776,6 @@
         <aside>
           <div class="card" id="kpi"></div>
           <div class="card" id="plb"></div>
-          <div class="card" id="bal"></div>
           <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartPickToggle" aria-pressed="false">Выбрать несколько дней</button><button type="button" class="pill" id="chartClearDays" hidden>Очистить</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div id="chartDayPicker" class="chart-day-picker" hidden><small id="chartDayPickerHint" class="mut"></small><div id="chartDayChips" class="chart-day-chips"></div></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
       </div>
@@ -1908,11 +1907,6 @@
         <p class="mut">
           Если выключено, комиссия за вывод просто показывается отдельно и в прибыль не входит.
         </p>
-      </div>
-      <div class="set">
-        <label>Стартовый остаток на площадках, ₽</label>
-        <p class="mut">Необязательно. Если до начала учёта на площадке уже лежали деньги, укажите их, и баланс будет точнее. На прибыль не влияет.</p>
-        <div id="stBody"></div>
       </div>
       <div class="set">
         <label>Своя площадка</label>
@@ -3074,7 +3068,6 @@
                   `<button class="pb" data-v="${esc(k)}"><span class="ell">${esc(k)}</span><s><i style="width:${(Math.max(v, 0) / pmx) * 100}%;background:${MPS[k].c}"></i></s><span>${col(v)}</span></button>`,
               ).join("")
             : "";
-        renderBal();
         $("#secs").innerHTML = [
           ["games", "По играм"],
           ["ops", "Все операции · " + list.length],
@@ -3265,48 +3258,6 @@
       let editId = null, editAmountSign = 1,
         tpls = LS("tpls", []),
         tplEdit = false;
-
-      /* Баланс на площадках: старт + продажи − комиссии − возвраты − выводы − поднятие Playerok (пока есть баланс) */
-      function balances() {
-        const B = {},
-          rk = (o) => (o.type === "withdraw" ? 2 : o.type === "ad" ? 1 : 0);
-        Object.keys(MPS).forEach((k) => (B[k] = +fees[k]?.start || 0));
-        ops
-          .slice()
-          .sort((x, y) => x.date.localeCompare(y.date) || rk(x) - rk(y))
-          .forEach((o) => {
-            const k = MPS[o.marketplace] ? o.marketplace : "__x",
-              a = +o.amount || 0,
-              f = +o.fee || 0;
-            B[k] ??= 0;
-            if (o.type === "sale") B[k] += a - f;
-            else if (o.type === "refund") B[k] -= a - f;
-            else if (o.type === "withdraw") B[k] -= a;
-            else if (o.type === "ad" && o.marketplace === "Playerok") B[k] -= Math.min(a, Math.max(B[k], 0));
-          });
-        return B;
-      }
-      function renderBal() {
-        const B = balances(),
-          ks = [...Object.keys(MPS), ...("__x" in B ? ["__x"] : [])],
-          tot = ks.reduce((t, k) => t + B[k], 0);
-        if (!ops.length && !tot) return ($("#bal").innerHTML = "");
-        $("#bal").innerHTML =
-          `<b>Баланс на площадках</b><small class="mut" style="display:block">Ждёт вывода, за всё время</small>` +
-          ks
-            .map((k) => {
-              const v = B[k],
-                c = k === "__x" ? "#888" : MPS[k].c,
-                n = k === "__x" ? "Удалённые площадки" : k,
-                wp = k === "__x" ? 0 : wrate(k);
-              return `<div class="balr ${view === k ? "cur" : ""}"><span class="ell"><i class="dt" style="background:${c}"></i>${esc(n)}${v > 0 && wp ? `<small>на карту ≈ ${fmt(v * (1 - wp / 100))}</small>` : ""}</span><span class="bamt ${v < 0 ? "neg" : ""}">${fmt(v)}</span></div>`;
-            })
-            .join("") +
-          `<div class="balr" style="border-top:1px solid var(--line);padding-top:10px"><b>Всего</b><b class="bamt ${tot < 0 ? "neg" : ""}">${fmt(tot)}</b></div>` +
-          (ks.some((k) => B[k] < 0)
-            ? `<small class="mut" style="display:block;margin-top:8px">Минус: выводов больше продаж. Добавьте недостающие записи или укажите стартовый остаток в настройках.</small>`
-            : "");
-      }
 
       /* Калькулятор цены: учитывает процентную, фиксированную и минимальную комиссию вывода. */
       function kCalc() {
@@ -3682,12 +3633,6 @@
             return `<div class="pcard" style="--pc:${MPS[k].c}"><div class="pch"><b><i class="dt"></i>${esc(k)}</b>${custom[k] ? `<button class="x" type="button" data-rm="${esc(k)}" title="Убрать площадку">${ico("trash")}</button>` : ""}</div><div class="pgrid"><label>С продажи, %${inp("sale", f.sale)}</label></div>${MPS[k].src ? `<div class="src">${MPS[k].src}</div>` : ""}<div class="l2">Вывод — пользовательская ставка, % (фиксированная часть тарифа сохраняется)</div><div class="pgrid4">${Object.entries(WM).map(([m, n]) => `<label>${n}<span class="mut" style="display:block;font-size:.75rem;margin:3px 0 5px">${esc(wtxt(k,m))}</span>${inp("wm:" + m, f.wm[m])}</label>`).join("")}</div><label class="wdef">Обычно вывожу через<select data-k="${esc(k)}" data-p="wdef">${Object.entries(WM).map(([m, n]) => `<option value="${m}" ${f.wdef === m ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>`;
           })
           .join("");
-        $("#stBody").innerHTML = Object.keys(fees)
-          .map(
-            (k) =>
-              `<div class="fee" style="grid-template-columns:minmax(0,1fr) 130px"><b style="color:${MPS[k].c}">${esc(k)}</b><input type="number" step="0.01" data-st="${esc(k)}" value="${fees[k].start || ""}" placeholder="0" aria-label="Стартовый остаток ${esc(k)}"></div>`,
-          )
-          .join("");
         $("#dSet").showModal();
       };
       $("#setBody").onclick = async (e) => {
@@ -3715,7 +3660,6 @@
           else f[p] = +i.value || 0;
         });
         for (const k in fees) fees[k].wp = fees[k].wm[fees[k].wdef] ?? wdRule(k, fees[k].wdef)?.rate ?? null;
-        document.querySelectorAll("#stBody input").forEach((i) => (fees[i.dataset.st].start = +i.value || 0));
         pref.wd = $("#wdOn").checked;
         applyPref();
         localStorage.setItem("fees2", JSON.stringify(fees));

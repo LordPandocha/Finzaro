@@ -2906,6 +2906,31 @@
           <div class="fcc"><span>Сейчас<b class="fcn">${sg(Math.round(now))}</b></span><span>В день<b class="fcn">${sg(Math.round(avg))}</b></span><span>Последние ${k7} дн.<b class="fcn">${sg(Math.round(avg7))} в день</b></span>${Math.abs(hi - lo) > 1 ? `<span>Коридор<b class="fcn">${fmt(Math.round(lo))} … ${fmt(Math.round(hi))}</b></span>` : ""}</div></div>${svg}<div class="fcg">${goal}</div>`;
       }
 
+      function marketplaceProfitOps(list, platform) {
+        const inventory = computeInventoryState(ops);
+        const out = [];
+        for (const o of list) {
+          if (o.type !== "purchase" || (+o.amount || 0) < 0) {
+            out.push(o);
+            continue;
+          }
+          const lot = inventory.remainingByPurchase.get(String(o.id));
+          if (!lot) {
+            out.push(o);
+          } else if (lot.remainingCost > .005) {
+            out.push({ ...o, amount: r2(lot.remainingCost), fee: 0 });
+          }
+          if (o.type === "sale") {
+            const cost = inventory.cogsBySale.get(String(o.id)) || 0;
+            if (cost > .005) out.push({
+              ...o, id: "cogs-" + String(o.id), type: "purchase", amount: r2(cost), fee: 0,
+              note: "Себестоимость проданных единиц · FIFO"
+            });
+          }
+        }
+        return out;
+      }
+
       /* Прибыль = продажи − возвраты − комиссия − закупки − поднятие лотов − прочие траты. Вывод в прибыль не входит. */
       const agg = (l) => {
         const t = { sales: 0, comm: 0, purch: 0, oth: 0, wd: 0, wfee: 0 };
@@ -3021,13 +3046,14 @@
           .join("");
       }
 
-      function gamesHTML(L, sm) {
-        const G = {};
+      function gamesHTML(L, sm, profitL = null) {
+        const G = {}, P = {};
         for (const o of L) if (o.type !== "withdraw") (G[o.game || "Без названия"] ??= []).push(o);
+        if (profitL) for (const o of profitL) if (o.type !== "withdraw") (P[o.game || "Без названия"] ??= []).push(o);
         const q = $("#q").value.trim().toLowerCase(),
           rows = Object.entries(G)
             .filter(([g]) => !q || g.toLowerCase().includes(q))
-            .map(([g, l]) => [g, l, agg(l)])
+            .map(([g, l]) => [g, l, agg(profitL ? (P[g] || []) : l)])
             .sort((a, b) => b[2].profit - a[2].profit);
         if (!rows.length)
           return `<div class="card mut">Пока пусто. Нажмите «Добавить» и запишите первую продажу.</div>`;
@@ -3061,7 +3087,8 @@
           .join("");
         const inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym)),
           list = view === "all" ? inP : inP.filter((o) => o.marketplace === view),
-          T = agg(list);
+          profitList = allT && view !== "all" ? marketplaceProfitOps(list, view) : list,
+          T = agg(profitList);
         $("#gl").innerHTML = [...new Set([...ops.map((o) => o.game).filter(Boolean), ...GAMES])]
           .map((g) => `<option value="${esc(g)}">`)
           .join("");
@@ -3098,10 +3125,10 @@
           .map((s) => `<div class="st"><span>${s[0]}</span><b>${s[1]}</b></div>`)
           .join("");
         $("#lt").textContent = view === "all" ? "Прибыль по играм" : "Прибыль по играм · " + view;
-        $("#games").innerHTML = gamesHTML(list, view === "all");
+        $("#games").innerHTML = gamesHTML(list, view === "all", allT && view !== "all" ? profitList : null);
         const sl = list.filter((o) => o.type === "sale"),
           byD = {};
-        list.forEach((o) => (byD[o.date] ??= []).push(o));
+        profitList.forEach((o) => (byD[o.date] ??= []).push(o));
         const dp = Object.entries(byD)
             .map(([d, l]) => [d, agg(l).profit])
             .sort((a, b) => b[1] - a[1]),
@@ -3109,9 +3136,12 @@
         $("#kpi").innerHTML = list.length
           ? `<b>Коротко</b><div class="kpi"><div><small>Продаж</small><b>${sl.length}</b></div><div><small>Средний чек</small><b>${fmt(sl.length ? T.sales / sl.length : 0)}</b></div><div><small>Прибыль за активный день</small><b>${fmt(T.profit / dp.length)}</b></div><div><small>Лучший день</small><b>${dm(best[0])} · ${fmt(best[1])}</b></div></div>`
           : "";
-        bwRender(list);
+        bwRender(profitList);
         fcRender(list);
-        const PA = keys.map((k) => [k, agg(inP.filter((o) => o.marketplace === k)).profit]),
+        const PA = keys.map((k) => {
+          const platformOps = inP.filter((o) => o.marketplace === k);
+          return [k, agg(allT ? marketplaceProfitOps(platformOps, k) : platformOps).profit];
+        }),
           pmx = Math.max(1, ...PA.map((x) => x[1]));
         $("#plb").innerHTML =
           inP.length && view === "all"
@@ -4046,7 +4076,7 @@
         pickerOpen: false,
       };
       const saveChartRange = () => localStorage.setItem("chartRange2", JSON.stringify({ mode: chartRange.mode, start: chartRange.start, end: chartRange.end, selectedDates: [...chartRange.selectedDates] }));
-      const chartBaseOps = () => ops.filter((o) => view === "all" || o.marketplace === view);
+      const chartBaseOps = () => { const list = ops.filter((o) => view === "all" || o.marketplace === view); return allT && view !== "all" ? marketplaceProfitOps(list, view) : list; };
       const chartWindow = (base) => {
         const now = today();
         let start, end = now;

@@ -1922,7 +1922,7 @@
         </div>
         <div id="qtyW" class="set" hidden>
           <label for="qty">Количество единиц</label>
-          <input id="qty" type="number" inputmode="decimal" min="0.0001" step="any" value="1" placeholder="Например, 1000" />
+          <input id="qty" type="number" inputmode="decimal" min="0.0001" step="0.0001" value="1" placeholder="Например, 1000" />
           <small class="mut">При закупке укажи общий объём, при продаже — сколько из него продал. Укажи одинаковую категорию и описание товара, чтобы связать одну закупку с продажами на разных площадках.</small>
           <p class="mut" id="inventoryHint">Заполни категорию и описание товара, чтобы увидеть доступный остаток.</p>
           <button type="button" id="inventoryCloseBtn" class="pill" hidden>Закрыть остаток без выручки</button>
@@ -3148,8 +3148,53 @@
       const QTY_VALUE_RE = /\[\[FZQTY:([0-9]+(?:\.[0-9]+)?)\]\]/;
       const visibleNote = (note) => String(note || "").replace(FP_MARK_RE, "").replace(QTY_MARK_RE, "").replace(/\s{2,}/g, " ").trim();
       const hasFPMarker = (note) => /\[\[FZFP:[a-f0-9]{8,64}:[^:\]]+:[a-z-]+\]\]/.test(String(note || ""));
-      const opQty = (o) => { const m = String(o?.note || "").match(QTY_VALUE_RE); const n = Number(m?.[1] ?? 1); return Number.isFinite(n) && n > 0 ? n : 1; };
+      function qtyFromLegacyNote(note) {
+        const raw = visibleNote(note);
+        const compactTokens = raw.match(/(?:^|\D)(\d+(?:[.,]\d+)?)\s*[kк]\s*(?:токен(?:ы|ов|а)?|tokens?)/i);
+        if (compactTokens) return Math.max(.0001, Number(compactTokens[1].replace(",", ".")) * 1000);
+        const tokenCount = raw.match(/(?:^|\D)(\d+(?:[.,]\d+)?)\s*(?:токен(?:ы|ов|а)?|tokens?)/i);
+        if (tokenCount) return Math.max(.0001, Number(tokenCount[1].replace(",", ".")));
+        const itemCount = raw.match(/(?:^|\D)(\d+(?:[.,]\d+)?)\s*(?:шт\.?|штук[аи]?|pcs?|items?)/i);
+        if (itemCount) return Math.max(.0001, Number(itemCount[1].replace(",", ".")));
+        return 1;
+      }
+      const opQty = (o) => {
+        const m = String(o?.note || "").match(QTY_VALUE_RE);
+        const explicit = Number(m?.[1]);
+        if (Number.isFinite(explicit) && explicit > 0) return explicit;
+        const inferred = qtyFromLegacyNote(o?.note);
+        return Number.isFinite(inferred) && inferred > 0 ? inferred : 1;
+      };
       const noteWithQty = (note, qty) => [visibleNote(note), "[[FZQTY:" + Math.max(.0001, Math.round((Number(qty) || 1) * 10000) / 10000).toFixed(4).replace(/0+$/, "").replace(/\.$/, "") + "]]"].filter(Boolean).join(" ");
+      function cleanLegacyItemNote(note, type) {
+        const raw = visibleNote(note).trim();
+        if (!raw) return "";
+        if (/токен(?:ы|ов|а)?|tokens?/i.test(raw)) {
+          const tokenPrice = type === "purchase" ? raw.match(/(?:^|\s)(\d+[.,]\d{1,4})\s*$/) : null;
+          return tokenPrice ? "Токены · закупка по " + tokenPrice[1].replace(".", ",") + " ₽/ед." : "Токены";
+        }
+        const fixedTitles = [
+          [/DUAL\s+CRIMSON\s+ECLIPSE\s+SET/i, "Dual Crimson Eclipse Set"],
+          [/DUAL\s+DEMONIC\s+SCYTHE\s+SET/i, "Dual Demonic Scythe Set"],
+          [/DUAL\s+INFINITE\s+BLADE\s+SET/i, "Dual Infinite Blade Set"],
+          [/GOLD\s+CERBERUS/i, "Gold Cerberus"],
+          [/\bCERBERUS\b/i, "Cerberus"]
+        ];
+        for (const [pattern, title] of fixedTitles) {
+          if (pattern.test(raw)) {
+            const count = raw.match(/(\d+(?:[.,]\d+)?)\s*(?:шт\.?|штук[аи]?|pcs?|items?)/i);
+            return title + (count ? " · в описании указано " + count[1].replace(".", ",") + " шт." : "");
+          }
+        }
+        return raw
+          .replace(/(?:^|\s)АКЦИЯ(?:\s|$)/giu, " ")
+          .replace(/ПРИЯТНАЯ\s+ЦЕНА/giu, " ")
+          .replace(/[^\p{L}\p{N} .,·:+-]/gu, " ")
+          .replace(/\s*,\s*/g, " · ")
+          .replace(/\s{2,}/g, " ")
+          .replace(/^(?:·\s*)+|(?:\s*·)+$/g, "")
+          .trim();
+      }
       function inventoryItemKey(note) {
         if (hasFPMarker(note)) return "";
         const raw = String(visibleNote(note || "")).normalize("NFKC").toLocaleLowerCase("ru-RU");
@@ -3830,6 +3875,11 @@
         $("#dAdd").showModal();
         setTimeout(() => $("#amount").focus(), 60);
       }
+      $("#qty").addEventListener("blur", () => {
+        const input = $("#qty"), value = Number(input.value);
+        if (Number.isFinite(value) && value > 0) input.value = String(Math.max(.0001, Math.round(value * 10000) / 10000));
+        hint();
+      });
       $("#f").oninput = hint;
       $("#f").onchange = (e) => {
         if (editId && ["mp", "type", "wm"].includes(e.target.name)) $("#rate").value = "";
@@ -4020,7 +4070,13 @@
         const amount = Number(o.amount), fee = Number(o.fee ?? 0);
         if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !marketplace || !BACKUP_TYPES.has(type) || !Number.isFinite(amount) || !Number.isFinite(fee))
           throw new Error("В копии есть запись с неверной датой, площадкой, типом или суммой.");
-        return { date, marketplace, game: String(o.game || ""), type, amount: r2(amount), fee: r2(fee), note: String(o.note || "") };
+        const originalNote = String(o.note || "");
+        let note = originalNote;
+        if (["sale", "purchase"].includes(type) && !QTY_VALUE_RE.test(originalNote) && !hasFPMarker(originalNote)) {
+          const qty = qtyFromLegacyNote(originalNote);
+          note = noteWithQty(cleanLegacyItemNote(originalNote, type), qty);
+        }
+        return { date, marketplace, game: String(o.game || ""), type, amount: r2(amount), fee: r2(fee), note };
       }
       async function replaceOperationsFromBackup(rows) {
         if (!sb) {

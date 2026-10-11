@@ -3750,7 +3750,7 @@
         let pending=LS("streakPendingRecovery",null);
         if(pending&&(!pending.detectedAt||streakDayDiff(pending.detectedAt,t)>1||streakDayDiff(pending.detectedAt,t)<0))pending=null;
         const chargeCount=streakCharges();
-        if(!pending&&latest&&gap===2&&priorRun>=3&&chargeCount>0){
+        if(!pending&&latest&&gap===2&&priorRun>=2&&chargeCount>0){
           pending={from:latest,missed:shiftStreakDate(latest,1),detectedAt:t,previousRun:priorRun};
         }
         if(pending&&chargeCount<=0)pending=null;

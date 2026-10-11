@@ -3134,7 +3134,7 @@
           .join("");
         const inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym)),
           list = view === "all" ? inP : inP.filter((o) => o.marketplace === view),
-          profitList = allT && view !== "all" ? marketplaceProfitOps(list, view) : list,
+          profitList = view !== "all" ? marketplaceProfitOps(list, view) : list,
           T = agg(profitList);
         $("#gl").innerHTML = [...new Set([...ops.map((o) => o.game).filter(Boolean), ...GAMES])]
           .map((g) => `<option value="${esc(g)}">`)
@@ -3172,7 +3172,7 @@
           .map((s) => `<div class="st"><span>${s[0]}</span><b>${s[1]}</b></div>`)
           .join("");
         $("#lt").textContent = view === "all" ? "Прибыль по играм" : "Прибыль по играм · " + view;
-        $("#games").innerHTML = gamesHTML(list, view === "all", allT && view !== "all" ? profitList : null);
+        $("#games").innerHTML = gamesHTML(list, view === "all", view !== "all" ? profitList : null);
         const sl = list.filter((o) => o.type === "sale"),
           byD = {};
         profitList.forEach((o) => (byD[o.date] ??= []).push(o));
@@ -3187,7 +3187,7 @@
         fcRender(list);
         const PA = keys.map((k) => {
           const platformOps = inP.filter((o) => o.marketplace === k);
-          return [k, agg(allT ? marketplaceProfitOps(platformOps, k) : platformOps).profit];
+          return [k, agg(marketplaceProfitOps(platformOps, k)).profit];
         }),
           pmx = Math.max(1, ...PA.map((x) => x[1]));
         $("#plb").innerHTML =
@@ -4139,7 +4139,7 @@
         pickerOpen: false,
       };
       const saveChartRange = () => localStorage.setItem("chartRange2", JSON.stringify({ mode: chartRange.mode, start: chartRange.start, end: chartRange.end, selectedDates: [...chartRange.selectedDates] }));
-      const chartBaseOps = () => { const list = ops.filter((o) => view === "all" || o.marketplace === view); return allT && view !== "all" ? marketplaceProfitOps(list, view) : list; };
+      const chartBaseOps = () => { const list = ops.filter((o) => view === "all" || o.marketplace === view); return view !== "all" ? marketplaceProfitOps(list, view) : list; };
       const chartWindow = (base) => {
         const now = today();
         let start, end = now;

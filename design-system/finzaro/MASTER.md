@@ -75,3 +75,11 @@ All UI components must consume the existing theme variables (`--bg`, `--card`, `
 - When a sale asks for more units than logged stock, consume only available units, set the uncosted shortage on that sale, and continue normally. Don't create a negative lot, throw a validation error, or invent a cost for the missing part.
 - When an operation is deleted, recompute FIFO allocation and all dependent profit views, summaries, charts and stock-gap flags from the remaining source operations. Update the UI immediately after the server accepts deletion and retain the undo/restore path.
 - Keep cash/operations history distinct from profit-and-loss: purchase rows remain visible in the raw operation ledger, but not as direct P&L expenses.
+
+
+## Daily streak and check-in contract
+- The fire streak is a **confirmed daily finance review**, not an automatic visit counter. Each day can be marked once; the user explicitly confirms they reviewed income, expenses, and inventory/stock.
+- Preserve the previous `visits` history during migration so a user's existing run and best streak are not discarded. New streak entries are stored separately under `streakCheckins`. A missed day resets the active run but never erases the best record.
+- The streak window should make the current day actionable: if yesterday was checked but today is not, show the active run and a clear check-in call to action.
+- The streak dialog should stay useful and restrained: one daily check-in, last-7-day activity strip, a real 7-day financial summary, current progress, and a collapsed milestone history. Avoid a large grid of fake cosmetic rewards.
+- The weekly summary should show actual income, expenses and profit from the same P&L/FIFO pipeline as the dashboard; compare it with the previous seven calendar days. The streak itself must not require a sale—review-only days count.

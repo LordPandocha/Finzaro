@@ -3305,7 +3305,7 @@
         if (available > .0000001) return "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед." : "") + (usesGeneric ? " · использованы закупки без отдельного названия позиции" : "") + ".";
         const latestClosed = (state.closuresByKey.get(key) || []).at(-1);
         return latestClosed
-          ? "Остаток этой позиции закрыт вручную " + String(latestClosed.date || "").split("-").reverse().join(".") + " (" + Number(latestClosed.closedQty || 0).toLocaleString("ru-RU") + " ед.) без добавления выручки в отчёт."
+          ? "Остаток этой позиции списан " + String(latestClosed.date || "").split("-").reverse().join(".") + " (" + Number(latestClosed.closedQty || 0).toLocaleString("ru-RU") + " ед.). Выручки нет; себестоимость списанных единиц учитывается в расходах этой даты."
           : "Похожей закупки с таким же описанием пока нет — себестоимость для площадки автоматически распределить не из чего.";
       }
       $("#inventoryCloseBtn").onclick = async () => {

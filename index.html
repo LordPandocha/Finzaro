@@ -1381,7 +1381,7 @@
       @keyframes best { 0% { opacity: 0; transform: translateX(-50%) scale(.3) rotate(-8deg); } 15% { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(3deg); } 25%, 80% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) translateY(-30px); } }
       /* иконки игр */
       .gi { position:relative; overflow:hidden; }
-      .gi.brand .brand-logo, .gi.roblox-game .rbx-logo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:6px; }
+      .gi.brand .brand-logo, .gi.roblox-game .rbx-logo { position:absolute; inset:0; z-index:1; width:100%; height:100%; object-fit:contain; padding:6px; }
       .gi.brand .brand-fallback, .gi.roblox-game .brand-fallback { position:relative; z-index:0; font-size:11px; font-weight:850; }
       .gi.roblox-game .rbx-logo { padding:0; object-fit:cover; }
       .gi { display: inline-grid; place-items: center; width: 1.55em; height: 1.55em; min-width: 1.55em; vertical-align: -.4em; margin-right: .45em; flex: none; transition: transform .3s cubic-bezier(.3,1.6,.5,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
@@ -4233,13 +4233,13 @@
           el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%"><defs><linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".5"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)" stroke-dasharray="4"/><polygon points="${X(0)},${Y(0)} ${pts} ${X(N - 1)},${Y(0)}" fill="url(#gA)"/><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` +
             c.map((v, i) => {
               const label = `${S[i].d.slice(8)}.${S[i].d.slice(5, 7)}.${S[i].d.slice(0, 4)}`,
-                meta = "Продажи: " + fmt(S[i].s) + " · закупки: " + fmt(S[i].purch) + " · комиссия: " + fmt(S[i].comm) + " · прочее: " + fmt(S[i].other) + " · итог дня: " + fmt(S[i].p) + (S[i].p < 0 ? " · расходы превысили доход на " + fmt(-S[i].p) : " · после расходов осталось " + fmt(S[i].p)),
-                aria = label + ": чистый результат за день " + fmt(S[i].p);
+                meta = (!selectedDates.size || selectedDates.has(S[i].d)) ? ("Продажи: " + fmt(S[i].s) + " · закупки: " + fmt(S[i].purch) + " · комиссия: " + fmt(S[i].comm) + " · прочее: " + fmt(S[i].other) + " · итог дня: " + fmt(S[i].p) + (S[i].p < 0 ? " · расходы превысили доход на " + fmt(-S[i].p) : " · после расходов осталось " + fmt(S[i].p))) : ("Вне выделенного промежутка · фактический результат дня: " + fmt(S[i].p)),
+                aria = label + ((!selectedDates.size || selectedDates.has(S[i].d)) ? ": чистый результат за день " : ": вне выбранного промежутка, факт ") + fmt(S[i].p);
               const left = i === 0 ? 10 : X(i) - step / 2, right = i === N - 1 ? W - 10 : X(i) + step / 2;
               return `<rect x="${left}" y="12" width="${Math.max(1, right - left)}" height="${H - 34}" fill="${selectedDates.has(S[i].d) ? "var(--acc)" : "transparent"}" fill-opacity="${selectedDates.has(S[i].d) ? 0.14 : 0}" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
                 (S[i].p ? `<circle class="chart-dot" data-chart-key="${S[i].d}" cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--acc)" pointer-events="none"/>` : "");
             }).join("") +
-            `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Сумма за период ${fmt(c.reduce((sum, value) => sum + value, 0))} · макс. день ${fmt(Math.max(...c))}</text></svg>`;
+            `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Сумма за период ${fmt(c.reduce((sum, value) => sum + value, 0))} · макс. день ${fmt(Math.max(...S.filter((x) => !selectedDates.size || selectedDates.has(x.d)).map((x) => x.p)))}</text></svg>`;
         } else if (ch.t === "bar") {
           el.innerHTML = vbars(S.map((x) => ({ l: x.d.slice(8), key: x.d, label: `${x.d.slice(8)}.${x.d.slice(5, 7)}.${x.d.slice(0, 4)}`, v: x.p, selected: x.selected, hasSelection: selectedDates.size > 0, meta: "Прибыль за этот день" }))) + '<small class="mut">Наведи курсор или нажми на столбец — увидишь точную сумму и дату</small>';
         } else if (ch.t === "wk") {

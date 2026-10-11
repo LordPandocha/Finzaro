@@ -3958,6 +3958,19 @@
           const gameName = String(r.game_name || "").trim(), sectionName = String(r.section_name || "").trim();
           const game = sectionName && !genericSections.has(sectionName.toLowerCase()) ? sectionName : sectionName && gameName ? gameName + " · " + sectionName : gameName || sectionName || "FunPay";
           const party = role === "buyer" ? (r.seller_name || "продавец") : (r.buyer_name || "покупатель");
+          let typeData = {};
+          try { typeData = JSON.parse(r.type_data || "{}"); } catch (_) {}
+          const importedQtyValue = fpNumber(typeData.amount);
+          const importedQty = importedQtyValue > 0 ? importedQtyValue : 1;
+          const itemDetails = [
+            r.item_name || r.product_name || r.product_title || r.offer_title || r.title || "",
+            r.player ? "Игровой ник: " + r.player : "",
+            r.server_name ? "Сервер: " + r.server_name : "",
+            r.side_name ? "Сторона: " + r.side_name : "",
+            role === "buyer" ? "Продавец: " + party : "Покупатель: " + party,
+            "Заказ #" + uid
+          ].map((value) => String(value || "").trim()).filter(Boolean);
+          const productNote = itemDetails.join(" · ") || (role === "buyer" ? "Закупка товара" : "Продажа товара");
           const refund = status === "refunded", fee = role === "seller" ? r2(amount * plan.feeRate / 100) : 0;
           const baseType = role === "buyer" ? "purchase" : "sale", orderOps = [];
           const makeOp = (part, type, date, value, opFee, extra) => {
@@ -3965,7 +3978,8 @@
             const unique = uid + ":" + part;
             if (plannedParts.has(unique) || fpHasOrderPart(uid, part)) return false;
             plannedParts.add(unique);
-            const note = "FunPay · " + extra + " · заказ #" + uid + (partial ? " · частичный возврат указан в экспорте, сумма не дана" : "") + " " + fpMarker(source.hash, uid, part);
+            const isMainOperation = part === "purchase" || part === "sale";
+            const note = productNote + (isMainOperation ? "" : " · " + extra) + (partial ? " · частичный возврат указан в экспорте, сумма не дана" : "") + " [[FZQTY:" + importedQty + "]] " + fpMarker(source.hash, uid, part);
             orderOps.push({ marketplace: "FunPay", date, game, type, amount: r2(value), fee: r2(opFee), note });
             return true;
           };
@@ -4644,7 +4658,10 @@
       /* превью иконки под полем «Игра» в форме */
       $("#game").insertAdjacentHTML("afterend", '<span id="gPrev"></span>');
       const gPrev = () => ($("#gPrev").innerHTML = $("#game").value.trim() ? gi($("#game").value) + esc($("#game").value.trim()) : "");
-      $("#f").addEventListener("input", (e) => e.target.id === "game" && gPrev());
+      $("#f").addEventListener("input", (e) => {
+        if (e.target.id === "game") gPrev();
+        if (["game","note","qty"].includes(e.target.id)) hint();
+      });
       $("#f").addEventListener("change", gPrev);
       $("#chips").addEventListener("click", () => setTimeout(gPrev, 0));
       $("#bAdd").addEventListener("click", () => setTimeout(gPrev, 30));

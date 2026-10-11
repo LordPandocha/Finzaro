@@ -2024,6 +2024,18 @@
         .streak-pill .streak-flame,.streak-orb,.streak-achievement.unlocked::after,.fc-chart .fc-bar.fc-enter{animation:none!important}
         .sidebar-link,.dash-goal-track i,.streak-achievement,.recent-item{transition:none!important}
       }
+      .pb:hover,.pb:focus-visible{position:relative;background:#10253a;box-shadow:inset 3px 0 #20d9c4;transform:translateX(2px);outline-offset:1px}
+      .dashboard-widgets #plb .pb{border-radius:8px;transition:background .16s,transform .16s,box-shadow .16s}
+      .bw .bwt{cursor:pointer;transition:transform .18s,border-color .18s,background .18s}
+      .bw .bwt:hover,.bw .bwt:focus-visible{transform:translateY(-2px);border-color:#348a89;background:linear-gradient(145deg,#102a3a,#0b192a);outline:2px solid #20d9c455;outline-offset:2px}
+      .op:hover{background:color-mix(in srgb,var(--acc) 7%,transparent)}
+      .op .x{min-width:32px;min-height:32px;border-radius:8px}
+      .op .x:hover,.op .x:focus-visible{background:color-mix(in srgb,var(--acc) 15%,var(--c2));color:var(--tx);outline:2px solid color-mix(in srgb,var(--acc) 48%,transparent);outline-offset:0}
+      .streak-pill[data-level="7"] .streak-flame,.streak-pill[data-level="14"] .streak-flame{filter:drop-shadow(0 0 10px #ff8b4ad9)}
+      .streak-pill[data-level="30"] .streak-flame,.streak-pill[data-level="60"] .streak-flame{filter:drop-shadow(0 0 12px #ffc064)}
+      .streak-pill[data-level="100"] .streak-flame,.streak-pill[data-level="180"] .streak-flame,.streak-pill[data-level="365"] .streak-flame{filter:drop-shadow(0 0 14px #b89cff)}
+      #dStreak[data-level="30"] .streak-orb,#dStreak[data-level="60"] .streak-orb{box-shadow:0 0 34px #ff9f4e75}
+      #dStreak[data-level="100"] .streak-orb,#dStreak[data-level="180"] .streak-orb,#dStreak[data-level="365"] .streak-orb{box-shadow:0 0 38px #ad8eff7a;border:1px solid #c0adff}
     </style>
   </head>
   <body>
@@ -3256,6 +3268,7 @@
         const oldBest=Number(LS("bestStreak",0))||0,best=Math.max(n,oldBest);if(best!==oldBest)localStorage.setItem("bestStreak",String(best));
         currentStreak=n;bestStreakValue=best;
         const el=$("#streak"),plural=n===1?"день":n>=2&&n<=4?"дня":"дней",rank=STREAK_LEVELS.slice().reverse().find(x=>n>=x.days)||STREAK_LEVELS[0];
+        el.dataset.level=String(rank.days);
         el.title="Открой достижения серии огоньков";el.setAttribute("aria-label",n+" "+plural+" подряд. Лучший результат: "+best+" дней.");
         el.innerHTML='<span class="streak-flame" aria-hidden="true">🔥</span><span class="streak-copy"><b>'+n+' '+plural+'</b><small>'+esc(rank.title)+'</small></span><span class="streak-best">Рекорд '+best+'</span>';
         const seen=LS("streakMilestones",[]),newly=STREAK_LEVELS.filter(x=>n>=x.days&&!seen.includes(x.days));
@@ -3779,6 +3792,7 @@
       }
       function renderStreakDialog(){
         const plural=currentStreak===1?"день":currentStreak>=2&&currentStreak<=4?"дня":"дней",next=STREAK_LEVELS.find(x=>x.days>currentStreak),rank=STREAK_LEVELS.slice().reverse().find(x=>currentStreak>=x.days)||STREAK_LEVELS[0];
+        $("#dStreak").dataset.level=String(rank.days);
         $("#streakDialogCount").textContent=currentStreak+" "+plural;$("#streakDialogRank").textContent=rank.title;
         $("#streakProgressCopy").textContent=next?'До «'+next.title+'» осталось '+(next.days-currentStreak)+' дн. Рекорд серии — '+bestStreakValue+' дн.':'Коллекция пройдена на 100%. Рекорд — '+bestStreakValue+' дн.';
         const seen=LS("streakMilestones",[]);

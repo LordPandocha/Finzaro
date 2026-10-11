@@ -1793,6 +1793,237 @@
       .sidebar-streak-wrap{margin-top:auto}
       .sidebar-footer{margin-top:0}
       @media(max-width:680px){.sidebar-streak-wrap{grid-column:2;grid-row:1;margin:0;padding:0;border:0;background:none}.sidebar-footer{display:none}}
+
+      /* Usability pass: permanent side rail on every viewport, readable density, and visible feedback. */
+      html,body{overflow-x:hidden;max-width:100%}
+      .app-shell{min-width:0}
+      .app-sidebar{align-self:start;min-height:100vh}
+      .sidebar-streak-wrap{margin-top:auto}
+      .sidebar-footer{margin-top:0}
+      .sidebar-link{min-height:46px}
+      .sidebar-link:focus-visible,.streak-pill:focus-visible,.sidebar-theme:focus-visible{outline:2px solid #36dcca;outline-offset:2px}
+      .page-heading p{font-size:.9rem}
+      .metric-head{font-size:.9rem}
+      .metric-foot{font-size:.8rem;line-height:1.35}
+      .metric-delta{font-size:.82rem}
+      .metric-delta small,.metric-foot>small{font-size:.76rem}
+      .metric-meta{font-size:.78rem}
+      .fc-head small{font-size:.76rem}
+      .fc-days{font-size:.8rem}
+      .fc-total-block>small,.fc-pace-block small{font-size:.82rem}
+      .fc-pace-block b{font-size:.95rem}
+      .fc-chart-top{font-size:.84rem}
+      .fc-bottomline{font-size:.8rem;line-height:1.45}
+      .fc-chart-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#315171 #0b1929;-webkit-overflow-scrolling:touch}
+      .fc-chart{display:block;width:100%;height:auto;min-width:0}
+      .fc-chart .fc-bar{cursor:help;transition:filter .16s,opacity .16s;outline:none}
+      .fc-chart .fc-bar:hover,.fc-chart .fc-bar:focus{filter:brightness(1.3);opacity:1!important}
+      .fc-chart .fc-bar.fc-enter{transform-box:fill-box;transform-origin:center bottom;animation:fcBarIn .58s cubic-bezier(.2,.8,.2,1) both}
+      .fc-chart .fc-bar.fc-bar-negative.fc-enter{transform-origin:center top}
+      .fc-chart .fc-bar-forecast.fc-enter{animation-duration:.48s}
+      @keyframes fcBarIn{from{transform:scaleY(.12);opacity:.25}to{transform:scaleY(1);opacity:var(--bar-opacity,1)}}
+      .dash-widget-head b{font-size:.96rem}
+      .dash-widget-head small{font-size:.78rem}
+      .widget-link,.widget-more{font-size:.8rem}
+      .pb{font-size:.85rem;min-height:39px}
+      .platform-number b{font-size:.84rem}
+      .platform-number small{font-size:.76rem}
+      .dash-legend{font-size:.8rem}
+      .dash-trend-chart .trend-axis{font-size:12px}
+      .recent-item{min-height:57px;padding:10px 4px;border-radius:8px;transition:background .16s,border-color .16s,transform .16s}
+      .recent-item:hover,.recent-item:focus-visible{background:#10253a;box-shadow:inset 3px 0 #20d9c4;transform:translateX(2px)}
+      .recent-copy b{font-size:.86rem}
+      .recent-copy small{font-size:.76rem;line-height:1.35}
+      .recent-value{font-size:.84rem}
+      .recent-value small{font-size:.72rem}
+      #kpi .kpi small{font-size:.76rem}
+      #kpi .kpi b{font-size:.88rem}
+      .dash-goal-value strong{font-size:1.5rem}
+      .dash-goal-value span{font-size:.84rem}
+      .dash-goal-meta,.dash-streak-next,.dash-streak-detail small{font-size:.78rem}
+      .dash-streak-detail b{font-size:.88rem}
+      .dash-streak-big{font-size:1.9rem}
+      .streak-pill .streak-flame{animation:streakWink 2.4s ease-in-out infinite;transform-origin:center bottom}
+      @keyframes streakWink{0%,100%{transform:rotate(-4deg) scale(1);filter:drop-shadow(0 0 2px #ff8b4a40)}50%{transform:rotate(4deg) scale(1.11);filter:drop-shadow(0 0 9px #ff8b4ad9)}}
+      .streak-pill.streak-level-up .streak-flame{animation:streakLevelUp .6s ease-in-out 2}
+      @keyframes streakLevelUp{0%,100%{transform:scale(1) rotate(0)}30%{transform:scale(1.4) rotate(-12deg)}70%{transform:scale(1.35) rotate(12deg)}}
+      .streak-progress-track{height:8px;margin:9px 0 6px;overflow:hidden;border-radius:99px;background:#172f47}
+      .streak-progress-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ff8d44,#ffd274);box-shadow:0 0 13px #ff9e4c55;transition:width .4s ease}
+      #streakProgressCopy{font-size:.88rem;line-height:1.45}
+      #streakProgressCopy small{font-size:.78rem;color:#91aac7}
+      #streakProgressCopy strong{color:#ffbd79}
+      .streak-achievements{gap:10px}
+      .streak-achievement{position:relative;min-height:106px;align-items:flex-start;padding:13px;gap:11px;overflow:hidden;transition:transform .18s,border-color .18s,opacity .18s}
+      .streak-achievement.unlocked{opacity:1;filter:none;border-color:#385c60;background:linear-gradient(135deg,#102e36,#0c1c2d)}
+      .streak-achievement.unlocked::after{position:absolute;content:"";inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 15%,#ffffff08 40%,transparent 65%);transform:translateX(-100%);animation:badgeShimmer 3.4s ease-in-out infinite}
+      .streak-achievement:hover{transform:translateY(-2px);border-color:#5f9a9c}
+      @keyframes badgeShimmer{to{transform:translateX(100%)}}
+      .achievement-icon{width:38px;height:38px;flex:0 0 38px;font-size:1.05rem;border:1px solid #4e493b;background:linear-gradient(145deg,#382a20,#1a2430)}
+      .unlocked .achievement-icon{background:linear-gradient(145deg,#8b4b22,#47252a);color:#ffda99;border-color:#b86a3c;box-shadow:0 0 18px #ff9e4c1a}
+      .achievement-copy{position:relative;z-index:1;min-width:0;display:grid;gap:4px}
+      .streak-achievement b{font-size:.9rem}
+      .streak-achievement small{font-size:.78rem}
+      .achievement-reward{font-size:.76rem;line-height:1.35;color:#ffcb89;overflow-wrap:anywhere}
+      .streak-achievement em{font-size:.68rem;letter-spacing:.06em}
+      .streak-achievement.locked .achievement-reward{color:#8198b5}
+      .streak-achievement.next-up{border-color:#b47743;box-shadow:0 0 0 1px #b4774326}
+      .streak-achievement.next-up em{color:#ffc27d}
+      .streak-dialog-hero{position:relative;overflow:hidden}
+      .streak-orb{animation:streakOrb .95s ease-in-out infinite alternate}
+      @keyframes streakOrb{from{transform:rotate(-5deg) scale(.98);filter:saturate(.9)}to{transform:rotate(5deg) scale(1.04);filter:saturate(1.25)}}
+      .sidebar-streak-wrap .sidebar-kicker{font-size:.72rem}
+      .sidebar-theme{min-height:44px;font-size:.88rem}
+      .metric-icon,.recent-icon{flex-shrink:0}
+      @media(max-width:1250px) and (min-width:681px){
+        .app-shell{grid-template-columns:190px minmax(0,1fr)}
+        .app-main .wrap{padding-left:16px;padding-right:16px}
+        .dashboard-widgets{grid-template-columns:repeat(2,minmax(0,1fr))}
+        #dashRecentWidget{grid-column:1/-1}
+        .metric-head{font-size:.82rem}
+        .recent-copy b{font-size:.82rem}
+        .recent-copy small{font-size:.75rem}
+      }
+      @media(max-width:1020px) and (min-width:681px){
+        .app-shell{grid-template-columns:68px minmax(0,1fr)}
+        .app-sidebar{position:sticky;top:0;width:auto;min-width:0}
+        .brand-lockup{justify-content:center;padding:0}
+        .brand-lockup>span,.sidebar-link>span:last-child,.sidebar-footer .sidebar-kicker,.sidebar-theme>span:not(.side-icon),.sidebar-note{display:none!important}
+        .sidebar-nav{width:100%}
+        .sidebar-link{justify-content:center;padding:10px 6px}
+        .sidebar-streak-wrap{padding:8px 3px}
+        .streak-pill{justify-content:center}
+        .streak-copy,.streak-best{display:none}
+        .sidebar-theme{justify-content:center;padding:8px 4px}
+      }
+      @media(max-width:680px){
+        .app-shell{display:block;padding-left:60px}
+        .app-sidebar{position:fixed;inset:0 auto 0 0;width:60px;height:100dvh;min-height:100dvh;display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:10px 5px max(10px,env(safe-area-inset-bottom));overflow:hidden;border-right:1px solid #213852;border-bottom:0;z-index:80;background:linear-gradient(180deg,#071527,#06101c)}
+        .brand-lockup{display:flex;justify-content:center;align-items:center;gap:0;padding:0}
+        .brand-lockup img{width:38px;height:38px;flex:0 0 38px}
+        .brand-lockup>span{display:none!important}
+        .sidebar-nav{display:flex;flex:1 1 auto;flex-direction:column;align-items:stretch;gap:5px;width:100%;min-height:0;overflow-y:auto;overflow-x:hidden;padding:7px 0;scrollbar-width:none}
+        .sidebar-nav::-webkit-scrollbar{display:none}
+        .sidebar-link{position:relative;display:flex;flex:0 0 46px;align-items:center;justify-content:center;width:100%;min-height:46px;height:46px;padding:0;gap:0;border-radius:11px}
+        .sidebar-link>span:last-child{display:none!important}
+        .sidebar-link .side-icon{width:22px;height:22px;flex:0 0 22px}
+        .sidebar-link .side-icon svg{width:21px;height:21px}
+        .sidebar-streak-wrap{flex:0 0 auto;margin-top:0;padding:8px 3px;border-radius:12px}
+        .sidebar-streak-wrap .sidebar-kicker{display:none}
+        .streak-pill{min-height:46px;justify-content:center;gap:0}
+        .streak-pill .streak-flame{font-size:1.35rem}
+        .streak-copy,.streak-best{display:none!important}
+        .sidebar-footer{display:grid!important;flex:0 0 auto;gap:0;margin-top:0}
+        .sidebar-theme{justify-content:center;width:100%;min-height:46px;padding:0}
+        .sidebar-theme>span:not(.side-icon){display:none!important}
+        .sidebar-note{display:none!important}
+        .app-main .wrap{padding:13px 10px max(94px,calc(80px + env(safe-area-inset-bottom)))}
+        .top{align-items:flex-start;gap:8px;margin-bottom:11px}
+        .page-heading{gap:4px}
+        .page-heading h1{font-size:clamp(1.08rem,5vw,1.28rem);line-height:1.15}
+        .page-heading p{font-size:.81rem;line-height:1.4}
+        .top .row{max-width:106px;gap:3px}
+        .top .ic{width:32px;height:32px;min-width:32px}
+        .top .row .ic:nth-child(n+4){display:none}
+        .bar2{flex-wrap:wrap;gap:8px}
+        .month{max-width:100%;gap:0}
+        .month b{min-width:0;width:88px;font-size:.82rem}
+        .month .ic{width:34px;height:34px;min-width:34px}
+        #allT{min-height:38px;font-size:.78rem}
+        #tabs{margin-bottom:10px;gap:6px}
+        #tabs .pill{min-height:38px;font-size:.79rem;padding:7px 10px}
+        .dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:9px 0 12px}
+        .dash-metric{min-height:108px;padding:11px 10px;gap:9px;border-radius:12px}
+        .metric-head{font-size:.78rem;line-height:1.3;align-items:flex-start}
+        .metric-icon{width:26px;height:26px;flex-basis:26px}
+        .metric-icon svg{width:15px;height:15px}
+        .metric-value{font-size:clamp(1rem,4.9vw,1.18rem);line-height:1.2}
+        .metric-foot{font-size:.73rem;align-items:flex-start}
+        .metric-delta{font-size:.77rem}
+        .metric-delta small,.metric-foot>small{font-size:.72rem}
+        .fc{padding:11px 9px;margin-bottom:11px;border-radius:12px}
+        .fc-head{align-items:flex-start;gap:7px}
+        .fc-head h3{font-size:1rem;line-height:1.25}
+        .fc-head small{font-size:.72rem;letter-spacing:.08em}
+        .fc-days{max-width:124px;padding:6px 7px;font-size:.72rem;white-space:normal;text-align:center}
+        .fc-overview{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+        .fc-total-block strong{font-size:1.85rem}
+        .fc-pace-block{display:grid;grid-template-columns:8px minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px}
+        .fc-pace-block b{font-size:.95rem}
+        .fc-chart-top{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.78rem}
+        .fc-legend{display:flex;flex-wrap:wrap;gap:8px}
+        .fc-chart{width:760px;min-width:760px;max-width:none}
+        .fc-bottomline{display:grid;gap:6px;font-size:.78rem}
+        .fc-empty{align-items:flex-start;gap:10px;padding:19px 3px}
+        .fc-empty-copy{flex-basis:calc(100% - 55px)}
+        .fc-empty-copy small{font-size:.84rem;line-height:1.45}
+        .fc-empty button{margin-left:54px;min-height:44px}
+        .dashboard-widgets{grid-template-columns:minmax(0,1fr);gap:9px;margin-bottom:10px}
+        #dashRecentWidget{grid-column:auto}
+        .dashboard-widgets>.card,.dashboard-bottom-grid>.card{padding:12px 11px;border-radius:12px}
+        .dash-widget-head{margin-bottom:10px}
+        .dash-widget-head b{font-size:.93rem}
+        .dash-widget-head small{font-size:.77rem}
+        .widget-link,.widget-more{font-size:.78rem;min-height:30px}
+        .pb{grid-template-columns:minmax(72px,.8fr) minmax(30px,.7fr) minmax(81px,auto);gap:7px;min-height:44px;font-size:.8rem}
+        .platform-number{min-width:76px}
+        .platform-number b{font-size:.8rem}
+        .platform-number small{font-size:.72rem}
+        #dashTrendChart{min-height:130px}
+        .dash-legend{font-size:.78rem}
+        .recent-item{min-height:64px;grid-template-columns:30px minmax(0,1fr) auto;gap:7px;padding:9px 3px}
+        .recent-icon{width:29px;height:29px}
+        .recent-copy b{font-size:.81rem;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+        .recent-copy small{font-size:.74rem;line-height:1.35}
+        .recent-value{font-size:.78rem}
+        .recent-value small{font-size:.7rem}
+        .dashboard-bottom-grid{grid-template-columns:minmax(0,1fr);gap:9px;margin-bottom:14px}
+        .dashboard-bottom-grid #kpi,.dashboard-bottom-grid #bw{grid-column:auto}
+        #kpi .kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+        #kpi .kpi div{padding:10px}
+        #kpi .kpi small{font-size:.76rem}
+        #kpi .kpi b{font-size:.86rem}
+        .dash-goal-value strong{font-size:1.45rem}
+        .dash-goal-meta,.dash-streak-next{font-size:.78rem;line-height:1.45}
+        .dash-streak-big{font-size:1.65rem}
+        .streak-achievements{grid-template-columns:minmax(0,1fr);gap:8px}
+        .streak-achievement{min-height:86px;padding:11px}
+        .streak-achievement b{font-size:.9rem}
+        .streak-achievement small{font-size:.78rem}
+        .achievement-reward{font-size:.78rem}
+        .layout{grid-template-columns:minmax(0,1fr);gap:11px}
+        .layout>main{gap:11px}
+        .layout>aside{display:block}
+        #chCard{margin-top:0;padding:12px 10px}
+        #chT .pill,#chC .pill{min-height:40px;font-size:.8rem}
+        .op{font-size:.9rem}
+        .op .ell{font-size:.87rem}
+        .op small{font-size:.76rem}
+        .fab{bottom:max(13px,env(safe-area-inset-bottom));right:10px;left:auto;transform:none;min-height:48px;padding:10px 15px 10px 11px}
+        .fab:hover{transform:translateY(-2px)}
+        .undo-fab{left:auto;right:10px;bottom:72px;transform:none;max-width:calc(100vw - 82px);min-height:44px}
+        .undo-fab:hover{transform:translateY(-1px)}
+        #dStreak{width:min(560px,calc(100vw - 76px));margin:0 auto;max-height:90dvh;padding:13px}
+      }
+      @media(max-width:390px){
+        .app-shell{padding-left:56px}
+        .app-sidebar{width:56px;padding-left:4px;padding-right:4px}
+        .app-main .wrap{padding-left:8px;padding-right:8px}
+        .dashboard-kpis{gap:6px}
+        .dash-metric{padding:9px 8px}
+        .metric-head{gap:5px;font-size:.74rem}
+        .metric-value{font-size:1rem}
+        .metric-foot{font-size:.69rem}
+        .fc-chart{width:740px;min-width:740px}
+        .pb{grid-template-columns:minmax(63px,.8fr) minmax(23px,.5fr) minmax(75px,auto);gap:5px}
+        .platform-number{min-width:70px}
+        .recent-copy b{font-size:.78rem}
+        .recent-value{font-size:.74rem}
+        .top .row{max-width:92px}
+      }
+      @media(prefers-reduced-motion:reduce){
+        .streak-pill .streak-flame,.streak-orb,.streak-achievement.unlocked::after,.fc-chart .fc-bar.fc-enter{animation:none!important}
+        .sidebar-link,.dash-goal-track i,.streak-achievement,.recent-item{transition:none!important}
+      }
     </style>
   </head>
   <body>
@@ -1805,14 +2036,14 @@
           <span><b>Finzaro</b><small>Твой доход под контролем</small></span>
         </a>
         <nav class="sidebar-nav" aria-label="Разделы Finzaro">
-          <button type="button" class="sidebar-link is-active" data-side-nav="home"><span class="side-icon" data-i="chart"></span><span>Главная</span></button>
-          <button type="button" class="sidebar-link" data-side-nav="operations"><span class="side-icon" data-i="history"></span><span>Операции</span></button>
-          <button type="button" class="sidebar-link" data-side-nav="inventory"><span class="side-icon" data-i="purchase"></span><span>Склад</span></button>
-          <button type="button" class="sidebar-link" data-side-nav="analytics"><span class="side-icon" data-i="chart"></span><span>Аналитика</span></button>
-          <button type="button" class="sidebar-link" data-side-nav="marketplaces"><span class="side-icon" data-i="store"></span><span>Площадки</span></button>
-          <button type="button" class="sidebar-link" data-side-nav="calculator"><span class="side-icon" data-i="calc"></span><span>Калькулятор</span></button>
-          <button type="button" class="sidebar-link" data-side-nav="import"><span class="side-icon" data-i="dl"></span><span>Импорт / экспорт</span></button>
-          <button type="button" class="sidebar-link" data-side-nav="settings"><span class="side-icon" data-i="set"></span><span>Настройки</span></button>
+          <button type="button" class="sidebar-link is-active" data-side-nav="home" aria-label="Главная" title="Главная"><span class="side-icon" data-i="chart"></span><span>Главная</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="operations" aria-label="Операции" title="Операции"><span class="side-icon" data-i="history"></span><span>Операции</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="inventory" aria-label="Склад" title="Склад"><span class="side-icon" data-i="purchase"></span><span>Склад</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="analytics" aria-label="Аналитика" title="Аналитика"><span class="side-icon" data-i="chart"></span><span>Аналитика</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="marketplaces" aria-label="Площадки" title="Площадки"><span class="side-icon" data-i="store"></span><span>Площадки</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="calculator" aria-label="Калькулятор" title="Калькулятор"><span class="side-icon" data-i="calc"></span><span>Калькулятор</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="import" aria-label="Импорт и экспорт" title="Импорт / экспорт"><span class="side-icon" data-i="dl"></span><span>Импорт / экспорт</span></button>
+          <button type="button" class="sidebar-link" data-side-nav="settings" aria-label="Настройки" title="Настройки"><span class="side-icon" data-i="set"></span><span>Настройки</span></button>
         </nav>
         <div class="sidebar-streak-wrap"><small class="sidebar-kicker">ТВОЯ СЕРИЯ</small><button type="button" id="streak" class="streak-pill" aria-haspopup="dialog" aria-controls="dStreak"></button></div>
         <div class="sidebar-footer">
@@ -3003,11 +3234,15 @@
       });
 
       const STREAK_LEVELS=[
-        {days:1,title:"Первая искра",icon:"✦",note:"Начало привычки"},{days:3,title:"Искра",icon:"✧",note:"3 дня подряд"},
-        {days:7,title:"Неделя огня",icon:"🔥",note:"7 дней подряд"},{days:14,title:"Уверенное пламя",icon:"♨",note:"14 дней подряд"},
-        {days:30,title:"Жаркий месяц",icon:"☀",note:"30 дней подряд"},{days:60,title:"Хранитель огня",icon:"❖",note:"60 дней подряд"},
-        {days:100,title:"Легенда Finzaro",icon:"✹",note:"100 дней подряд"},{days:180,title:"Пламя полугодия",icon:"✺",note:"180 дней подряд"},
-        {days:365,title:"Вечный огонь",icon:"♛",note:"365 дней подряд"}
+        {days:1,title:"Первая искра",icon:"✦",note:"Первый шаг уже сделан",reward:"Значок «Первая искра»"},
+        {days:3,title:"Искра",icon:"✧",note:"3 дня подряд",reward:"Медный шеврон серии"},
+        {days:7,title:"Неделя огня",icon:"🔥",note:"7 дней подряд",reward:"Пламя профиля с анимацией"},
+        {days:14,title:"Уверенное пламя",icon:"♨",note:"14 дней подряд",reward:"Аура серии в коллекции"},
+        {days:30,title:"Жаркий месяц",icon:"☀",note:"30 дней подряд",reward:"Редкий золотой бейдж"},
+        {days:60,title:"Хранитель огня",icon:"❖",note:"60 дней подряд",reward:"Неоновая рамка коллекции"},
+        {days:100,title:"Легенда Finzaro",icon:"✹",note:"100 дней подряд",reward:"Легендарный неоновый знак"},
+        {days:180,title:"Пламя полугодия",icon:"✺",note:"180 дней подряд",reward:"Коллекционный фон «Полярный огонь»"},
+        {days:365,title:"Вечный огонь",icon:"♛",note:"365 дней подряд",reward:"Титул «Хранитель вечного огня»"}
       ];
       let currentStreak=0,bestStreakValue=0;
       /* Серия огоньков: визиты по календарным дням + награды за этапы. */
@@ -3024,7 +3259,13 @@
         el.title="Открой достижения серии огоньков";el.setAttribute("aria-label",n+" "+plural+" подряд. Лучший результат: "+best+" дней.");
         el.innerHTML='<span class="streak-flame" aria-hidden="true">🔥</span><span class="streak-copy"><b>'+n+' '+plural+'</b><small>'+esc(rank.title)+'</small></span><span class="streak-best">Рекорд '+best+'</span>';
         const seen=LS("streakMilestones",[]),newly=STREAK_LEVELS.filter(x=>n>=x.days&&!seen.includes(x.days));
-        if(newly.length){localStorage.setItem("streakMilestones",JSON.stringify([...new Set([...seen,...newly.map(x=>x.days)])]));const reward=newly[newly.length-1];setTimeout(()=>toast("🔥 Достижение открыто: «"+reward.title+"»! "+n+" дней подряд."),850);}
+        if(newly.length){
+          localStorage.setItem("streakMilestones",JSON.stringify([...new Set([...seen,...newly.map(x=>x.days)])]));
+          const reward=newly[newly.length-1];
+          el.classList.add("streak-level-up");
+          setTimeout(()=>el.classList.remove("streak-level-up"),1600);
+          setTimeout(()=>toast("🔥 Награда получена: «"+reward.reward+"»! "+n+" дней подряд."),850);
+        }
       })();
 
       /* Лучшая и худшая игра */
@@ -3066,6 +3307,7 @@
         return { actual, history, baseRate, forecastRate, projected: actual + forecastRate * daysLeft };
       }
 
+      let fcFirstPaint = true;
       function fcRender() {
         const el = $("#fc"), t = today();
         if (!el) return;
@@ -3099,12 +3341,47 @@
         const projected = forecast.projected;
         const forecastRate = forecast.forecastRate;
         const goal = Number(LS("goal", 0)) || 0;
+        const forecastShape = [0.78, 1.04, 0.93, 1.12, 1.19, 0.88, 0.69];
+        const historicalByWeekday = Array.from({ length: 7 }, () => []);
+        for (let day = firstDay; day < D; day++) {
+          historicalByWeekday[new Date(Y, M - 1, day).getDay()].push(daily[day - 1] || 0);
+        }
+        const historyForShape = daily.slice(Math.max(0, firstDay - 1), Math.max(0, D - 1));
+        const historyMeanForShape = historyForShape.length
+          ? historyForShape.reduce((sum, value) => sum + value, 0) / historyForShape.length
+          : 0;
+        const rawForecastWeights = [];
+        for (let day = D + 1; day <= N; day++) {
+          const weekday = new Date(Y, M - 1, day).getDay();
+          const weekdayValues = historicalByWeekday[weekday];
+          const weekdayMean = weekdayValues.length
+            ? weekdayValues.reduce((sum, value) => sum + value, 0) / weekdayValues.length
+            : historyMeanForShape;
+          const hasUsefulWeekdaySignal = weekdayValues.length >= 2 && Math.abs(historyMeanForShape) > 25;
+          const observedRatio = hasUsefulWeekdaySignal
+            ? Math.max(0.52, Math.min(1.58, weekdayMean / historyMeanForShape))
+            : forecastShape[weekday];
+          const historicalDay = historyForShape.length
+            ? historyForShape[(day - D - 1 + historyForShape.length) % historyForShape.length]
+            : historyMeanForShape;
+          const recentRatio = Math.abs(historyMeanForShape) > 25
+            ? Math.max(0.62, Math.min(1.42, historicalDay / historyMeanForShape))
+            : 1;
+          const weight = observedRatio * 0.72 + recentRatio * 0.28;
+          rawForecastWeights.push(Math.max(0.4, Math.min(1.7, weight)));
+        }
+        const forecastWeightMean = rawForecastWeights.length
+          ? rawForecastWeights.reduce((sum, value) => sum + value, 0) / rawForecastWeights.length
+          : 1;
+        const projectedDaily = rawForecastWeights.map((weight) =>
+          forecastRate * weight / (forecastWeightMean || 1)
+        );
         const money = (v) => (v > 0 ? "+" : "") + fmt(Math.round(v));
         const monthName = MN[M - 1] || "";
         const W = 820, H = 278, L = 58, R = 18, T = 26, B = 37;
         const plotW = W - L - R, plotH = H - T - B;
         const actualValues = daily.slice(0, D);
-        const sourceValues = actualValues.concat(left ? [forecastRate] : []);
+        const sourceValues = actualValues.concat(projectedDaily);
         let minV = Math.min(0, ...sourceValues), maxV = Math.max(0, ...sourceValues);
         const span = Math.max(1, maxV - minV);
         minV -= span * .14; maxV += span * .14;
@@ -3123,16 +3400,18 @@
         const bars = [];
         for (let day = 1; day <= N; day++) {
           const isFuture = day > D;
-          const value = isFuture ? forecastRate : (daily[day - 1] || 0);
+          const value = isFuture ? projectedDaily[day - D - 1] : (daily[day - 1] || 0);
           const xx = xCenter(day);
           const yy = y(value);
           const top = Math.min(yy, zeroY);
           const height = Math.max(2, Math.abs(yy - zeroY));
           const bw = Math.max(3, Math.min(15, slot * .56));
-          const fill = isFuture ? "var(--pos)" : value < 0 ? "var(--neg)" : "var(--acc)";
-          const opacity = isFuture ? .24 : day === D ? 1 : .78;
-          const title = (isFuture ? "Прогноз на " : "") + day + " " + monthName + ": " + money(value) + (isFuture ? " · темп с поправкой −10%" : " чистой прибыли за день");
-          bars.push('<rect x="' + (xx - bw / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + height.toFixed(1) + '" rx="' + Math.min(4, bw / 2) + '" fill="' + fill + '" opacity="' + opacity + '"><title>' + esc(title) + '</title></rect>');
+          const fill = isFuture ? "url(#fcForecastGradient)" : value < 0 ? "var(--neg)" : "url(#fcActualGradient)";
+          const animationDelay = Math.min((day % 13) * 18, 220);
+          const barClass = (fcFirstPaint ? "fc-enter " : "") + (isFuture ? (value < 0 ? "fc-bar fc-bar-forecast fc-bar-negative" : "fc-bar fc-bar-forecast") : (value < 0 ? "fc-bar fc-bar-actual fc-bar-negative" : "fc-bar fc-bar-actual"));
+          const opacity = isFuture ? .82 : day === D ? 1 : .9;
+          const title = (isFuture ? "Оценка на " : "") + day + " " + monthName + ": " + money(value) + (isFuture ? " · расчётная дневная разбивка по истории, прогноз месяца учитывает −10%" : " · чистая прибыль за день");
+          bars.push('<rect class="' + barClass + '" style="animation-delay:' + animationDelay + 'ms" x="' + (xx - bw / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + height.toFixed(1) + '" rx="' + Math.min(4, bw / 2) + '" fill="' + fill + '" opacity="' + opacity + '" tabindex="0" role="img" aria-label="' + esc(title) + '"><title>' + esc(title) + '</title></rect>');
         }
         const labels = [];
         for (let day = 1; day <= N; day++) {
@@ -3146,13 +3425,14 @@
           ? '<line x1="' + (todayX + slot * .52).toFixed(1) + '" x2="' + (todayX + slot * .52).toFixed(1) + '" y1="' + T + '" y2="' + (H - B + 2) + '" stroke="var(--tx)" opacity=".42" stroke-dasharray="4 5"/><text x="' + (todayX + slot * .52 + 6).toFixed(1) + '" y="' + (T - 7) + '" class="fc-today-label">СЕГОДНЯ</text>'
           : "";
         const forecastLine = left > 0
-          ? '<line x1="' + (todayX + slot * .52).toFixed(1) + '" x2="' + (W - R) + '" y1="' + y(forecastRate).toFixed(1) + '" y2="' + y(forecastRate).toFixed(1) + '" stroke="var(--pos)" stroke-width="2" stroke-dasharray="5 5" opacity=".9"/>'
+          ? '<polyline points="' + [[D, daily[D - 1] || 0], ...projectedDaily.map((value, index) => [D + index + 1, value])].map(([day, value]) => (xCenter(day).toFixed(1) + "," + y(value).toFixed(1))).join(" ") + '" fill="none" stroke="var(--pos)" stroke-width="2.2" stroke-dasharray="5 5" stroke-linecap="round" stroke-linejoin="round" opacity=".96"/>'
           : "";
-        const svg = '<svg class="fc-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Дневная чистая прибыль по календарным дням месяца и осторожная оценка оставшихся дней">' +
-          '<defs><linearGradient id="fcActualGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc)"/><stop offset="100%" stop-color="var(--acc2)"/></linearGradient></defs>' +
+        const svg = '<div class="fc-chart-scroll" aria-label="График; на телефоне прокручивай по горизонтали"><svg class="fc-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Чистая прибыль по каждому дню месяца: фактические столбцы до сегодняшней даты, далее переменная оценка на оставшиеся дни">' +
+          '<defs><linearGradient id="fcActualGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc)"/><stop offset="100%" stop-color="var(--acc2)"/></linearGradient><linearGradient id="fcForecastGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7988ff"/><stop offset="100%" stop-color="#6451d8"/></linearGradient></defs>' +
           grid.join("") + '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" stroke="var(--mut)" stroke-width="1.4" opacity=".8"/>' +
-          forecastLine + bars.join("") + todayLine + labels.join("") + '</svg>';
+          forecastLine + bars.join("") + todayLine + labels.join("") + '</svg></div>';
         const totalClass = projected >= 0 ? "fc-positive" : "fc-negative";
+        fcFirstPaint = false;
         const goalText = goal > 0 ? '<span class="fc-goal">Цель ' + fmt(goal) + (projected >= goal ? " · на " + fmt(projected - goal) + " выше" : " · не хватает " + fmt(goal - projected)) + '</span>' : "";
         const leftLabel = left ? "До конца месяца " + left + " дн." : "Последний день месяца";
         el.innerHTML =
@@ -3502,7 +3782,17 @@
         $("#streakDialogCount").textContent=currentStreak+" "+plural;$("#streakDialogRank").textContent=rank.title;
         $("#streakProgressCopy").textContent=next?'До «'+next.title+'» осталось '+(next.days-currentStreak)+' дн. Рекорд серии — '+bestStreakValue+' дн.':'Коллекция пройдена на 100%. Рекорд — '+bestStreakValue+' дн.';
         const seen=LS("streakMilestones",[]);
-        $("#streakAchievements").innerHTML=STREAK_LEVELS.map(x=>{const unlocked=currentStreak>=x.days,achieved=seen.includes(x.days);return '<div class="streak-achievement '+(unlocked?"unlocked":"locked")+'"><span class="achievement-icon">'+x.icon+'</span><div><b>'+esc(x.title)+'</b><small>'+esc(x.note)+'</small><em>'+(unlocked?(achieved?"ОТКРЫТО":"ДОСТУПНО"):"ЗАКРЫТО")+'</em></div></div>';}).join("");
+        const daysToNext=next?next.days-currentStreak:0;
+        const previousLevel=STREAK_LEVELS.slice().reverse().find(x=>currentStreak>=x.days);
+        const baseDays=previousLevel?previousLevel.days:0;
+        const progress=next?Math.max(0,Math.min(100,((currentStreak-baseDays)/(next.days-baseDays))*100)):100;
+        $("#streakProgressCopy").innerHTML=next
+          ? 'До награды <b>'+esc(next.reward)+'</b> осталось <strong>'+daysToNext+' дн.</strong><div class="streak-progress-track"><i style="width:'+progress.toFixed(1)+'%"></i></div><small>'+currentStreak+' из '+next.days+' дней до следующего уровня</small>'
+          : 'Коллекция пройдена на 100%. Твой рекорд — '+bestStreakValue+' дн.';
+        $("#streakAchievements").innerHTML=STREAK_LEVELS.map((x,index)=>{
+          const unlocked=currentStreak>=x.days,achieved=seen.includes(x.days),nextBadge=next&&next.days===x.days;
+          return '<article class="streak-achievement '+(unlocked?"unlocked":"locked")+(nextBadge?' next-up':'')+'"><span class="achievement-icon">'+x.icon+'</span><div class="achievement-copy"><b>'+esc(x.title)+'</b><small>'+esc(x.note)+'</small><span class="achievement-reward">'+esc(x.reward)+'</span><em>'+(unlocked?(achieved?"ПОЛУЧЕНО":"ОТКРЫТО"):nextBadge?"СЛЕДУЮЩАЯ НАГРАДА":"ЗАКРЫТО")+'</em></div></article>';
+        }).join("");
       }
       $("#streak").addEventListener("click",()=>{renderStreakDialog();$("#dStreak").showModal();});
       $("#cStreak").addEventListener("click",()=>$("#dStreak").close());

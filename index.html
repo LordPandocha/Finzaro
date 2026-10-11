@@ -2569,6 +2569,130 @@
         .streak-progress-track i{transition:none!important}
       }
 
+    
+      /* ===== Force a consistent dark UI across every preset ===== */
+      html[data-theme] {
+        color-scheme: dark !important;
+        --cs: dark !important;
+        --bg: radial-gradient(860px 540px at 82% 12%, rgba(249,115,22,.075), transparent 68%), #0b0d12 !important;
+        --card: #13161b !important;
+        --c2: #1b2027 !important;
+        --line: #303640 !important;
+        --pop: #12151a !important;
+        --tx: #f0f2f7 !important;
+        --mut: #a0a7b4 !important;
+        --sh: 0 12px 32px rgba(0,0,0,.38) !important;
+        --b1: #251b16 !important;
+        --b2: #1a1b22 !important;
+        --b3: #201725 !important;
+        --bo: .10 !important;
+      }
+      html[data-theme] body { color: var(--tx) !important; background: var(--bg) fixed !important; }
+      html[data-theme] #orbs { display: none !important; }
+      html[data-theme] #bg i { opacity: .12 !important; filter: blur(110px) !important; }
+      html[data-theme] .app-shell,
+      html[data-theme] .app-main,
+      html[data-theme] .app-main .wrap { color: var(--tx) !important; background: transparent !important; }
+      html[data-theme] .app-sidebar { color: var(--tx) !important; background: #0d1015 !important; border-color: var(--line) !important; }
+      html[data-theme] .app-sidebar .brand-lockup,
+      html[data-theme] .app-sidebar .sidebar-link { color: var(--tx) !important; }
+      html[data-theme] .app-sidebar .sidebar-link:not(.is-active):not(:hover) { color: var(--mut) !important; background: transparent !important; }
+      html[data-theme] .app-main .card,
+      html[data-theme] .app-main .dash-metric,
+      html[data-theme] .app-main .dashboard-widgets > .card,
+      html[data-theme] .app-main .dashboard-bottom-grid > .card,
+      html[data-theme] .app-main .fc,
+      html[data-theme] .app-main #chCard,
+      html[data-theme] .app-main .panel,
+      html[data-theme] .app-main .table-wrap,
+      html[data-theme] .app-main .table-card,
+      html[data-theme] .app-main .bwt,
+      html[data-theme] .app-main .history-row,
+      html[data-theme] .app-main .pcard,
+      html[data-theme] .app-main .fp-import-box,
+      html[data-theme] .app-main .fp-import-stat,
+      html[data-theme] .app-main .feebox,
+      html[data-theme] .app-main .set,
+      html[data-theme] .app-main .sum,
+      html[data-theme] .app-main .phead,
+      html[data-theme] .app-main .amt,
+      html[data-theme] .app-main .kpi div,
+      html[data-theme] .app-main .st,
+      html[data-theme] .app-main .seg,
+      html[data-theme] dialog {
+        color: var(--tx) !important;
+        background: var(--card) !important;
+        border-color: var(--line) !important;
+        box-shadow: var(--sh) !important;
+      }
+      html[data-theme] .app-main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+      html[data-theme] .app-main select,
+      html[data-theme] .app-main textarea,
+      html[data-theme] .app-main .month,
+      html[data-theme] .app-main .top .ic,
+      html[data-theme] .app-main .tile,
+      html[data-theme] .app-main .tbtn,
+      html[data-theme] .app-main .pill,
+      html[data-theme] .app-main .ic,
+      html[data-theme] .app-main .fc-days,
+      html[data-theme] .app-main .fc-pace-block {
+        color: var(--tx) !important;
+        background: var(--c2) !important;
+        border-color: var(--line) !important;
+      }
+      html[data-theme] .app-main table,
+      html[data-theme] .app-main thead th,
+      html[data-theme] .app-main tbody td {
+        color: var(--tx) !important;
+        background: var(--card) !important;
+        border-color: var(--line) !important;
+      }
+      html[data-theme] .app-main thead th { background: var(--c2) !important; }
+      html[data-theme] .app-main .pill.on,
+      html[data-theme] .app-main label.pill:has(input:checked),
+      html[data-theme] .app-main .tbtn:has(input:checked),
+      html[data-theme] .app-main .seg .on,
+      html[data-theme] .app-main #tabs .pill.on {
+        color: var(--herotx) !important;
+        background: var(--hero) !important;
+        border-color: var(--acc) !important;
+      }
+      html[data-theme] .app-main input::placeholder,
+      html[data-theme] .app-main textarea::placeholder,
+      html[data-theme] .app-main .page-heading p,
+      html[data-theme] .app-main .mode-label,
+      html[data-theme] .app-main .metric-foot,
+      html[data-theme] .app-main .metric-meta,
+      html[data-theme] .app-main .fc-bottomline,
+      html[data-theme] .app-main .fc-subline,
+      html[data-theme] .app-main .dash-widget-head small,
+      html[data-theme] .app-main .dash-goal-meta,
+      html[data-theme] .app-main .dash-goal-empty { color: var(--mut) !important; }
+      html[data-theme] .app-main .page-heading h1,
+      html[data-theme] .app-main .fc-head h3,
+      html[data-theme] .app-main .metric-head,
+      html[data-theme] .app-main .metric-value,
+      html[data-theme] .app-main .dash-widget-head b,
+      html[data-theme] .app-main .recent-copy b,
+      html[data-theme] .app-main .recent-item,
+      html[data-theme] .app-main .recent-value.neutral,
+      html[data-theme] .app-main .dash-goal-value strong,
+      html[data-theme] .app-main .dash-streak-big,
+      html[data-theme] .app-main .fc-axis { color: var(--tx) !important; }
+      html[data-theme] .app-main .fc-goal,
+      html[data-theme] .app-main .widget-link,
+      html[data-theme] .app-main .pos,
+      html[data-theme] .app-main .recent-value.positive { color: var(--acl) !important; }
+      html[data-theme] .app-main .neg,
+      html[data-theme] .app-main .recent-value.negative { color: var(--neg) !important; }
+      html[data-theme] .app-main .dash-metric .metric-icon {
+        background: var(--c2) !important; border-color: var(--line) !important;
+      }
+      html[data-theme] .app-main button:focus-visible,
+      html[data-theme] .app-main a:focus-visible,
+      html[data-theme] .app-sidebar button:focus-visible,
+      html[data-theme] .app-sidebar a:focus-visible { outline-color: var(--acc) !important; }
+
     </style>
   </head>
   <body>

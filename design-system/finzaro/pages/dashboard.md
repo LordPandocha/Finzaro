@@ -37,3 +37,11 @@
 - **Cross-marketplace inventory:** match normalized game/category + item name. A sale from another marketplace can consume those lots.
 - **Inventory shortage:** if logged purchases cover 5 units and the user records a sale of 6, do not block the operation. COGS uses the available 5 units; report 1 uncosted unit and never create negative stock.
 - **Delete must trigger dependent recomputation:** after the database accepts removal, rebuild stock/FIFO, operation lists, summaries, KPI, marketplace/game tables, dashboard graphs and shortage flags; refresh the undo state. Server failure must leave the existing UI/data intact.
+
+
+## Streak UX contract
+- Replace automatic "visit streak" counting with explicit daily check-ins after the user confirms they've reviewed their finances. One check-in per local calendar day.
+- Migrate the old visit history into historical streak entries excluding today's automatic visit; preserve the saved best-run value.
+- Show a seven-day strip, current run, best run, current 7-day income/expenses/profit, comparison to the prior week, one next milestone, and a collapsed milestone list.
+- Milestones acknowledge habit progression; don't promise cosmetic items or gated functionality that doesn't exist.
+- The current selected-day/range totals should be the only detail block shown beneath expanded analytics while dates are selected. Hide the single-point hover/detail card when the range summary is active, and restore it once selection is cleared.

@@ -3411,32 +3411,35 @@
         return true;
       }
       async function delMany(ids, silent) {
-        const rows = ops.filter((o) => ids.includes(o.id));
+        const idSet = new Set(ids.map(String));
+        const rows = ops.filter((o) => idSet.has(String(o.id)));
         if (sb) {
           if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
           const { error } = await sb.from("operations").delete().in("id", ids).eq("user_id", user.id);
           if (error) return toast("Не удалось удалить: " + error.message);
-        } else {
-          ops = ops.filter((o) => !ids.includes(o.id));
-          localStorage.setItem("ops", JSON.stringify(ops));
         }
+        ops = ops.filter((o) => !idSet.has(String(o.id)));
+        if (!sb) localStorage.setItem("ops", JSON.stringify(ops));
         const trashIds = !silent && rows.length ? toTrash(rows) : [];
         if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
+        // Optimistically refresh every dependent table/chart before attempting a re-fetch.
+        render();
         await load();
         return true;
       }
       async function del(id, silent) {
-        const rows = ops.filter((o) => o.id == id);
+        const rows = ops.filter((o) => String(o.id) === String(id));
         if (sb) {
           if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
           const { error } = await sb.from("operations").delete().eq("id", id).eq("user_id", user.id);
           if (error) return toast("Не удалось удалить: " + error.message);
-        } else {
-          ops = ops.filter((o) => o.id != id);
-          localStorage.setItem("ops", JSON.stringify(ops));
         }
+        ops = ops.filter((o) => String(o.id) !== String(id));
+        if (!sb) localStorage.setItem("ops", JSON.stringify(ops));
         const trashIds = !silent && rows.length ? toTrash(rows) : [];
         if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
+        // Render immediately after the successful delete; don't leave stale tables if refresh fails.
+        render();
         await load();
         return true;
       }
@@ -3726,18 +3729,17 @@
         }
       }
 
-      function marketplaceProfitOps(list, platform, untilDate = today()) {
+      function marketplaceProfitOps(list, platform, untilDate = today(), fromDate = "") {
         const inventory = computeInventoryState(ops, untilDate);
         const out = [];
         for (const o of list) {
           if (o.date > untilDate) continue;
-          if (o.type === "purchase" && (+o.amount || 0) >= 0) {
-            const lot = inventory.remainingByPurchase.get(String(o.id));
-            if (!lot) out.push(o);
-            else if (lot.remainingCost > .005) out.push({ ...o, amount: r2(lot.remainingCost), fee: 0 });
-          } else {
-            out.push(o);
-          }
+          // Purchases are inventory assets, not instant P&L expenses.
+          // Recognize their cost only as units are sold (synthetic FIFO COGS below)
+          // or written off. Missing stock never creates negative inventory or blocks sales.
+          if (o.type === "purchase" && (+o.amount || 0) > 0) continue;
+          if (o.type === "purchase" && (+o.amount || 0) === 0) continue;
+          out.push(o);
           if (o.type === "sale") {
             const cost = inventory.cogsBySale.get(String(o.id)) || 0;
             if (cost > .005) out.push({
@@ -3753,6 +3755,7 @@
             for (const marketplace of marketplaces) {
               const amount = r2(Number(allocations[marketplace]) || 0);
               if (amount <= .005) continue;
+            if (fromDate && closure.date < fromDate) continue;
               const qtyPart = closure.closedQty || closure.quantity || 0;
               out.push({
                 id: "stock-writeoff-" + String(closure.id) + "-" + encodeURIComponent(marketplace),
@@ -4006,7 +4009,7 @@
             const id = "g|" + g,
               ch = [
                 ["Комиссия", a.comm],
-                ["Закупка", a.purch],
+                ["Себестоимость проданного", a.purch],
                 ["Прочее", a.oth],
               ].filter((x) => x[1]);
             return `<details class="g card" data-id="${esc(id)}" ${opened.has(id) ? "open" : ""}><summary><span class="gn"><b class="ell">${gi(g)}${esc(g)}</b><small class="ell">Продано на ${fmt(a.sales)}${a.comm ? ` <em class="net">(${fmt(a.sales - a.comm)} после комиссии)</em>` : ""}</small></span><span class="gp">${col(a.profit)}</span></summary><div class="gb">${ch.length ? `<div class="mini">${ch.map((x) => `<span>${x[0]}: ${fmt(x[1])}</span>`).join("")}</div>` : ""}${l
@@ -4153,13 +4156,13 @@
         const asOfDate = allT ? today() : (ym === today().slice(0, 7) ? today() : monthLastDay(ym)),
           inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym)),
           list = view === "all" ? inP : inP.filter((o) => o.marketplace === view),
-          profitList = marketplaceProfitOps(list.filter((o) => o.date <= asOfDate), view, asOfDate),
+          profitList = marketplaceProfitOps(list.filter((o) => o.date <= asOfDate), view, asOfDate, allT ? "" : ym + "-01"),
           T = agg(profitList);
         let previousStats=null;
         if(!allT){
           const [cy,cm]=ym.split("-").map(Number),pd=new Date(cy,cm-2,1),pm=pd.getFullYear()+"-"+String(pd.getMonth()+1).padStart(2,"0");
           const previousRows=ops.filter(o=>o.date.startsWith(pm)&&(view==="all"||o.marketplace===view));
-          previousStats=agg(marketplaceProfitOps(previousRows,view,monthLastDay(pm)));
+          previousStats=agg(marketplaceProfitOps(previousRows,view,monthLastDay(pm),pm+"-01"));
         }
         const metricChange=(value,previous,invert=false)=>{
           if(allT)return '<span class="metric-meta">За всё время</span>';
@@ -4195,11 +4198,12 @@
           const [y, m] = ym.split("-").map(Number),
             pd = new Date(y, m - 2, 1),
             pk = pd.getFullYear() + "-" + String(pd.getMonth() + 1).padStart(2, "0"),
-            PV = agg(
-              (view === "all" ? ops : ops.filter((o) => o.marketplace === view)).filter((o) =>
-                o.date.startsWith(pk),
-              ),
-            );
+            PV = agg(marketplaceProfitOps(
+              (view === "all" ? ops : ops.filter((o) => o.marketplace === view)).filter((o) => o.date.startsWith(pk)),
+              view,
+              monthLastDay(pk),
+              pk + "-01",
+            ));
           if (PV.profit)
             dt = ` · к прошлому месяцу ${T.profit >= PV.profit ? "▲ +" : "▼ −"}${fmt(Math.abs(T.profit - PV.profit))}`;
         }
@@ -4236,7 +4240,7 @@
         fcRender();
         const PA = keys.map((k) => {
           const platformOps = inP.filter((o) => o.marketplace === k);
-          return [k, agg(marketplaceProfitOps(platformOps, k)).profit];
+          return [k, agg(marketplaceProfitOps(platformOps, k, asOfDate, allT ? "" : ym + "-01")).profit];
         }),
           pmx = Math.max(1, ...PA.map((x) => x[1]));
         const totalPositiveProfit=PA.reduce((sum,row)=>sum+Math.max(row[1],0),0);
@@ -4326,7 +4330,7 @@
         },
         true,
       );
-      document.addEventListener("click", (e) => {
+      document.addEventListener("click", async (e) => {
         const v = e.target.closest("[data-v]"),
           d = e.target.closest("[data-d]"),
           f = e.target.closest("[data-tf]"),
@@ -4344,7 +4348,11 @@
           const o = ops.find((x) => x.id == d.dataset.d);
           if (!o) return;
           const tids = toTrash([o]);
-          del(o.id, true);
+          const removed = await del(o.id, true);
+          if (!removed) {
+            trashSave(trashGet().filter((x) => !tids.includes(x.tid)));
+            return;
+          }
           toast(`Удалено: ${typeLabel(o.type)}${o.game ? " · " + o.game : ""} · ${fmt(+o.amount)}`, { l: "Вернуть", f: () => restoreOps(tids) });
         }
       });
@@ -5648,7 +5656,9 @@
       const _render = render;
       render = function () {
         _render();
-        const T = agg(cur().list);
+        const { list: currentRawList } = cur();
+        const currentProfitList = marketplaceProfitOps(currentRawList, view, allT ? today() : monthLastDay(ym), allT ? "" : ym + "-01");
+        const T = agg(currentProfitList);
         $("#quip").textContent = quip(T);
         cnt(T.profit);
         drawCh();
@@ -6040,7 +6050,9 @@
         f.animate([{ transform: "translate(0,0) scale(1.2)", opacity: 1 }, { transform: `translate(${b.left - a.left}px,${b.top - a.top}px) scale(.6)`, opacity: .1 }], { duration: 850, easing: "cubic-bezier(.5,0,.2,1)" }).onfinish = () => { f.remove(); const n = $("#net"); n.animate([{ transform: "scale(1.12)" }, { transform: "scale(1)" }], { duration: 400, easing: "cubic-bezier(.3,1.6,.5,1)" }); };
       }
       function bestDay(date) {
-        const days = [...new Set(ops.map((o) => o.date))], p = (d) => agg(ops.filter((o) => o.date === d)).profit, mine = p(date);
+        const days = [...new Set(ops.map((o) => o.date))];
+        const p = (d) => agg(marketplaceProfitOps(ops.filter((o) => o.date <= d), "all", d).filter((o) => o.date === d)).profit;
+        const mine = p(date);
         const prev = Math.max(0, ...days.filter((d) => d !== date).map(p));
         if (days.length < 3 || mine <= 0 || mine <= prev) return;
         const b = document.createElement("div"); b.id = "best"; b.textContent = "🏆 Лучший день!"; document.body.append(b); setTimeout(() => b.remove(), 2700);
@@ -6106,7 +6118,7 @@
       $("#cShare").innerHTML = ico("x");
       const rr = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
       function drawShare() {
-        const cv = $("#shC"), c = cv.getContext("2d"), W = 1080, H = 1350, hide = $("#shHide").checked, { list } = cur(), T = agg(list), F = "system-ui,'Segoe UI',sans-serif";
+        const cv = $("#shC"), c = cv.getContext("2d"), W = 1080, H = 1350, hide = $("#shHide").checked, { list: rawList } = cur(), list = marketplaceProfitOps(rawList, view, allT ? today() : monthLastDay(ym), allT ? "" : ym + "-01"), T = agg(list), F = "system-ui,'Segoe UI',sans-serif";
         const money = (n) => (hide ? "•••• ₽" : (n > 0 ? "+" : "") + fmt(n)), plain = (n) => (hide ? "•••• ₽" : fmt(n));
         const bg = c.createLinearGradient(0, 0, W * .5, H); bg.addColorStop(0, "#fff1e6"); bg.addColorStop(.55, "#ffd9bf"); bg.addColorStop(1, "#ffb98a"); c.fillStyle = bg; c.fillRect(0, 0, W, H);
         [[880, 160, 200], [120, 1180, 170], [960, 1050, 110], [90, 260, 80]].forEach(([x, y, r]) => { const g = c.createRadialGradient(x - r * .3, y - r * .35, r * .05, x, y, r); g.addColorStop(0, "#fff"); g.addColorStop(.35, "#ffd2b0"); g.addColorStop(1, "#ff8a4c"); c.globalAlpha = .8; c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); });

@@ -3320,7 +3320,7 @@
         return { actual, history, baseRate, forecastRate, projected: actual + forecastRate * daysLeft };
       }
 
-      let fcFirstPaint = true;
+      let fcFirstPaint = true, fcMobileScrollKey = "";
       function fcRender() {
         const el = $("#fc"), t = today();
         if (!el) return;
@@ -3454,7 +3454,13 @@
           '<div class="fc-pace-block"><span class="fc-pace-mark" aria-hidden="true"></span><div><small>' + (left ? "Осторожный темп на день" : "Итоговый день") + '</small><b>' + money(forecastRate) + '</b></div><span class="fc-discount">−10%</span></div></div>' +
           '<div class="fc-chart-top"><span>Прибыль по дням · ₽</span><div class="fc-legend"><span><i class="fc-dot fc-dot-actual"></i>Факт</span><span><i class="fc-dot fc-dot-forecast"></i>Оценка</span></div></div>' +
           svg +
-          '<div class="fc-bottomline"><span>Каждый день считается отдельно, с нуля.</span>' + goalText + '</div>';
+          '<div class="fc-bottomline"><span>Дневная разбивка — ориентир, не гарантия.</span>' + goalText + '</div>';
+        const mobileChartScroll = $("#fc .fc-chart-scroll");
+        const mobileChartKey = t.slice(0, 7) + "|" + view;
+        if (mobileChartScroll && matchMedia("(max-width: 680px)").matches && fcMobileScrollKey !== mobileChartKey) {
+          mobileChartScroll.scrollLeft = Math.max(0, (D - 9) * slot * (760 / W));
+          fcMobileScrollKey = mobileChartKey;
+        }
       }
 
       function marketplaceProfitOps(list, platform, untilDate = today()) {

@@ -4685,6 +4685,7 @@
       };
       const normGame = (n) => String(n || "").trim().toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ");
       const PRODUCT_EXAMPLES = {
+        "roblox": ["Robux", "Игровой аккаунт"],
         "blade ball": ["Токены", "Dual Crimson Eclipse Set", "Dual Demonic Scythe Set", "Dual Infinite Blade Set", "Скин меча", "Способность", "Финишер"],
         "steal a brainrot": ["Cerberus", "Gold Cerberus", "Brainrot", "Мутация"],
         "adopt me": ["Питомец", "Яйцо", "Машина", "Аксессуар"], "murder mystery 2": ["Нож", "Пистолет", "Питомец"],
@@ -4717,7 +4718,7 @@
         "яндекс плюс": ["Яндекс Плюс", "Продление"], "tiktok": ["TikTok Coins", "Промо"], "apple id": ["Пополнение Apple ID", "Подарочная карта"],
         "google play": ["Подарочный код Google Play", "Баланс"], "playstation": ["PS Store Wallet", "PlayStation Plus"],
         "xbox": ["Xbox Gift Card", "Game Pass"], "nintendo": ["Nintendo eShop Card", "Подписка"], "game pass": ["Game Pass", "Продление"],
-        "epic games": ["Пополнение", "Подарочная карта"], "battle net": ["Баланс Battle.net", "Игровой код"], "ubisoft": ["Wallet", "Игровой код"],
+        "epic games": ["Пополнение", "Подарочная карта"], "battle net": ["Баланс Battle.net", "Игровой код"], "battlenet": ["Баланс Battle.net", "Игровой код"], "ubisoft": ["Wallet", "Игровой код"],
         "riot points": ["Riot Points", "Подарочная карта"], "аккаунты": ["Игровой аккаунт"], "скины": ["Скин"], "другое": ["Укажи название товара"]
       };
       function renderProductHints() {

@@ -32,3 +32,8 @@
 
 - **Touch day selection is opt-in:** on mobile, chart touch should scroll the page by default. A visible “Выделять дни” toggle enables the drag/tap-selection interaction and only then applies `touch-action:none`. Mouse users can still drag the range with the pointer.
 - **Negative expense/refund days:** the income-versus-expense chart must include negative values in its vertical scale and draw the zero baseline correctly; don't let refunds or fee reversals render below the SVG viewport.
+
+- **Inventory is not an immediate P&L expense:** a purchase leaves profit unchanged; only the sold portion is recognized as FIFO COGS on the sale date. Remaining stock keeps its carrying cost; manual stock closure is an expense on the write-off date.
+- **Cross-marketplace inventory:** match normalized game/category + item name. A sale from another marketplace can consume those lots.
+- **Inventory shortage:** if logged purchases cover 5 units and the user records a sale of 6, do not block the operation. COGS uses the available 5 units; report 1 uncosted unit and never create negative stock.
+- **Delete must trigger dependent recomputation:** after the database accepts removal, rebuild stock/FIFO, operation lists, summaries, KPI, marketplace/game tables, dashboard graphs and shortage flags; refresh the undo state. Server failure must leave the existing UI/data intact.

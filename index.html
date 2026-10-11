@@ -1831,15 +1831,21 @@
           </div>
         </div>
         <div id="gw">
-          <div class="lab">Игра или товар</div>
+          <div class="lab">Категория / игра / сервис</div>
           <input
             id="game"
             name="game"
             list="gl"
-            placeholder="Начните вводить название"
+            placeholder="Blade Ball, ChatGPT, Telegram…"
             autocomplete="off"
           /><datalist id="gl"></datalist>
           <div class="chips" id="chips"></div>
+        </div>
+        <div id="qtyW" class="set" hidden>
+          <label for="qty">Количество единиц</label>
+          <input id="qty" type="number" inputmode="decimal" min="0.0001" step="0.01" value="1" placeholder="Например, 1000" />
+          <small class="mut">При закупке укажи общий объём, при продаже — сколько из него продал. Укажи одинаковую категорию и описание товара, чтобы связать одну закупку с продажами на разных площадках.</small>
+          <p class="mut" id="inventoryHint">Заполни категорию и описание товара, чтобы увидеть доступный остаток.</p>
         </div>
         <div id="promoW">
           <div class="lab">Playerok: потратил на поднятие лота, ₽</div>
@@ -1857,8 +1863,8 @@
             <input id="date" name="date" type="date" required />
           </div>
           <div>
-            <div class="lab">Заметка</div>
-            <input id="note" name="note" placeholder="Необязательно" />
+            <div class="lab">Товар / детали</div>
+            <input id="note" name="note" placeholder="Например: 10 000 Robux, аккаунт с питомцем…" />
           </div>
         </div>
         <div class="chips" id="tierW"></div>
@@ -2688,7 +2694,7 @@
           ops.push(...L);
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        if (L.every((o) => o.id != null)) trackUndo({ type: "add", ids: L.map((o) => o.id), label: "добавление" });
+        if (L.every((o) => o.id != null)) trackUndo({ type: "add", ids: L.map((o) => o.id), rows: L.map((o) => ({ ...o })), label: "добавление" });
         applyPendingOperationFocus();
         await load();
         finishPendingOperationFocus();
@@ -2696,10 +2702,11 @@
       }
       async function upd(id, patch) {
         const before = ops.find((o) => o.id == id);
-        if (before && hasFPMarker(before.note)) {
+        if (before && (hasFPMarker(before.note) || QTY_VALUE_RE.test(String(before.note || "")))) {
           const markers = String(before.note).match(FP_MARK_RE) || [];
+          const qtyMarker = String(patch.note ?? "").match(QTY_VALUE_RE) || String(before.note || "").match(QTY_VALUE_RE) || [];
           const clean = visibleNote(patch.note ?? before.note);
-          patch = { ...patch, note: [clean, ...markers].filter(Boolean).join(" ") };
+          patch = { ...patch, note: [clean, ...markers, ...qtyMarker].filter(Boolean).join(" ") };
         }
         if (sb) {
           if (!user) return toast("Войдите в аккаунт, чтобы изменить запись.");
@@ -2926,8 +2933,54 @@
       const col = (n) => `<span class="${n >= 0 ? "pos" : "neg"}">${n > 0 ? "+" : ""}${fmt(n)}</span>`;
       const dm = (d) => d.slice(8) + "." + d.slice(5, 7);
       const FP_MARK_RE = /\[\[FZFP:([a-f0-9]{8,64}):([^:\]]+):([a-z-]+)\]\]/g;
-      const visibleNote = (note) => String(note || "").replace(FP_MARK_RE, "").replace(/\s{2,}/g, " ").trim();
+      const QTY_MARK_RE = /\[\[FZQTY:[0-9]+(?:\.[0-9]+)?\]\]/g;
+      const QTY_VALUE_RE = /\[\[FZQTY:([0-9]+(?:\.[0-9]+)?)\]\]/;
+      const visibleNote = (note) => String(note || "").replace(FP_MARK_RE, "").replace(QTY_MARK_RE, "").replace(/\s{2,}/g, " ").trim();
       const hasFPMarker = (note) => /\[\[FZFP:[a-f0-9]{8,64}:[^:\]]+:[a-z-]+\]\]/.test(String(note || ""));
+      const opQty = (o) => { const m = String(o?.note || "").match(QTY_VALUE_RE); const n = Number(m?.[1] ?? 1); return Number.isFinite(n) && n > 0 ? n : 1; };
+      const noteWithQty = (note, qty) => [visibleNote(note), "[[FZQTY:" + Math.max(.0001, Number(qty) || 1).toFixed(4).replace(/0+$/, "").replace(/\.$/, "") + "]]"].filter(Boolean).join(" ");
+      const inventoryKey = (game, note) => [normGame(game || ""), normGame(visibleNote(note || ""))].join("|");
+      function computeInventoryState(list = ops, until = today()) {
+        const byKey = new Map(), remainingByPurchase = new Map(), cogsBySale = new Map();
+        const ordered = list.filter((o) => o.date <= until && ["purchase","sale"].includes(o.type))
+          .slice().sort((a,b) => a.date.localeCompare(b.date) || (a.type === b.type ? 0 : a.type === "purchase" ? -1 : 1));
+        for (const o of ordered) {
+          const key = inventoryKey(o.game, o.note);
+          if (!key.split("|")[0]) continue;
+          if (o.type === "purchase" && (+o.amount || 0) > 0) {
+            const qty = opQty(o), lot = { id:o.id, marketplace:o.marketplace, date:o.date, remainingQty:qty, remainingCost:+o.amount, unitCost:(+o.amount)/qty, key };
+            if (!byKey.has(key)) byKey.set(key, []);
+            byKey.get(key).push(lot);
+            remainingByPurchase.set(String(o.id), lot);
+          } else if (o.type === "sale") {
+            let need = opQty(o), cost = 0;
+            for (const lot of (byKey.get(key) || [])) {
+              if (need <= .0000001) break;
+              if (lot.remainingQty <= .0000001) continue;
+              const units = Math.min(need, lot.remainingQty), partCost = lot.remainingCost * units / lot.remainingQty;
+              lot.remainingQty = Math.max(0, lot.remainingQty - units);
+              lot.remainingCost = Math.max(0, lot.remainingCost - partCost);
+              need -= units; cost += partCost;
+            }
+            cogsBySale.set(String(o.id), cost);
+          }
+        }
+        return { byKey, remainingByPurchase, cogsBySale };
+      }
+      function inventoryHint(game, note, excludeId, type, qty) {
+        if (!String(game || "").trim()) return "Выбери категорию / игру / сервис.";
+        const candidates = ops.filter((o) => String(o.id) !== String(excludeId));
+        const state = computeInventoryState(candidates);
+        const key = inventoryKey(game, note), lots = state.byKey.get(key) || [];
+        const available = lots.reduce((sum,lot)=>sum+lot.remainingQty,0), cost = lots.reduce((sum,lot)=>sum+lot.remainingCost,0);
+        const avg = available > 0 ? cost / available : 0;
+        if (type === "purchase") return "После сохранения в запас добавится " + qty + " ед. · " + (available ? "сейчас уже есть " + available.toLocaleString("ru-RU") + " ед. по средней себестоимости " + fmt(avg) + "/ед." : "это будет первая партия этой позиции.");
+        let need = Math.max(.0001, Number(qty) || 1), estimate = 0;
+        for (const lot of lots) { if (need <= .0000001) break; const units = Math.min(need, lot.remainingQty); estimate += units * (lot.remainingQty ? lot.remainingCost / lot.remainingQty : 0); need -= units; }
+        return available > 0
+          ? "Доступно " + available.toLocaleString("ru-RU") + " ед. · себестоимость FIFO для продажи " + Math.min(Math.max(.0001,Number(qty)||1),available).toLocaleString("ru-RU") + " ед. ≈ " + fmt(estimate) + (need > .0001 ? " · не хватает " + need.toLocaleString("ru-RU") + " ед." : "") + "."
+          : "Похожей закупки с таким же описанием пока нет — себестоимость для площадки автоматически распределить не из чего.";
+      }
       const opRow = (o, sm, gm) =>
         `<div class="op"><span class="mut">${dm(o.date)}</span><span style="min-width:0"><span class="ell">${ico(o.type)}${typeLabel(o.type)}${gm && o.game ? " · " + gi(o.game) + esc(o.game) : ""}${sm ? " · " + esc(o.marketplace) : ""}</span>${visibleNote(o.note) ? `<small class="ell">${esc(visibleNote(o.note))}</small>` : ""}</span><span class="am"><b>${fmt(+o.amount)}</b>${+o.fee ? `<small>комиссия ${fmt(+o.fee)}</small>` : ""}</span><button class="x" data-e="${o.id}" title="Изменить запись">${ico("edit")}</button>${o.type === "ad" || +o.amount < 0 ? "<span></span>" : `<button class="x rp" data-rp="${o.id}" title="Ещё раз: повторить запись">${ico("redo")}</button>`}<button class="x" data-d="${o.id}" title="Удалить запись">${ico("trash")}</button></div>`;
       const ORD = ["purchase", "withdraw", "other", "refund", "sale"],
@@ -3386,6 +3439,7 @@
         f.game.value = o.game || "";
         f.date.value = o.date;
         f.note.value = visibleNote(o.note) || "";
+        f.qty.value = opQty(o);
         // Saved operations store the buyer-paid (gross) amount.
         $("#smode").value = "gross";
         if (a > 0 && ["sale", "refund", "withdraw"].includes(o.type)) {
@@ -3409,6 +3463,10 @@
           sale = t === "sale",
           pr = +$("#promo").value || 0;
         $("#tdesc").textContent = TYPES[t][1];
+        $("#qtyW").hidden = !["sale", "purchase"].includes(t);
+        $("#inventoryHint").textContent = ["sale", "purchase"].includes(t)
+          ? inventoryHint($("#game").value, $("#note").value, editId, t, +$("#qty").value || 1)
+          : "";
         $("#amountLabel").textContent = sale
           ? ($("#smode").value === "net" ? "Сколько получите после комиссии" : "Сумма, которую заплатил покупатель")
           : t === "refund" ? "Сумма возврата покупателю"
@@ -3473,6 +3531,7 @@
       function openAdd() {
         const f = $("#f");
         f.reset();
+        $("#qty").value = "1";
         editId = null; editAmountSign = 1;
         const hasLast = !!LS("lastTxn", null);
         $("#dTitle").textContent = "Новая запись";
@@ -3507,6 +3566,7 @@
         setRadio(f.type, x.type);
         setRadio(f.mp, x.mp);
         setRadio(f.wm, x.wm);
+        $("#qty").value = String(x.qty || 1);
         if (x.inputAmount != null) f.amount.value = x.inputAmount;
         else if (x.amount != null) { f.amount.value = x.amount; $("#smode").value = "gross"; }
         if (x.game != null) f.game.value = x.game || "";
@@ -3528,8 +3588,10 @@
           mp = f.mp.value,
           { amt, fee, r } = F(),
           game = t === "withdraw" ? null : f.game.value.trim() || null,
+          qty = ["sale", "purchase"].includes(t) ? Math.max(.0001, Number($("#qty").value) || 1) : 1,
+          note = ["sale", "purchase"].includes(t) ? noteWithQty(f.note.value || "", qty) : (f.note.value || (t === "withdraw" ? WM[f.wm.value] : "")),
           b = { marketplace: mp, date: f.date.value, game },
-          L = [{ ...b, type: t, amount: r2(amt), fee: r2(fee), note: f.note.value || (t === "withdraw" ? WM[f.wm.value] : "") }],
+          L = [{ ...b, type: t, amount: r2(amt), fee: r2(fee), note }],
           pr = +$("#promo").value || 0;
         if (t === "sale" && !(r >= 0 && r < 100)) {
           toast("Комиссия продажи должна быть от 0 до 99,9%.");
@@ -3538,7 +3600,7 @@
         }
         if (editId) {
           requestOperationFocus({ marketplace: mp, date: f.date.value, game });
-          const updated = await upd(editId, { marketplace: mp, date: f.date.value, game, type: t, amount: r2(amt * editAmountSign), fee: r2(fee * editAmountSign), note: f.note.value });
+          const updated = await upd(editId, { marketplace: mp, date: f.date.value, game, type: t, amount: r2(amt * editAmountSign), fee: r2(fee * editAmountSign), note });
           if (updated) return $("#dAdd").close();
           pendingFocusOperation = null;
           return;
@@ -3554,7 +3616,7 @@
         localStorage.setItem("lastAdd", JSON.stringify({ mp, date: f.date.value }));
         localStorage.setItem("lastTxn", JSON.stringify({
           mp, date: f.date.value, type: t, amount: r2(amt), inputAmount: r2(+f.amount.value), fee: r2(fee),
-          game, promo: +$("#promo").value || 0, note: f.note.value || "",
+          game, qty, promo: +$("#promo").value || 0, note: f.note.value || "",
           rate: $("#rate").value, smode: $("#smode").value, wm: f.wm.value
         }));
         if (dup) setTimeout(() => info(`Похожая запись уже есть: ${typeLabel(t)} · ${game || mp} · ${fmt(r2(amt))} за ${dm(f.date.value)}. Если это новая операция, всё в порядке.`), 60);
@@ -3608,7 +3670,7 @@
       $("#bCsv").onclick = downloadBackupCopy;
       $("#csvOut").onclick = () => {
         const r = [
-          ["Дата", "Площадка", "Игра", "Тип", "Сумма", "Комиссия", "Заметка"],
+          ["Дата", "Площадка", "Категория", "Тип", "Сумма", "Комиссия", "Количество", "Товар / заметка"],
           ...ops.map((o) => [
             o.date,
             o.marketplace,
@@ -3616,6 +3678,7 @@
             typeLabel(o.type),
             o.amount,
             o.fee,
+            ["sale", "purchase"].includes(o.type) ? opQty(o) : "",
             '"' + (visibleNote(o.note) || "").replace(/"/g, '""') + '"',
           ]),
         ];

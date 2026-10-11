@@ -2620,6 +2620,11 @@
         outline: 2px solid #fdba74 !important;
         outline-offset: 3px !important;
       }
+      /* Floating profit feedback must stay legible for user-picked dark accent colors. */
+      html[data-theme] .fly {
+        color: var(--acl) !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,.78) !important;
+      }
 
     </style>
   </head>

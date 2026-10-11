@@ -2938,33 +2938,40 @@
         const quantile = (arr, q) => {
           if (!arr.length) return 0;
           const sorted = arr.slice().sort((a, b) => a - b);
-          return sorted[Math.min(sorted.length - 1, Math.max(0, Math.floor((sorted.length - 1) * q)))];
+          const position = (sorted.length - 1) * q;
+          const low = Math.floor(position), high = Math.ceil(position);
+          return sorted[low] + (sorted[high] - sorted[low]) * (position - low);
         };
         const activeDates = new Set(list.filter((o) => o.date >= ym + "-01" && o.date <= t && o.type !== "withdraw").map((o) => o.date));
-        const now = sum(daily), monthAvg = now / Math.max(1, D), k7 = Math.min(7, D);
-        const rawRecent = daily.slice(-k7), recentAvg = mean(rawRecent);
-        /* Cap daily outliers at the 15th/85th percentile, then blend the month's pace with the latest week. */
-        const lowCap = quantile(daily, .15), highCap = quantile(daily, .85);
-        const clipped = daily.map((v) => Math.max(lowCap, Math.min(highCap, v)));
-        const longRate = mean(clipped), recentClipped = clipped.slice(-k7), recentRate = mean(recentClipped);
-        const dailyRate = left ? longRate * .4 + recentRate * .6 : 0;
-        const recentLow = quantile(recentClipped, .25), recentHigh = quantile(recentClipped, .75);
-        const lowRate = left ? Math.min(dailyRate, longRate * .4 + recentLow * .6) : 0;
-        const highRate = left ? Math.max(dailyRate, longRate * .4 + recentHigh * .6) : 0;
+        const now = sum(daily);
+        const monthAvg = now / Math.max(1, D);
+        const k7 = Math.min(7, D);
+        const recent = daily.slice(-k7);
+        const recentAvg = mean(recent);
+        /* Auto forecast: calendar-day average + recency-weighted last week, damped by the recent median.
+           Zero-activity days and loss days remain in the series; no manual forecast value is requested. */
+        const weightedRecent = recent.length
+          ? recent.reduce((total, value, i) => total + value * (i + 1), 0) / (recent.length * (recent.length + 1) / 2)
+          : 0;
+        const recentMedian = quantile(recent, .5);
+        const recentRate = weightedRecent * .7 + recentMedian * .3;
+        const dailyRate = left ? monthAvg * .4 + recentRate * .6 : 0;
+        const recentLow = quantile(recent, .2), recentHigh = quantile(recent, .8);
+        const lowRate = left ? monthAvg * .4 + recentLow * .6 : 0;
+        const highRate = left ? monthAvg * .4 + recentHigh * .6 : 0;
         const expectedRemaining = dailyRate * left;
         const projected = now + expectedRemaining;
-        const lowProjection = now + lowRate * left, highProjection = now + highRate * left;
-        const goal = Number(LS("goal", 0)) || 0;
+        const lowProjection = now + Math.min(lowRate, highRate) * left;
+        const highProjection = now + Math.max(lowRate, highRate) * left;
         const money = (v) => (v > 0 ? "+" : "") + fmt(Math.round(v));
         const rows = [
-          ["Фактическая прибыль на сегодня", money(now), "Сумма фактических дневных результатов с 1-го числа"],
+          ["Фактическая прибыль на сегодня", money(now), "Сумма дневных результатов с 1-го числа; каждый день считается отдельно"],
           ["Среднее за календарный день", money(monthAvg), "Включает дни без операций — они считаются нулём"],
-          ["Среднее за последние " + k7 + " дн.", money(recentAvg), "Результат каждого дня считается отдельно"],
-          ["Ожидается за оставшиеся " + left + " дн.", money(expectedRemaining), "Оценка по темпу месяца и недавним дням"],
-          ["Примерная прибыль за месяц", money(projected), "Факт на сегодня + оценка оставшихся дней"]
+          ["Среднее за последние " + k7 + " дн.", money(recentAvg), "Фактический результат каждого из последних календарных дней"],
+          ["Ожидается за оставшиеся " + left + " дн.", money(expectedRemaining), "Автоматическая оценка по среднему за месяц и взвешенному темпу последних дней"],
+          ["Примерная прибыль за месяц", money(projected), "Рассчитывается автоматически: факт на сегодня + оценка оставшихся дней"]
         ];
-        if (left) rows.push(["Ориентировочный диапазон", fmt(Math.round(Math.min(lowProjection, highProjection))) + " … " + fmt(Math.round(Math.max(lowProjection, highProjection))), "Сценарный диапазон, не гарантия результата"]);
-        if (goal > 0) rows.push(["Цель на месяц", fmt(goal) + " · " + (projected >= goal ? "прогноз выше цели на " + fmt(projected - goal) : "по прогнозу не хватает " + fmt(goal - projected)), "Сравнение с примерным итогом месяца"]);
+        if (left) rows.push(["Ориентировочный диапазон", fmt(Math.round(Math.min(lowProjection, highProjection))) + " … " + fmt(Math.round(Math.max(lowProjection, highProjection))), "Сценарный диапазон на основе колебаний дневной прибыли, не гарантия результата"]);
         const table = '<div class="fc-table-wrap"><table class="fc-table"><thead><tr><th>Показатель</th><th>Сумма</th></tr></thead><tbody>' +
           rows.map((r, i) => '<tr' + (i === 4 ? ' class="fc-total-row"' : '') + '><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join("") +
           '</tbody></table></div>';
@@ -2987,14 +2994,11 @@
         const svg = '<svg class="fcs" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Дневная прибыль: каждый день от нуля; пунктир — примерный дневной темп">' +
           grid + forecastShape + '<path d="' + actualPath + '" fill="none" stroke="var(--acc)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>' + dots + '</svg>';
         const confidence = activeDates.size < 3
-          ? "Пока мало данных (" + activeDates.size + " активных дней): прогноз предварительный и может сильно измениться."
-          : "Прогноз не гарантирует доход: разовые пики сглаживаются, а дни без операций считаются нулевыми.";
-        const goalNote = goal > 0
-          ? (projected >= goal ? "По текущей оценке цель достижима; ориентировочный запас — " + fmt(projected - goal) + "." : "По текущей оценке до цели не хватает " + fmt(goal - projected) + ".")
-          : "Добавьте месячную цель, чтобы сравнивать её с прогнозом.";
-        el.innerHTML = '<div class="fch"><div><small>Примерная прибыль за месяц</small><div class="fcb fcn ' + (projected >= 0 ? "pos" : "neg") + '">' + money(projected) + '</div><small>Факт на сегодня + оценка оставшихся ' + left + ' дн.</small></div>' +
+          ? "Автоматический прогноз: пока только " + activeDates.size + " активных " + pl(activeDates.size, ["день", "дня", "дней"]) + ", поэтому оценка предварительная."
+          : "Прогноз обновляется после каждой записи. Он учитывает прибыль и убыток каждого дня, дни без операций и недавнюю динамику.";
+        el.innerHTML = '<div class="fch"><div><small>Примерная прибыль за месяц · автоматически</small><div class="fcb fcn ' + (projected >= 0 ? "pos" : "neg") + '">' + money(projected) + '</div><small>Ничего вводить вручную не нужно · осталось ' + left + ' дн.</small></div>' +
           '<div class="fcc"><span>Факт сейчас<b class="fcn">' + money(now) + '</b></span><span>В среднем за день<b class="fcn">' + money(monthAvg) + '</b></span><span>Последние ' + k7 + ' ' + pl(k7, ["день", "дня", "дней"]) + '<b class="fcn">' + money(recentAvg) + '</b></span></div></div>' +
-          svg + table + '<p class="fc-estimate-note">' + confidence + ' ' + goalNote + '</p>';
+          svg + table + '<p class="fc-estimate-note">' + confidence + '</p>';
       }
 
       function marketplaceProfitOps(list, platform, untilDate = today()) {

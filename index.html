@@ -2395,7 +2395,7 @@
       @media(prefers-reduced-motion:reduce){#streakCheckin,.streak-progress-track i{transition:none!important}}
 
       /* TikTok-style auto streak: evolving flame, visible recovery charges and compact calendar. */
-      #dStreak.streak-modal.streak-v2{width:min(560px,calc(100vw - 24px));max-width:560px;padding:18px;max-height:min(90dvh,820px)}
+      #dStreak.streak-modal.streak-v2{width:min(560px,calc(100vw - 24px));max-width:560px;padding:18px;max-height:90vh;max-height:min(90dvh,820px)}
       #dStreak.streak-v2 .streak-v2-hero{position:relative;isolation:isolate;display:grid;grid-template-columns:80px minmax(0,1fr) auto;align-items:center;gap:15px;overflow:hidden;margin:10px 0 13px;padding:18px;border:1px solid color-mix(in srgb,var(--acc) 28%,var(--line));border-radius:18px;background:radial-gradient(ellipse at 12% 50%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 55%),linear-gradient(130deg,color-mix(in srgb,var(--card) 80%,var(--acc)),var(--card))}
       #dStreak.streak-v2 .streak-v2-hero::after{content:"";position:absolute;inset:0;z-index:-1;opacity:.25;background:radial-gradient(circle at 86% 15%,var(--acc) 0 1px,transparent 2px),radial-gradient(circle at 72% 75%,var(--acc2) 0 1.5px,transparent 2px),radial-gradient(circle at 55% 20%,var(--acc) 0 1px,transparent 2px);background-size:73px 57px,87px 64px,101px 91px;animation:streakSparkDrift 8s linear infinite}
       .streak-v2-flame{position:relative;width:76px;height:76px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(145deg,var(--ui-accent-soft),var(--ui-secondary-soft));border:1px solid var(--ui-accent-border)}
@@ -3787,7 +3787,9 @@
         el.dataset.level=String(rank?rank.days:0);
         el.title="Огонёк: "+currentStreak+" "+streakPlural(currentStreak)+" подряд";
         el.setAttribute("aria-label",currentStreak+" "+streakPlural(currentStreak)+". Рекорд "+bestStreakValue+" дней. Восстановлений доступно "+streakCharges()+".");
-        el.innerHTML='<span class="streak-flame" aria-hidden="true">🔥</span><span class="streak-copy"><b>'+currentStreak+' '+streakPlural(currentStreak)+'</b><small>'+(streakPendingRecovery?"Огонёк можно вернуть":"Заход сегодня учтён")+'</small></span><span class="streak-best">'+streakCharges()+'/2 ↻</span>';
+        const shownStreak=streakPendingRecovery?streakPendingRecovery.previousRun:currentStreak;
+        el.setAttribute("aria-label",shownStreak+" "+streakPlural(shownStreak)+". Рекорд "+bestStreakValue+" дней. Восстановлений доступно "+streakCharges()+".");
+        el.innerHTML='<span class="streak-flame" aria-hidden="true">🔥</span><span class="streak-copy"><b>'+shownStreak+' '+streakPlural(shownStreak)+'</b><small>'+(streakPendingRecovery?"Огонёк можно вернуть":"Заход сегодня учтён")+'</small></span><span class="streak-best">'+streakCharges()+'/2 ↻</span>';
         const seen=LS("streakMilestones",[]);
         if(!Array.isArray(seen))localStorage.setItem("streakMilestones",JSON.stringify([]));
         const known=Array.isArray(seen)?seen:[];
@@ -3857,7 +3859,8 @@
       }
       function restoreStreak(){
         if(!streakPendingRecovery||streakCharges()<=0)return;
-        const missed=streakPendingRecovery.missed,visits=new Set(streakVisits);
+        const recovery=streakPendingRecovery;
+        const missed=recovery.missed,visits=new Set(streakVisits);
         if(!missed||visits.has(missed))return;
         visits.add(missed);
         streakRestoreState.used++;
@@ -3867,7 +3870,7 @@
         streakVisits=[...visits].sort().slice(-450);
         localStorage.setItem("streakVisits",JSON.stringify(streakVisits));
         localStorage.setItem("visits",JSON.stringify(streakVisits));
-        const old=currentStreak;
+        const old=recovery.previousRun;
         currentStreak=streakRunEnding(today(),new Set(streakVisits));
         bestStreakValue=Math.max(bestStreakValue,currentStreak);
         localStorage.setItem("bestStreak",String(bestStreakValue));
@@ -3879,7 +3882,9 @@
         $("#streakRecoveryButton").disabled=true;
         renderStreakDialog();
         if(typeof render==="function")render();
-        toast("🔥 Огонёк восстановлен! Серия снова "+currentStreak+" "+streakPlural(currentStreak)+".");
+        toast(hit.length
+          ? "🔥 Огонёк восстановлен и эволюционировал: "+hit[hit.length-1].title+"! Серия — "+currentStreak+" "+streakPlural(currentStreak)+"."
+          : "🔥 Огонёк восстановлен! Серия снова "+currentStreak+" "+streakPlural(currentStreak)+".");
       }
       $("#streak").addEventListener("click",()=>{renderStreakDialog();$("#dStreak").showModal();});
       $("#cStreak").addEventListener("click",()=>$("#dStreak").close());

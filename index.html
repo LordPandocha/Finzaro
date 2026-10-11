@@ -2873,9 +2873,28 @@
         list.forEach((o) => (by[o.date] ??= []).push(o));
         const cum = [0];
         for (let i = 1; i <= D; i++) { const k = ym + "-" + String(i).padStart(2, "0"); cum.push(cum[i - 1] + (by[k] ? agg(by[k]).profit : 0)); }
-        if (D < 3) { el.innerHTML = `<small>Прогноз на конец месяца</small><p class="mut" style="margin:6px 0 0">Появится через пару дней: для прогноза нужно хотя бы 3 дня записей.</p>`; return; }
-        const now = cum[D], left = N - D, avg = now / D, k7 = Math.min(7, D), avg7 = (now - cum[D - k7]) / k7,
-          ex = now + avg * left, lo = now + Math.min(avg, avg7) * left, hi = now + Math.max(avg, avg7) * left, GO = +LS("goal", 0);
+        const daily = cum.slice(1).map((v, i) => v - cum[i]);
+        const activeDates = new Set(list.filter((o) => o.date >= ym + "-01" && o.date <= t && o.type !== "withdraw").map((o) => o.date));
+        const now = cum[D], left = N - D, avg = now / Math.max(1, D), k7 = Math.min(7, D);
+        const avg7 = daily.slice(-k7).reduce((sum, value) => sum + value, 0) / Math.max(1, k7);
+        if (D < 3 || activeDates.size < 3) {
+          el.innerHTML = '<div class="fch"><div><small>Прогноз на конец месяца</small><div class="fcb fcn ' + (now >= 0 ? "pos" : "neg") + '">' + sg(Math.round(now)) + '</div><small>Фактический результат на сегодня</small></div></div><p class="mut" style="margin:8px 0 0">Пока всего ' + activeDates.size + ' активных дней. Прогноз пока скрыт, чтобы одна случайная продажа или закупка не рисовала нереалистичный конец месяца.</p>';
+          return;
+        }
+        const sorted = daily.slice().sort((a,b) => a-b);
+        const median = sorted[Math.floor(sorted.length / 2)] || 0;
+        const deviations = sorted.map((value) => Math.abs(value - median)).sort((a,b) => a-b);
+        const mad = deviations[Math.floor(deviations.length / 2)] || 0;
+        const extreme = Math.max(100, ...daily.map((value) => Math.abs(value)));
+        const limit = Math.max(3 * 1.4826 * mad, extreme * 0.72, 100);
+        const clipped = daily.map((value) => Math.max(median - limit, Math.min(median + limit, value)));
+        const mean = (arr) => arr.length ? arr.reduce((sum,value) => sum + value, 0) / arr.length : 0;
+        const longRate = mean(clipped), k14 = Math.min(14, D), recentRate = mean(clipped.slice(-k14));
+        const dailyRate = longRate * 0.35 + recentRate * 0.65;
+        const ex = now + dailyRate * left;
+        const lo = now + Math.min(longRate, recentRate) * left;
+        const hi = now + Math.max(longRate, recentRate) * left;
+        const GO = +LS("goal", 0);
         const W = 640, H = 210, pL = 10, pR = 14, pT = 18, pB = 26,
           mn = Math.min(0, ...cum, lo), mx0 = Math.max(hi, ex, now, GO || 0, 1), mx = mx0 + (mx0 - mn) * 0.08,
           X = (i) => pL + ((i - 1) / (N - 1)) * (W - pL - pR), Y_ = (v) => pT + (1 - (v - mn) / (mx - mn)) * (H - pT - pB),
@@ -2898,12 +2917,18 @@
         </svg>`;
         let goal;
         if (GO > 0) {
-          if (now >= GO) goal = `🎉 Цель ${fmt(GO)} уже выполнена, всё, что дальше, сверху.`;
-          else if (ex >= GO) { const dd = new Date(Y, M - 1, D + Math.ceil((GO - now) / avg)).toLocaleDateString("ru-RU", { day: "numeric", month: "long" }); goal = `✅ Цель ${fmt(GO)} выполнится примерно ${dd}, если темп не упадёт.`; }
-          else goal = left > 0 ? `До цели ${fmt(GO)} не хватит ${fmt(GO - ex)}. Чтобы успеть, нужно ≈ ${fmt((GO - now) / left)} в день, сейчас ${fmt(avg)}.` : `До цели ${fmt(GO)} не хватило ${fmt(GO - now)}.`;
-        } else goal = `Поставьте цель на месяц в карточке выше, и здесь появится, успеваете ли вы.`;
-        el.innerHTML = `<div class="fch"><div><small>Прогноз на конец месяца</small><div class="fcb fcn ${ex >= 0 ? "pos" : "neg"}">≈ ${sg(Math.round(ex))}</div><small>Если продолжите так же · осталось ${left} ${pl(left, ["день", "дня", "дней"])}</small></div>
-          <div class="fcc"><span>Сейчас<b class="fcn">${sg(Math.round(now))}</b></span><span>В день<b class="fcn">${sg(Math.round(avg))}</b></span><span>Последние ${k7} дн.<b class="fcn">${sg(Math.round(avg7))} в день</b></span>${Math.abs(hi - lo) > 1 ? `<span>Коридор<b class="fcn">${fmt(Math.round(lo))} … ${fmt(Math.round(hi))}</b></span>` : ""}</div></div>${svg}<div class="fcg">${goal}</div>`;
+          if (now >= GO) goal = "🎉 Цель " + fmt(GO) + " уже выполнена. Прогноз учитывает и будущие доходы, и расходы.";
+          else if (dailyRate > 0 && ex >= GO) {
+            const dd = new Date(Y, M - 1, D + Math.ceil((GO - now) / dailyRate)).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+            goal = "✅ При текущем сглаженном темпе цель может быть достигнута примерно " + dd + ".";
+          } else {
+            goal = left > 0
+              ? "До цели " + fmt(GO) + " по прогнозу не хватает " + fmt(Math.max(0, GO - ex)) + ". Чтобы успеть, нужно ≈ " + fmt((GO - now) / left) + " чистыми в день; прогнозный темп — " + fmt(dailyRate) + "."
+              : "До цели " + fmt(GO) + " не хватило " + fmt(GO - now) + ".";
+          }
+        } else goal = "Поставьте цель на месяц в карточке выше — сравню её со сглаженным прогнозом.";
+        el.innerHTML = `<div class="fch"><div><small>Прогноз на конец месяца</small><div class="fcb fcn ${ex >= 0 ? "pos" : "neg"}">≈ ${sg(Math.round(ex))}</div><small>Сглажены единичные выбросы · осталось ${left} ${pl(left, ["день", "дня", "дней"])}</small></div>
+          <div class="fcc"><span>Сейчас<b class="fcn">${sg(Math.round(now))}</b></span><span>Среднее факт./день<b class="fcn">${sg(Math.round(avg))}</b></span><span>Прогнозный темп/день<b class="fcn">${sg(Math.round(dailyRate))}</b></span><span>Последние ${k7} дн.<b class="fcn">${sg(Math.round(avg7))} в день</b></span>${Math.abs(hi - lo) > 1 ? `<span>Коридор<b class="fcn">${fmt(Math.round(lo))} … ${fmt(Math.round(hi))}</b></span>` : ""}</div></div>${svg}<div class="fcg">${goal}</div>`;
       }
 
       function marketplaceProfitOps(list, platform) {

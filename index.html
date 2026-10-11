@@ -781,6 +781,13 @@
       .undo-fab:hover { border-color: var(--acc); transform: translateX(-50%) translateY(-1px); }
       .undo-fab:disabled { opacity: .55; cursor: progress; }
       @keyframes undoEnter { to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+      .history-list { display:grid; gap:8px; margin:14px 0 2px; max-height:min(52vh,520px); overflow:auto; }
+      .history-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:11px; border:1px solid var(--line); border-radius:14px; background:var(--c2); }
+      .history-row > div { min-width:0; }
+      .history-row b { display:block; font-size:.9rem; }
+      .history-row small { display:block; margin-top:4px; color:var(--mut); font-size:.76rem; line-height:1.4; overflow-wrap:anywhere; }
+      .history-row .pill { white-space:nowrap; min-height:36px; }
+      #dHistory .empty { color:var(--mut); padding:22px 8px; text-align:center; }
       .just-added { animation: addedPulse .95s ease-in-out 2; border-color: var(--acc) !important; }
       @keyframes addedPulse { 50% { box-shadow: var(--sh), 0 0 0 4px color-mix(in srgb, var(--acc) 18%, transparent); } }
       [data-decor="off"] #bg, [data-decor="off"] #fx { display: none !important; }
@@ -1710,6 +1717,7 @@
         </div>
         <div class="row">
           <button class="ic" id="bImport" data-i="import" title="Импорт закупок и продаж FunPay" aria-label="Импорт закупок и продаж FunPay"></button
+          ><button class="ic" id="bHistory" data-i="history" title="История действий" aria-label="История действий"></button
           ><button class="ic" id="bView" data-i="pal" title="Темы и оформление" aria-label="Темы и оформление"></button
           ><button class="ic" id="bShare" title="Поделиться итогом" aria-label="Поделиться итогом"></button
           ><button class="ic" id="bCalc" data-i="calc" title="Калькулятор цены" aria-label="Калькулятор цены"></button
@@ -1776,6 +1784,12 @@
     <button type="button" class="undo-fab" id="bUndo" hidden aria-label="Вернуть последнее действие" aria-keyshortcuts="Control+Z Meta+Z"><span aria-hidden="true">↶</span><b>Вернуть действие</b><small id="undoMeta">Ctrl+Z</small></button>
     <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b></button>
     <div id="toast" role="alert"></div>
+
+    <dialog id="dHistory">
+      <div class="sh"><b>История действий</b><button type="button" class="ic sm" id="cHistory" data-i="x" aria-label="Закрыть историю"></button></div>
+      <p class="mut">Выбери конкретное действие, которое нужно вернуть. Можно откатить не только последнее; если более позднее изменение зависит от него, Finzaro предупредит и не перезапишет новые данные.</p>
+      <div id="historyList" class="history-list"></div>
+    </dialog>
 
     <dialog id="dAdd">
       <form id="f">
@@ -2076,6 +2090,7 @@
         pal: '<path d="M12 3a9 9 0 100 18c1.4 0 2-1 1.5-2-.6-1.2.2-2.5 1.6-2.5H17a4 4 0 004-4c0-5-4-9.5-9-9.5z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
         set: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
         import: '<path d="M12 15V3m0 0L7 8m5-5 5 5M5 14v6h14v-6"/>',
+        history: '<path d="M3 12a9 9 0 1 0 2.64-6.36L3 8M3 3v5h5M12 7v5l3 2"/>',
         dl: '<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
         out: '<path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/>',
         plus: '<path d="M12 5v14M5 12h14"/>',
@@ -2507,20 +2522,32 @@
       $("#cView").onclick = () => $("#dView").close();
 
       const undoStack = [];
-      let undoBusy = false, undoing = false, pendingFocusOperation = null;
+      let undoBusy = false, undoing = false, pendingFocusOperation = null, undoFabVisible = false, undoHideTimer = 0;
       function refreshUndoButton() {
         const b = $("#bUndo");
-        b.hidden = !undoStack.length;
+        b.hidden = !undoStack.length || !undoFabVisible;
         b.disabled = undoBusy;
         const last = undoStack[undoStack.length - 1];
-        $("#undoMeta").textContent = undoStack.length > 1 ? `${undoStack.length} действий · Ctrl+Z` : "Ctrl+Z";
-        b.title = last ? "Вернуть действие: " + last.label + " (Ctrl+Z)" : "Нет действий для возврата";
+        $("#undoMeta").textContent = undoStack.length > 1 ? `${undoStack.length} в истории · открыть` : "Открыть историю";
+        b.title = last ? "История действий. Последнее: " + last.label : "История действий";
+      }
+      function showUndoToast() {
+        undoFabVisible = true;
+        if (undoHideTimer) clearTimeout(undoHideTimer);
+        refreshUndoButton();
+        undoHideTimer = window.setTimeout(() => {
+          undoFabVisible = false;
+          refreshUndoButton();
+        }, 4200);
       }
       function trackUndo(action) {
         if (undoing || !action) return;
+        action.hid = action.hid || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+        action.at = action.at || Date.now();
         undoStack.push(action);
         if (undoStack.length > 25) undoStack.shift();
-        refreshUndoButton();
+        showUndoToast();
+        renderUndoHistory();
       }
       function requestOperationFocus(operation) { pendingFocusOperation = operation ? { ...operation } : null; }
       function applyPendingOperationFocus() {
@@ -2547,39 +2574,92 @@
         };
         requestAnimationFrame(() => requestAnimationFrame(jump));
       }
-      async function undoLastAction() {
+      function undoDescribe(action) {
+        const stamp = new Date(action.at || Date.now()).toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+        if (action.type === "add") return { title:"Добавление записи" + (action.ids?.length > 1 ? " · " + action.ids.length + " шт." : ""), detail: action.row?.game || "Новая операция", stamp };
+        if (action.type === "update") {
+          const row = action.row || {};
+          return { title:"Изменение записи", detail:[row.game || "Без категории", row.date, typeLabel(row.type), fmt(+row.amount || 0)].filter(Boolean).join(" · "), stamp };
+        }
+        if (action.type === "delete") return { title:"Удаление" + (action.rows?.length > 1 ? " · " + action.rows.length + " записей" : ""), detail:(action.rows || []).slice(0,3).map(o=>[o.game || o.marketplace, o.date, fmt(+o.amount || 0)].filter(Boolean).join(" · ")).join(" / "), stamp };
+        return { title:action.label || "Изменение", detail:"", stamp };
+      }
+      function renderUndoHistory() {
+        const list = $("#historyList");
+        if (!list) return;
+        if (!undoStack.length) {
+          list.innerHTML = '<div class="empty">История пуста. Новые действия появятся здесь.</div>';
+          refreshUndoButton();
+          return;
+        }
+        list.innerHTML = undoStack.slice().reverse().map((action) => {
+          const info = undoDescribe(action);
+          return `<div class="history-row"><div><b>${esc(info.title)}</b><small>${esc(info.detail)}<br>${esc(info.stamp)} · ${esc(action.label || "операция")}</small></div><button type="button" class="pill" data-hundo="${esc(action.hid)}" ${undoBusy ? "disabled" : ""}>Вернуть</button></div>`;
+        }).join("");
+        refreshUndoButton();
+      }
+      function openUndoHistory() {
+        renderUndoHistory();
+        if (!$("#dHistory").open) $("#dHistory").showModal();
+      }
+      function undoRowsMatch(a, b) {
+        return ["date","marketplace","game","type","amount","fee","note"].every((k) => String(a?.[k] ?? "") === String(b?.[k] ?? ""));
+      }
+      async function undoLastAction(hid = null) {
         if (undoBusy || !undoStack.length) return;
-        const action = undoStack.pop(); undoBusy = true; undoing = true; refreshUndoButton();
-        let success = false;
+        const index = hid ? undoStack.findIndex((x) => x.hid === hid) : undoStack.length - 1;
+        if (index < 0) return toast("Это действие больше недоступно.");
+        const action = undoStack[index];
+        undoBusy = true; undoing = true; refreshUndoButton(); renderUndoHistory();
+        let success = false, errorMessage = "";
         try {
-          if (action.type === "add") { success = !!(await delMany(action.ids, true)); }
-          else if (action.type === "update") {
-            const patch = Object.fromEntries(Object.entries(action.row).filter(([k]) => !["id", "user_id", "created_at", "updated_at"].includes(k)));
+          if (action.type === "add") {
+            success = !!(await delMany(action.ids || [], true));
+          } else if (action.type === "update") {
+            const current = ops.find((o) => String(o.id) === String(action.row?.id));
+            if (!current) throw new Error("Этой записи уже нет. Верни более позднее удаление или обнови страницу.");
+            if (action.after && !undoRowsMatch(current, action.after)) throw new Error("Эту запись меняли позже. Сначала верни более новое изменение этой же записи.");
+            const patch = Object.fromEntries(Object.entries(action.row).filter(([k]) => !["id","user_id","created_at","updated_at"].includes(k)));
             success = !!(await upd(action.row.id, patch));
           } else if (action.type === "delete") {
-            const rows = action.rows.map((o) => { const { id, user_id, created_at, updated_at, ...rest } = o; return user ? { ...rest, user_id: user.id } : rest; });
-            success = !!(await add(rows));
+            const rows = (action.rows || []).filter((o) => !ops.some((cur) => String(cur.id) === String(o.id)));
+            if (!rows.length) throw new Error("Эти записи уже восстановлены. Дубликаты не созданы.");
+            const L = rows.map((o) => { const { id, user_id, created_at, updated_at, ...rest } = o; return user ? { ...rest, user_id: user.id } : rest; });
+            success = !!(await add(L));
             if (success && action.trashIds?.length) {
               localStorage.setItem("trash2", JSON.stringify(LS("trash2", []).filter((x) => !action.trashIds.includes(x.tid))));
               if ($("#dSet")?.open) renderTrash();
             }
           }
-        } catch (_) { success = false; }
+        } catch (err) { success = false; errorMessage = err?.message || ""; }
         undoing = false; undoBusy = false;
-        if (!success) { undoStack.push(action); toast("Не удалось отменить действие. Попробуйте ещё раз."); }
-        else { toast("Отменено: " + action.label); snd("cancel"); }
-        refreshUndoButton();
+        if (success) {
+          const i = undoStack.findIndex((x) => x.hid === action.hid);
+          if (i >= 0) undoStack.splice(i, 1);
+          toast("Возвращено: " + (action.label || "действие"));
+          snd("cancel");
+        } else {
+          if (!errorMessage) errorMessage = "Не удалось вернуть действие. Попробуй ещё раз.";
+          toast(errorMessage);
+        }
+        renderUndoHistory();
       }
-      $("#bUndo").addEventListener("click", undoLastAction);
+      $("#bUndo").addEventListener("click", openUndoHistory);
+      $("#bHistory").addEventListener("click", openUndoHistory);
+      $("#cHistory").addEventListener("click", () => $("#dHistory").close());
+      $("#historyList").addEventListener("click", (e) => {
+        const button = e.target.closest("[data-hundo]");
+        if (button) void undoLastAction(button.dataset.hundo);
+      });
       document.addEventListener("keydown", (e) => {
         const undoShortcut = (e.ctrlKey || e.metaKey) && (String(e.key || "").toLowerCase() === "z" || e.code === "KeyZ") && !e.shiftKey && !e.altKey;
         if (!undoShortcut) return;
         const active = document.activeElement;
         if (active && (active.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) return;
-        if (!undoStack.length || undoBusy) return;
+        if (!undoStack.length || undoBusy || $("#dHistory")?.open) return;
         e.preventDefault(); e.stopPropagation(); void undoLastAction();
       }, true);
-      async function load() {
+            async function load() {
         if (sb) {
           if (!user) { ops = []; render(); return []; }
           const { data, error } = await sb.from("operations").select("*").eq("user_id", user.id).order("date", { ascending: false });
@@ -2636,7 +2716,7 @@
           ops = ops.map((o) => (o.id == id ? { ...o, ...patch } : o));
           localStorage.setItem("ops", JSON.stringify(ops));
         }
-        if (before) trackUndo({ type: "update", row: { ...before }, label: "изменение" });
+        if (before) trackUndo({ type: "update", row: { ...before }, after: { ...before, ...patch }, label: "изменение" });
         applyPendingOperationFocus();
         await load();
         finishPendingOperationFocus();

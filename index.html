@@ -2797,7 +2797,7 @@
         MPS = { ...BASE, ...custom };
       const TYPES = {
         sale: ["Продажа", "Покупатель заплатил вам"],
-        purchase: ["Закупка", "Вы купили товар для перепродажи"],
+        purchase: ["Закупка", "Товар поступает на склад; прибыль изменится при продаже или списании"],
         other: ["Расход", "Любая другая трата"],
         refund: ["Возврат", "Вы вернули деньги покупателю"],
         withdraw: ["Вывод", "Перевод денег на карту — это не расход"],
@@ -3758,7 +3758,7 @@
             for (const marketplace of marketplaces) {
               const amount = r2(Number(allocations[marketplace]) || 0);
               if (amount <= .005) continue;
-            if (fromDate && closure.date < fromDate) continue;
+              if (fromDate && closure.date < fromDate) continue;
               const qtyPart = closure.closedQty || closure.quantity || 0;
               out.push({
                 id: "stock-writeoff-" + String(closure.id) + "-" + encodeURIComponent(marketplace),

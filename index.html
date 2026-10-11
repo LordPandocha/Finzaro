@@ -3598,7 +3598,8 @@
         const selectedOps = ops.filter((o) => view === "all" || o.marketplace === view);
         const profitOps = marketplaceProfitOps(selectedOps, view, t);
         const current = profitOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
-        if (!current.length) {
+        const currentRaw = selectedOps.filter((o) => o.date >= firstMonthDay && o.date <= t);
+        if (!currentRaw.length) {
           const emptyMonth=MN[M-1]||"";
           el.innerHTML='<div class="fc-head"><div><small>ФИНАНСЫ · '+esc(emptyMonth)+' '+Y+'</small><h3>Примерная прибыль за месяц</h3></div><span class="fc-days">Прогноз появится после первой операции</span></div>'+
             '<div class="fc-empty"><span class="fc-empty-icon">'+ico("chart")+'</span><div class="fc-empty-copy"><b>Пока нет данных для прогноза</b><small>Добавь продажу, закупку или импортируй историю FunPay. Finzaro покажет факт, осторожный темп и примерный итог месяца.</small></div><button type="button" class="pill" id="fcEmptyAdd">Добавить операцию</button></div>';
@@ -4229,10 +4230,11 @@
         const sl = list.filter((o) => o.type === "sale"),
           byD = {};
         profitList.forEach((o) => (byD[o.date] ??= []).push(o));
-        const dp = Object.entries(byD)
-            .map(([d, l]) => [d, agg(l).profit])
-            .sort((a, b) => b[1] - a[1]),
-          best = dp[0];
+        const profitDates = [...new Set([...list.map((o) => o.date), ...Object.keys(byD)])];
+        const dp = profitDates
+            .map((d) => [d, agg(byD[d] || []).profit])
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+        const best = dp[0] || [t.slice(0, 10), 0];
         $("#kpi").innerHTML = list.length
           ? `<b>Коротко</b><div class="kpi"><div><small>Продаж</small><b>${sl.length}</b></div><div><small>Средний чек</small><b>${fmt(sl.length ? T.sales / sl.length : 0)}</b></div><div><small>Прибыль за активный день</small><b>${fmt(T.profit / dp.length)}</b></div><div><small>Лучший день</small><b>${dm(best[0])} · ${fmt(best[1])}</b></div></div>`
           : "";

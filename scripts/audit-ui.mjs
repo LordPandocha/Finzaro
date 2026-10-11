@@ -65,8 +65,8 @@ const themes = ["dark", "light", "winter", "autumn", "summer", "spring", "minima
 for (const theme of themes) {
   const selector = '[data-theme="' + theme + '"]';
   assert.ok(css.includes(selector), "Missing theme CSS: " + theme);
-  const rule = new RegExp("\\\\[data-theme=\\\"" + theme + "\\\"\\\\]\\\\s*\\\\{[^}]*--cs:\\\\s*dark\\\\b");
-  assert.ok(rule.test(css), "Theme must force a dark color scheme: " + theme);
+  const themeRule = css.split(/\r?\n/).find((line) => line.includes(selector) && /--cs:\s*dark\b/.test(line));
+  assert.ok(themeRule, "Theme must force a dark color scheme: " + theme);
 }
 assert.ok(!/--cs\s*:\s*light\b/i.test(css), "A light color-scheme declaration remains");
 assert.ok(

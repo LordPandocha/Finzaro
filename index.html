@@ -2195,6 +2195,22 @@
       [data-theme="maximal"] .app-main .card,[data-theme="maximal"] .app-sidebar{border-width:var(--bw)}
       @media(prefers-reduced-motion:reduce){.streak-pill .streak-flame,.streak-orb,.streak-achievement.unlocked::after,.fc-chart .fc-bar.fc-enter{animation:none!important}.sidebar-link,.dash-goal-track i,.streak-achievement,.recent-item,.app-main .card{transition:none!important}}
       @media(max-width:680px){.app-sidebar{background:linear-gradient(180deg,var(--ui-surface),var(--bg));border-right-color:var(--ui-border)}.app-main .wrap{padding-top:calc(13px + env(safe-area-inset-top))}}
+
+      /* Last-mile theme coverage: feedback toasts and any semantic/native tables. */
+      #toast{
+        color:var(--ui-ink);background:color-mix(in srgb,var(--neg) 14%,var(--ui-surface));
+        border:1px solid color-mix(in srgb,var(--neg) 52%,var(--ui-border));box-shadow:var(--ui-shadow)
+      }
+      #toast.ok{
+        color:var(--ui-ink);background:var(--ui-accent-soft);border-color:var(--ui-accent-border)
+      }
+      #toast .lnk{color:var(--acl)}
+      .app-main table{width:100%;border-color:var(--ui-border);color:var(--ui-ink);border-collapse:separate;border-spacing:0}
+      .app-main thead th{background:var(--ui-surface-raised);color:var(--ui-ink);border-color:var(--ui-border)}
+      .app-main tbody td{background:var(--ui-surface);color:var(--ui-ink);border-color:var(--ui-border)}
+      .app-main tbody tr:hover td{background:var(--ui-accent-soft)}
+      .app-main hr{border:0;border-top:1px solid var(--ui-border)}
+      .app-main .panel,.app-main .table-wrap,.app-main .table-card{background:var(--ui-surface);border-color:var(--ui-border);color:var(--ui-ink)}
     </style>
   </head>
   <body>

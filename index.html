@@ -1426,7 +1426,7 @@
       /* искры, летящая сумма, «Лучший день!» */
       .sp { position: fixed; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 99; background: var(--acc); }
       .fly { position: fixed; z-index: 99; pointer-events: none; font-weight: 900; color: var(--acc); font-size: 20px; text-shadow: 0 2px 8px #fff; }
-      #best { position: fixed; left: 50%; top: 18%; z-index: 100; transform: translateX(-50%); padding: 14px 26px; border-radius: 999px; font-weight: 900; font-size: 22px; color: #fff; background: linear-gradient(135deg, #ffb347, #f2682a); box-shadow: 0 12px 40px rgba(255,120,50,.6); pointer-events: none; animation: best 2.6s cubic-bezier(.2,1.4,.4,1) forwards; white-space: nowrap; }
+      #best { position: fixed; left: 50%; top: 18%; z-index: 100; transform: translateX(-50%); padding: 14px 26px; border-radius: 999px; font-weight: 900; font-size: 22px; color: #241108; background: linear-gradient(135deg, #ffb347, #f2682a); text-shadow: none; box-shadow: 0 12px 40px rgba(255,120,50,.38); pointer-events: none; animation: best 2.6s cubic-bezier(.2,1.4,.4,1) forwards; white-space: nowrap; }
       @keyframes best { 0% { opacity: 0; transform: translateX(-50%) scale(.3) rotate(-8deg); } 15% { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(3deg); } 25%, 80% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) translateY(-30px); } }
       /* иконки игр */
       .gi { position:relative; overflow:hidden; }
@@ -2692,6 +2692,29 @@
       html[data-theme] .app-main a:focus-visible,
       html[data-theme] .app-sidebar button:focus-visible,
       html[data-theme] .app-sidebar a:focus-visible { outline-color: var(--acc) !important; }
+
+    
+      /* Keep action labels readable even when legacy pill styles are present. */
+      html[data-theme] .app-main .fc-goal-button,
+      html[data-theme] .app-main #fcGoalBtn {
+        color: #f0f2f7 !important;
+        background: #1b2027 !important;
+        border: 1px solid #fb923c !important;
+        box-shadow: 0 0 0 1px rgba(251,146,60,.08) !important;
+        text-shadow: none !important;
+        font-weight: 850 !important;
+      }
+      html[data-theme] .app-main .fc-goal-button:hover,
+      html[data-theme] .app-main #fcGoalBtn:hover {
+        color: #ffffff !important;
+        background: #252b34 !important;
+        border-color: #fdba74 !important;
+      }
+      html[data-theme] .app-main .fc-goal-button:focus-visible,
+      html[data-theme] .app-main #fcGoalBtn:focus-visible {
+        outline: 2px solid #fdba74 !important;
+        outline-offset: 3px !important;
+      }
 
     </style>
   </head>
@@ -6691,24 +6714,24 @@
       function drawShare() {
         const cv = $("#shC"), c = cv.getContext("2d"), W = 1080, H = 1350, hide = $("#shHide").checked, { list: rawList } = cur(), list = marketplaceProfitOps(rawList, view, allT ? today() : monthLastDay(ym), allT ? "" : ym + "-01"), T = agg(list), F = "system-ui,'Segoe UI',sans-serif";
         const money = (n) => (hide ? "•••• ₽" : (n > 0 ? "+" : "") + fmt(n)), plain = (n) => (hide ? "•••• ₽" : fmt(n));
-        const bg = c.createLinearGradient(0, 0, W * .5, H); bg.addColorStop(0, "#fff1e6"); bg.addColorStop(.55, "#ffd9bf"); bg.addColorStop(1, "#ffb98a"); c.fillStyle = bg; c.fillRect(0, 0, W, H);
-        [[880, 160, 200], [120, 1180, 170], [960, 1050, 110], [90, 260, 80]].forEach(([x, y, r]) => { const g = c.createRadialGradient(x - r * .3, y - r * .35, r * .05, x, y, r); g.addColorStop(0, "#fff"); g.addColorStop(.35, "#ffd2b0"); g.addColorStop(1, "#ff8a4c"); c.globalAlpha = .8; c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); });
+        const bg = c.createLinearGradient(0, 0, W * .5, H); bg.addColorStop(0, "#0b0d12"); bg.addColorStop(.55, "#12151c"); bg.addColorStop(1, "#1a1418"); c.fillStyle = bg; c.fillRect(0, 0, W, H);
+        [[880, 160, 200], [120, 1180, 170], [960, 1050, 110], [90, 260, 80]].forEach(([x, y, r]) => { const g = c.createRadialGradient(x - r * .3, y - r * .35, r * .05, x, y, r); g.addColorStop(0, "#69402a"); g.addColorStop(.35, "#3a2624"); g.addColorStop(1, "#1b1822"); c.globalAlpha = .28; c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); });
         c.globalAlpha = 1;
-        c.save(); c.shadowColor = "rgba(255,120,50,.3)"; c.shadowBlur = 50; c.shadowOffsetY = 20; rr(c, 60, 110, 960, 1130, 64); c.fillStyle = "rgba(255,255,255,.62)"; c.fill(); c.restore(); rr(c, 60, 110, 960, 1130, 64); c.strokeStyle = "rgba(255,255,255,.95)"; c.lineWidth = 3; c.stroke();
+        c.save(); c.shadowColor = "rgba(0,0,0,.38)"; c.shadowBlur = 50; c.shadowOffsetY = 20; rr(c, 60, 110, 960, 1130, 64); c.fillStyle = "rgba(19,22,27,.96)"; c.fill(); c.restore(); rr(c, 60, 110, 960, 1130, 64); c.strokeStyle = "rgba(251,146,60,.34)"; c.lineWidth = 3; c.stroke();
         const per = allT ? "Всё время" : new Date(ym + "-01T12:00").toLocaleDateString("ru-RU", { month: "long", year: "numeric" }), pl = view === "all" ? "все площадки" : view;
-        c.fillStyle = "#3a2013"; c.font = `800 44px ${F}`; c.fillText("Finzaro", 110, 190);
-        c.fillStyle = "#8a5d44"; c.font = `600 34px ${F}`; c.fillText(per[0].toUpperCase() + per.slice(1) + " · " + pl, 110, 245);
-        c.font = `600 32px ${F}`; c.fillText("Чистая прибыль", 110, 330);
-        c.fillStyle = T.profit >= 0 ? "#e0561a" : "#cf2f63"; let fs = 120; c.font = `900 ${fs}px ${F}`; while (c.measureText(money(T.profit)).width > 860 && fs > 50) c.font = `900 ${--fs}px ${F}`; c.fillText(money(T.profit), 110, 450);
-        [["Оборот", plain(T.sales), 110], ["Продаж", String(list.filter((o) => o.type === "sale").length), 570]].forEach(([l, v, x]) => { rr(c, x, 500, 400, 150, 36); c.fillStyle = "rgba(255,255,255,.7)"; c.fill(); c.fillStyle = "#8a5d44"; c.font = `600 28px ${F}`; c.fillText(l, x + 32, 552); c.fillStyle = "#3a2013"; let f2 = 46; c.font = `800 ${f2}px ${F}`; while (c.measureText(v).width > 340 && f2 > 24) c.font = `800 ${--f2}px ${F}`; c.fillText(v, x + 32, 614); });
+        c.fillStyle = "#f0f2f7"; c.font = `800 44px ${F}`; c.fillText("Finzaro", 110, 190);
+        c.fillStyle = "#a0a7b4"; c.font = `600 34px ${F}`; c.fillText(per[0].toUpperCase() + per.slice(1) + " · " + pl, 110, 245);
+        c.fillStyle = "#f0f2f7"; c.font = `600 32px ${F}`; c.fillText("Чистая прибыль", 110, 330);
+        c.fillStyle = T.profit >= 0 ? "#fb923c" : "#ff8798"; let fs = 120; c.font = `900 ${fs}px ${F}`; while (c.measureText(money(T.profit)).width > 860 && fs > 50) c.font = `900 ${--fs}px ${F}`; c.fillText(money(T.profit), 110, 450);
+        [["Оборот", plain(T.sales), 110], ["Продаж", String(list.filter((o) => o.type === "sale").length), 570]].forEach(([l, v, x]) => { rr(c, x, 500, 400, 150, 36); c.fillStyle = "rgba(27,32,39,.96)"; c.fill(); c.fillStyle = "#a0a7b4"; c.font = `600 28px ${F}`; c.fillText(l, x + 32, 552); c.fillStyle = "#f0f2f7"; let f2 = 46; c.font = `800 ${f2}px ${F}`; while (c.measureText(v).width > 340 && f2 > 24) c.font = `800 ${--f2}px ${F}`; c.fillText(v, x + 32, 614); });
         const G = {}; list.forEach((o) => o.game && o.type !== "withdraw" && (G[o.game] ||= []).push(o));
         const top = Object.entries(G).map(([g, l]) => [g, agg(l).profit]).sort((a, b) => b[1] - a[1]).slice(0, 3);
-        c.fillStyle = "#3a2013"; c.font = `800 34px ${F}`; c.fillText("Топ-3 игры", 110, 725);
-        top.forEach(([g, p], i) => { const y = 750 + i * 78; c.fillStyle = "#ff8a4c"; c.font = `800 34px ${F}`; c.fillText(i + 1 + ".", 110, y + 48); c.fillStyle = "#3a2013"; c.font = `700 34px ${F}`; c.fillText(g.length > 20 ? g.slice(0, 19) + "…" : g, 165, y + 48); c.textAlign = "right"; c.fillStyle = p >= 0 ? "#178a4a" : "#cf2f63"; c.fillText(money(p), 970, y + 48); c.textAlign = "left"; });
-        if (!top.length) { c.fillStyle = "#8a5d44"; c.font = `600 30px ${F}`; c.fillText("Пока нет записей за период", 110, 800); }
+        c.fillStyle = "#f0f2f7"; c.font = `800 34px ${F}`; c.fillText("Топ-3 игры", 110, 725);
+        top.forEach(([g, p], i) => { const y = 750 + i * 78; c.fillStyle = "#fb923c"; c.font = `800 34px ${F}`; c.fillText(i + 1 + ".", 110, y + 48); c.fillStyle = "#f0f2f7"; c.font = `700 34px ${F}`; c.fillText(g.length > 20 ? g.slice(0, 19) + "…" : g, 165, y + 48); c.textAlign = "right"; c.fillStyle = p >= 0 ? "#fdba74" : "#ff8798"; c.fillText(money(p), 970, y + 48); c.textAlign = "left"; });
+        if (!top.length) { c.fillStyle = "#a0a7b4"; c.font = `600 30px ${F}`; c.fillText("Пока нет записей за период", 110, 800); }
         let acc = 0; const pts = series(list).map((d) => (acc += d.p)), n = pts.length, mx = Math.max(1, ...pts), mn = Math.min(0, ...pts), X = (i) => 110 + (i / Math.max(1, n - 1)) * 860, Y = (v) => 1190 - ((v - mn) / (mx - mn || 1)) * 190;
         if (n > 1) { const g = c.createLinearGradient(0, 1000, 0, 1190); g.addColorStop(0, "rgba(255,138,76,.5)"); g.addColorStop(1, "rgba(255,138,76,0)"); c.beginPath(); c.moveTo(X(0), 1190); pts.forEach((v, i) => c.lineTo(X(i), Y(v))); c.lineTo(X(n - 1), 1190); c.fillStyle = g; c.fill(); c.beginPath(); pts.forEach((v, i) => (i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v)))); c.strokeStyle = "#ff8a4c"; c.lineWidth = 8; c.lineJoin = c.lineCap = "round"; c.stroke(); }
-        c.fillStyle = "rgba(58,32,19,.55)"; c.font = `600 26px ${F}`; c.textAlign = "center"; c.fillText("Сделано в Finzaro", W / 2, 1300); c.textAlign = "left";
+        c.fillStyle = "rgba(160,167,180,.72)"; c.font = `600 26px ${F}`; c.textAlign = "center"; c.fillText("Сделано в Finzaro", W / 2, 1300); c.textAlign = "left";
       }
       $("#bShare").onclick = () => { $("#dShare").showModal(); drawShare(); };
       $("#cShare").onclick = () => $("#dShare").close();

@@ -2289,6 +2289,16 @@
       @media(prefers-reduced-motion:reduce){
         .dash-trend-hitbox,.chart-selection-totals,.chart-detail{transition:none!important}
       }
+
+      .chart-filter-actions{display:flex;flex-wrap:wrap;gap:8px}
+      #chartPickDaysToggle{min-height:40px}
+      #chartPickDaysToggle.on{background:var(--ui-accent-soft);color:var(--ui-ink);border-color:var(--ui-accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ui-accent) 20%,transparent)}
+      #chartPickDaysToggle:focus-visible{outline:2px solid var(--ui-focus);outline-offset:2px}
+      @media(max-width:680px){
+        #chartPickDaysToggle{min-height:44px;flex:1}
+        #chartClearDays{min-height:44px}
+        #chart2:not(.chart-picking){touch-action:pan-y}
+      }
     </style>
   </head>
   <body>
@@ -2407,7 +2417,7 @@
           </div>
         </main>
         <aside>
-          <div class="card" id="chCard"><b><span class="panel-title-icon" data-i="chart"></span> Расширенная аналитика</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выделение</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div class="chart-selection-summary" id="chartSelectionSummary" aria-live="polite">Выдели один день или протяни по столбцам, чтобы посчитать итоги.</div><div class="chart-selection-totals" id="chartSelectionTotals" hidden aria-live="polite"></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
+          <div class="card" id="chCard"><b><span class="panel-title-icon" data-i="chart"></span> Расширенная аналитика</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartPickDaysToggle" aria-pressed="false" title="Включить выделение дней касанием">Выделять дни</button><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выделение</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div class="chart-selection-summary" id="chartSelectionSummary" aria-live="polite">Выдели один день или протяни по столбцам, чтобы посчитать итоги.</div><div class="chart-selection-totals" id="chartSelectionTotals" hidden aria-live="polite"></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
       </div>
         </div>
@@ -5245,7 +5255,11 @@
         $("#chartDateEnd").value = w.end;
         $("#chartDateStart").max = today();
         $("#chartDateEnd").max = today();
-        $("#chart2").classList.add("chart-picking");
+        $("#chart2").classList.toggle("chart-picking", chartRange.pickDays);
+        const pickDaysButton = $("#chartPickDaysToggle");
+        pickDaysButton.setAttribute("aria-pressed", String(chartRange.pickDays));
+        pickDaysButton.classList.toggle("on", chartRange.pickDays);
+        pickDaysButton.textContent = chartRange.pickDays ? "Выделение включено" : "Выделять дни";
         $("#chartClearDays").hidden = chartRange.selectedDates.size === 0;
         $("#chartRangeSummary").textContent = labels[chartRange.mode] + ": " + w.start.split("-").reverse().join(".") + " — " + w.end.split("-").reverse().join(".") + " · протяни по столбцам, чтобы выделить дни";
       }
@@ -5489,6 +5503,10 @@
           const item = chartPointItem(e?.clientX ?? brush.startX, e?.clientY ?? 0);
           if (item) {
             const next = readChartItem(item);
+            if (chartRange.pickDays && isoDay.test(next.key)) {
+              toggleChartDate(next.key);
+              return;
+            }
             if (chartPin && chartPin.key === next.key) resetChartInteraction();
             else { chartPin = next; hideChartTooltip(); setChartDetail(next, true); paintChartSelection(); }
           }
@@ -5496,6 +5514,8 @@
       };
       $("#chart2").addEventListener("pointerdown", (e) => {
         if (e.isPrimary === false || (e.pointerType === "mouse" && e.button !== 0)) return;
+        // Let phone users scroll normally unless they explicitly enable the day-selection mode.
+        if (e.pointerType !== "mouse" && !chartRange.pickDays) return;
         const item = e.target.closest?.("[data-chart-item]"), date = item?.dataset.chartKey;
         if (!isoDay.test(date || "")) return;
         const byDate = new Map();
@@ -5560,6 +5580,12 @@
         drawCh();
       }
       $("#chartFilters").addEventListener("click", (e) => {
+        if (e.target.closest("#chartPickDaysToggle")) {
+          chartRange.pickDays = !chartRange.pickDays;
+          resetChartInteraction();
+          drawCh();
+          return;
+        }
         const preset = e.target.closest("[data-chart-preset]")?.dataset.chartPreset;
         if (preset) {
           if (preset === "custom") {

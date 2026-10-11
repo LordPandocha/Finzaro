@@ -1350,6 +1350,8 @@
       .fc-axis { fill:var(--mut); font-size:11px; font-family:inherit; }
       .fc-today-label { fill:var(--tx); font-size:10px; font-weight:850; letter-spacing:.06em; }
       .fc-bottomline { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; color:var(--mut); font-size:.75rem; line-height:1.4; }
+      .fc-bottom-actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; min-width:0; }
+      .fc-goal-button { padding:7px 11px; font-size:.75rem; line-height:1.2; font-weight:800; background:var(--hero); color:var(--herotx); border-color:transparent; flex:none; }
       .fc-goal { color:var(--acl); font-weight:750; }
       @media (max-width:540px) {
         .fc { padding:13px 11px; gap:9px; }
@@ -1956,7 +1958,9 @@
         .fc-chart-top{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.78rem}
         .fc-legend{display:flex;flex-wrap:wrap;gap:8px}
         .fc-chart{width:760px;min-width:760px;max-width:none}
-        .fc-bottomline{display:grid;gap:6px;font-size:.78rem}
+        .fc-bottomline{display:grid;gap:8px;font-size:.78rem}
+        .fc-bottom-actions{justify-content:flex-start;gap:7px}
+        .fc-goal-button{padding:8px 11px;font-size:.78rem;min-height:38px}
         .fc-empty{align-items:flex-start;gap:10px;padding:19px 3px}
         .fc-empty-copy{flex-basis:calc(100% - 55px)}
         .fc-empty-copy small{font-size:.84rem;line-height:1.45}
@@ -4146,12 +4150,12 @@
         const goalText = goal > 0 ? '<span class="fc-goal">Цель ' + fmt(goal) + (projected >= goal ? " · на " + fmt(projected - goal) + " выше" : " · не хватает " + fmt(goal - projected)) + '</span>' : "";
         const leftLabel = left ? "До конца месяца " + left + " дн." : "Последний день месяца";
         el.innerHTML =
-          '<div class="fc-head"><div><small>ФИНАНСЫ · ' + esc(monthName) + " " + Y + '</small><h3>Примерная прибыль за месяц</h3></div><div class="fc-head-actions"><button type="button" class="pill fc-goal-button" id="fcGoalBtn">' + (goal > 0 ? "Изменить цель" : "Поставить цель") + '</button><span class="fc-days">' + leftLabel + '</span></div></div>' +
+          '<div class="fc-head"><div><small>ФИНАНСЫ · ' + esc(monthName) + " " + Y + '</small><h3>Примерная прибыль за месяц</h3></div><span class="fc-days">' + leftLabel + '</span></div>' +
           '<div class="fc-overview"><div class="fc-total-block"><small>Ожидаемый итог</small><strong class="' + totalClass + '">' + money(projected) + '</strong><span class="fc-subline">Факт ' + money(actual) + '</span></div>' +
           '<div class="fc-pace-block"><span class="fc-pace-mark" aria-hidden="true"></span><div><small>' + (left ? "Осторожный темп на день" : "Итоговый день") + '</small><b>' + money(forecastRate) + '</b></div><span class="fc-discount">−10%</span></div></div>' +
           '<div class="fc-chart-top"><span>Прибыль по дням · ₽</span><div class="fc-legend"><span><i class="fc-dot fc-dot-actual"></i>Факт</span><span><i class="fc-dot fc-dot-forecast"></i>Оценка</span></div></div>' +
           svg +
-          '<div class="fc-bottomline"><span>Дневная разбивка — ориентир, не гарантия.</span>' + goalText + '</div>';
+          '<div class="fc-bottomline"><span>Дневная разбивка — ориентир, не гарантия.</span><div class="fc-bottom-actions">' + goalText + '<button type="button" class="pill fc-goal-button" id="fcGoalBtn">' + (goal > 0 ? "Изменить цель" : "Поставить цель") + '</button></div></div>';
         $("#fcGoalBtn").onclick=()=>$("#goal").click();
         const mobileChartScroll = $("#fc .fc-chart-scroll");
         const mobileChartKey = t.slice(0, 7) + "|" + view;

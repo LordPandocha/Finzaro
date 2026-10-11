@@ -1848,7 +1848,7 @@
         </div>
         <div id="qtyW" class="set" hidden>
           <label for="qty">Количество единиц</label>
-          <input id="qty" type="number" inputmode="decimal" min="0.0001" step="0.01" value="1" placeholder="Например, 1000" />
+          <input id="qty" type="number" inputmode="decimal" min="0.0001" step="0.0001" value="1" placeholder="Например, 1000" />
           <small class="mut">При закупке укажи общий объём, при продаже — сколько из него продал. Укажи одинаковую категорию и описание товара, чтобы связать одну закупку с продажами на разных площадках.</small>
           <p class="mut" id="inventoryHint">Заполни категорию и описание товара, чтобы увидеть доступный остаток.</p>
         </div>
@@ -1869,7 +1869,7 @@
           </div>
           <div>
             <div class="lab">Товар / детали</div>
-            <input id="note" name="note" placeholder="Например: 10 000 Robux, аккаунт с питомцем…" />
+            <input id="note" name="note" list="productHints" placeholder="Название конкретного товара / предмета" /><datalist id="productHints"></datalist>
           </div>
         </div>
         <div class="chips" id="tierW"></div>
@@ -2104,6 +2104,10 @@
         l: '<path d="M15 5l-7 7 7 7"/>',
         r: '<path d="M9 5l7 7-7 7"/>',
         calc: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/>',
+        chart: '<path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 6-7"/>',
+        pie: '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>',
+        store: '<path d="M3 9 5 4h14l2 5"/><path d="M5 9v11h14V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M9 20v-5h6v5"/>',
+        calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
         edit: '<path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/>',
         sale: '<path d="M12 3v18M16 7h-5a3 3 0 000 6h2a3 3 0 010 6H7"/>',
         purchase: '<path d="M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8"/>',
@@ -2549,7 +2553,7 @@
         undoHideTimer = window.setTimeout(() => {
           undoFabVisible = false;
           refreshUndoButton();
-        }, 4200);
+        }, 2500);
       }
       function trackUndo(action) {
         if (undoing || !action) return;
@@ -3543,6 +3547,7 @@
       $("#dAdd").addEventListener("close", () => (editId = null));
 
       function hint() {
+        renderProductHints();
         const f = $("#f"),
           t = f.type.value,
           mp = f.mp.value,
@@ -3631,7 +3636,7 @@
         const la = LS("lastAdd", null),
           m = view !== "all" ? view : la && MPS[la.mp] ? la.mp : Object.keys(MPS)[0];
         [...f.mp].find((r) => r.value === m).checked = true;
-        f.date.value = la && /^\d{4}-\d{2}-\d{2}$/.test(la.date) ? la.date : today();
+        f.date.value = today();
         hint();
         $("#dAdd").showModal();
         setTimeout(() => $("#amount").focus(), 60);
@@ -3658,7 +3663,7 @@
         else if (x.amount != null) { f.amount.value = x.amount; $("#smode").value = "gross"; }
         if (x.game != null) f.game.value = x.game || "";
         if (x.promo != null) $("#promo").value = x.promo || "";
-        if (x.date && /^\d{4}-\d{2}-\d{2}$/.test(x.date)) f.date.value = x.date;
+        f.date.value = today();
         if (x.note != null) f.note.value = x.note || "";
         if (x.rate != null) $("#rate").value = x.rate;
         if (x.inputAmount != null && x.smode) $("#smode").value = x.smode;
@@ -4231,7 +4236,7 @@
           L = selectedDates.size ? allL.filter((o) => selectedDates.has(o.date)) : allL,
           B = (k, l, v, a) => `<button type="button" class="pill ${v === a ? "on" : ""}" data-${k}="${esc(l[0])}">${l[1]}</button>`;
         renderChartFilters(base, w);
-        $("#chT").innerHTML = [["cum", "Чистый результат"], ["bar", "📊 По дням"], ["don", "🍩 По играм"], ["mp", "🏪 Площадки"], ["wk", "📅 Дни недели"]].map((l) => B("ct", l, l[0], ch.t)).join("");
+        $("#chT").innerHTML = [["cum", "Чистый результат"], ["bar", ico("chart") + " По дням"], ["don", ico("pie") + " По играм"], ["mp", ico("store") + " Площадки"], ["wk", ico("calendar") + " Дни недели"]].map((l) => B("ct", l, l[0], ch.t)).join("");
         $("#chC").innerHTML = cats.length > 1 ? [["all", "Все категории"], ...cats.map((c) => [c, (CE[c] || "") + " " + c])].map((l) => B("cc", l, l[0], ch.c)).join("") : "";
         const el = $("#chart2");
         if (!rangeOps.length) return (el.innerHTML = '<span class="mut">Нет операций за этот период. Попробуй изменить даты.</span>');
@@ -4610,13 +4615,58 @@
         counterstrike:'<path d="M21.71 3.235h-7.017l-.013-.177.335.032.244-.989-.227-.085c-.041-.172-.377-1.323-1.994-1.581-.787-.125-1.302.211-1.577.478a1.594 1.594 0 0 0-.302.41l-.096.213.051.982.355.153-.196.324-.623.019c-.386.016-1.245.486-1.878 1.839l-.724 1.55-.068.04-.578.002-.898 2.543.627.392-.327.966-.434.382-.598 1.531-.336.002-.2 2.288-.158.908-.559.426c-.255.244-.598.69-.766 1.001l-1.86 3.924.132.235-.071.531 1.891.003.103-1.296-.027-.195 3.606-4.232.286-.451 1.719-3.789.109-.035.183.053c.15.18.504.781.676 1.032.142.207.85 1.23 1.158 1.568.085.092.348.198.466.269.029.017.041.055.029.112l-1.03 1.808-.455 2.136-.036.153-.412 1.483c.003.187-.141.286-.153.506l-.15 1.084.058.061 2.545.014c.095 0 .19-.004.285-.007.124-.016.563-.075.75-.15.109-.039.181-.082.227-.13.185-.193.2-.278.203-.398-.017-.052-.032-.083-.087-.152l-1.182-.356a.37.37 0 0 1-.189-.134l-.317-.469.618-.609.048-.073 1.904-4.488c.089-.285.059-.605 0-.945-.044-.25-.685-1.326-.854-1.624l-1.286-2.252c-.079-.137-.189-.132-.229-.276l-.073-1.117.332-.028.074-.049 1.147-2.154-.235-.291-.001-.087.352-.38.074-.021.934.527c.058.033.124.051.186.05.259-.002.686-.155.908-.291a.384.384 0 0 0 .138-.148l.458-1.07.029.003.128.595.079.05 1.349-.3.05-.079-.318-1.344.009-.054.131-.204a.281.281 0 0 0 .036-.081l.159-.725.04-.032 3.733.005.093-.093v-.634h1.461v-.378z"/>'
       };
       const normGame = (n) => String(n || "").trim().toLowerCase().replace(/[^\p{L}\p{N} ]/gu, "").replace(/\s+/g, " ");
+      const PRODUCT_EXAMPLES = {
+        "blade ball": ["Токены", "Dual Crimson Eclipse Set", "Dual Demonic Scythe Set", "Dual Infinite Blade Set", "Скин меча", "Способность", "Финишер"],
+        "steal a brainrot": ["Cerberus", "Gold Cerberus", "Brainrot", "Мутация"],
+        "adopt me": ["Питомец", "Яйцо", "Машина", "Аксессуар"], "murder mystery 2": ["Нож", "Пистолет", "Питомец"],
+        "grow a garden": ["Питомец", "Семена", "Урожай", "Снаряжение"], "blox fruits": ["Фрукт", "Game Pass", "Фрагменты"],
+        "pet simulator 99": ["Huge-питомец", "Exclusive-питомец", "Diamonds"], "brookhaven": ["Game Pass", "Аккаунт"],
+        "king legacy": ["Фрукт", "Gems", "Game Pass"], "anime vanguards": ["Юнит", "Gems", "Аккаунт"],
+        "bee swarm simulator": ["Пчела", "Яйцо", "Материал"], "jailbreak": ["Автомобиль", "Ограниченный предмет"],
+        "dress to impress": ["VIP", "Game Pass"], "fisch": ["Рыба", "Удочка", "Приманка"], "sols rng": ["Аура", "Зелье", "Снаряжение"],
+        "cs2": ["Скин", "Наклейка", "Кейс"], "dota 2": ["Arcana", "Immortal", "Набор предметов"], "valorant": ["Valorant Points", "Подарочная карта"],
+        "apex legends": ["Apex Coins", "Косметический предмет"], "overwatch 2": ["Overwatch Coins", "Скин"], "rainbow six siege": ["R6 Credits", "Скин"],
+        "escape from tarkov": ["Roubles", "Предмет", "Снаряжение"], "call of duty": ["COD Points", "Скин"], "standoff 2": ["Gold", "Скин"],
+        "team fortress 2": ["Ключ", "Шапка", "Предмет"], "rust": ["Скин", "Предмет"], "warface": ["Кредиты", "Скин"], "battlefield": ["Battlefield Coins", "Скин"],
+        "brawl stars": ["Gems", "Brawl Pass", "Скин"], "clash royale": ["Gems", "Pass Royale"], "clash of clans": ["Gems", "Gold Pass"],
+        "pubg mobile": ["UC", "Костюм"], "mobile legends": ["Diamonds", "Скин"], "free fire": ["Diamonds", "Скин"],
+        "genshin impact": ["Genesis Crystals", "Welkin Moon"], "honkai star rail": ["Oneiric Shards", "Express Supply Pass"],
+        "zenless zone zero": ["Monochrome", "Inter-Knot Membership"], "wuthering waves": ["Lunites", "Monthly Pass"],
+        "call of duty mobile": ["CP", "Скин"], "lords mobile": ["Gems", "Ресурсы"], "last war": ["Ресурсы", "Набор"],
+        "world of warcraft": ["Золото", "Маунт", "Предмет"], "path of exile": ["Currency", "Предмет"], "path of exile 2": ["Currency", "Предмет"],
+        "diablo 4": ["Материалы", "Предмет", "Золото"], "lost ark": ["Gold", "Материалы"], "black desert": ["Серебро", "Предмет"],
+        "albion online": ["Silver", "Ресурс"], "old school runescape": ["GP", "Предмет"], "new world": ["Gold", "Снаряжение"],
+        "final fantasy xiv": ["Gil", "Предмет"], "lineage 2": ["Adena", "Предмет"], "warframe": ["Platinum", "Мод"], "destiny 2": ["Silver", "Предмет"],
+        "minecraft": ["Аккаунт", "Предмет", "Ресурс"], "gta v": ["Аккаунт", "Игровая валюта"], "gta online": ["Аккаунт", "Игровая валюта"],
+        "fortnite": ["V-Bucks", "Косметический предмет"], "terraria": ["Предмет", "Ресурс"], "stardew valley": ["Сохранение", "Ресурс"],
+        "the sims 4": ["DLC", "Дополнение"], "palworld": ["Pal", "Ресурс"], "ark": ["Динозавр", "Предмет", "Ресурс"],
+        "dayz": ["Снаряжение", "Предмет"], "lethal company": ["Аккаунт", "Игровой предмет"], "war thunder": ["Golden Eagles", "Техника"],
+        "world of tanks": ["Gold", "Техника"], "world of warships": ["Doubloons", "Корабль"], "tanks blitz": ["Gold", "Техника"],
+        "steam": ["Пополнение Steam", "Игра", "Ключ"], "telegram": ["Telegram Premium", "Подарочная подписка"], "chatgpt": ["ChatGPT Plus", "ChatGPT Pro", "Подписка"],
+        "discord nitro": ["Discord Nitro", "Подарочный код"], "подписки ии": ["Подписка ИИ", "Продление"], "spotify": ["Spotify Premium", "Подписка"],
+        "youtube premium": ["YouTube Premium", "Семейная подписка"], "netflix": ["Netflix", "Подписка"], "vpn": ["Подписка VPN", "Продление"],
+        "яндекс плюс": ["Яндекс Плюс", "Продление"], "tiktok": ["TikTok Coins", "Промо"], "apple id": ["Пополнение Apple ID", "Подарочная карта"],
+        "google play": ["Подарочный код Google Play", "Баланс"], "playstation": ["PS Store Wallet", "PlayStation Plus"],
+        "xbox": ["Xbox Gift Card", "Game Pass"], "nintendo": ["Nintendo eShop Card", "Подписка"], "game pass": ["Game Pass", "Продление"],
+        "epic games": ["Пополнение", "Подарочная карта"], "battle net": ["Баланс Battle.net", "Игровой код"], "ubisoft": ["Wallet", "Игровой код"],
+        "riot points": ["Riot Points", "Подарочная карта"], "аккаунты": ["Игровой аккаунт"], "скины": ["Скин"], "другое": ["Укажи название товара"]
+      };
+      function renderProductHints() {
+        const game = normGame($("#game")?.value || "");
+        const recent = ops.filter((o) => normGame(o.game) === game && visibleNote(o.note)).map((o) => visibleNote(o.note));
+        const examples = PRODUCT_EXAMPLES[game] || [];
+        const values = [...new Set([...examples, ...recent])].slice(0, 30);
+        $("#productHints").innerHTML = values.map((value) => '<option value="' + esc(value) + '">').join("");
+        $("#note").placeholder = examples.length ? "Например: " + examples[0] : "Название конкретного товара / предмета";
+      }
       const rbxIconCache = LS("rbxIcons2", {});
       const ROBLOX_GAMES = new Set(CATS.Roblox.filter((name) => name !== "Roblox").map(normGame));
-      const RBX_UNIVERSE_IDS = { "blade ball": 4777817887 };
-      if (rbxIconCache["blade ball"] && rbxIconCache["blade ball"].universeId !== RBX_UNIVERSE_IDS["blade ball"]) {
-        delete rbxIconCache["blade ball"];
-        localStorage.setItem("rbxIcons2", JSON.stringify(rbxIconCache));
+      const RBX_UNIVERSE_IDS = { "blade ball": 4777817887, "steal a brainrot": 7709344486 };
+      let rbxCacheChanged = false;
+      for (const [key, universeId] of Object.entries(RBX_UNIVERSE_IDS)) {
+        if (rbxIconCache[key] && rbxIconCache[key].universeId !== universeId) { delete rbxIconCache[key]; rbxCacheChanged = true; }
       }
+      if (rbxCacheChanged) localStorage.setItem("rbxIcons2", JSON.stringify(rbxIconCache));
       const STEAM_GAMES = new Set(["Шутеры", "Мобильные", "MMO и RPG", "Песочницы", "Техника"].flatMap((section) => CATS[section] || []).map(normGame));
       const steamIconCache = LS("steamIcons2", {});
       const steamPending = {}, steamQueued = new Set();

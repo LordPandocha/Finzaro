@@ -2036,6 +2036,17 @@
       .streak-pill[data-level="100"] .streak-flame,.streak-pill[data-level="180"] .streak-flame,.streak-pill[data-level="365"] .streak-flame{filter:drop-shadow(0 0 14px #b89cff)}
       #dStreak[data-level="30"] .streak-orb,#dStreak[data-level="60"] .streak-orb{box-shadow:0 0 34px #ff9f4e75}
       #dStreak[data-level="100"] .streak-orb,#dStreak[data-level="180"] .streak-orb,#dStreak[data-level="365"] .streak-orb{box-shadow:0 0 38px #ad8eff7a;border:1px solid #c0adff}
+
+      @media(max-width:680px){
+        /* The sidebar stays fixed at the side; avoid costly glass layers on small GPUs. */
+        .app-sidebar,.app-main .card,.app-main .dash-metric,.app-main .fc-pace-block{
+          -webkit-backdrop-filter:none!important;backdrop-filter:none!important
+        }
+        .app-main .card{box-shadow:0 5px 15px #00000016}
+        .fc-chart-scroll{overscroll-behavior-x:contain;scroll-padding-inline:24px}
+        .dash-trend-chart{contain:layout paint}
+        #fx{opacity:.45}
+      }
     </style>
   </head>
   <body>

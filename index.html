@@ -3783,11 +3783,10 @@
         currentStreak=streakRunEnding(t,new Set(streakVisits));
         bestStreakValue=Math.max(Number(LS("bestStreak",0))||0,streakLongestRun(streakVisits),currentStreak,pending?pending.previousRun:0);
         localStorage.setItem("bestStreak",String(bestStreakValue));
-        const el=$("#streak"),rank=streakLevel(currentStreak);
-        el.dataset.level=String(rank?rank.days:0);
-        el.title="Огонёк: "+currentStreak+" "+streakPlural(currentStreak)+" подряд";
-        el.setAttribute("aria-label",currentStreak+" "+streakPlural(currentStreak)+". Рекорд "+bestStreakValue+" дней. Восстановлений доступно "+streakCharges()+".");
         const shownStreak=streakPendingRecovery?streakPendingRecovery.previousRun:currentStreak;
+        const el=$("#streak"),rank=streakLevel(shownStreak);
+        el.dataset.level=String(rank?rank.days:0);
+        el.title="Огонёк: "+shownStreak+" "+streakPlural(shownStreak)+" подряд";
         el.setAttribute("aria-label",shownStreak+" "+streakPlural(shownStreak)+". Рекорд "+bestStreakValue+" дней. Восстановлений доступно "+streakCharges()+".");
         el.innerHTML='<span class="streak-flame" aria-hidden="true">🔥</span><span class="streak-copy"><b>'+shownStreak+' '+streakPlural(shownStreak)+'</b><small>'+(streakPendingRecovery?"Огонёк можно вернуть":"Заход сегодня учтён")+'</small></span><span class="streak-best">'+streakCharges()+'/2 ↻</span>';
         const seen=LS("streakMilestones",[]);

@@ -1776,7 +1776,7 @@
         <aside>
           <div class="card" id="kpi"></div>
           <div class="card" id="plb"></div>
-          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartPickToggle" aria-pressed="false">Выбрать несколько дней</button><button type="button" class="pill" id="chartClearDays" hidden>Очистить</button></div><small class="chart-range-summary" id="chartRangeSummary"></small><div id="chartDayPicker" class="chart-day-picker" hidden><small id="chartDayPickerHint" class="mut"></small><div id="chartDayChips" class="chart-day-chips"></div></div></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
+          <div class="card" id="chCard"><b>📊 Графики</b><div class="chips2" id="chT"></div><div class="chips2" id="chC"></div><div id="chartFilters" class="chart-filters"><div class="chart-presets" role="group" aria-label="Период графиков"><button type="button" class="pill" data-chart-preset="week">7 дней</button><button type="button" class="pill" data-chart-preset="fortnight">14 дней</button><button type="button" class="pill on" data-chart-preset="month">Месяц</button><button type="button" class="pill" data-chart-preset="all">Всё время</button><button type="button" class="pill" data-chart-preset="custom">Период</button></div><div class="chart-custom-range"><label>С даты<input id="chartDateStart" type="date" aria-label="Начало периода графиков"></label><label>По дату<input id="chartDateEnd" type="date" aria-label="Конец периода графиков"></label></div><div class="chart-filter-actions"><button type="button" class="pill" id="chartClearDays" hidden>Сбросить выделение</button></div><small class="chart-range-summary" id="chartRangeSummary"></small></div><div id="chart2"></div><div id="chartHover" class="chart-hover-tooltip" role="tooltip" aria-hidden="true" style="display:none"><small id="chartHoverLabel"></small><b id="chartHoverValue"></b><span id="chartHoverMeta"></span></div><div id="chartDetail" class="chart-detail" aria-live="polite" aria-atomic="true"><div class="chart-detail-copy"><small id="chartDetailState">ИНТЕРАКТИВНЫЙ ГРАФИК</small><b id="chartDetailLabel">Наведи на точку, столбец или сектор</b><span id="chartDetailValue">Сумма появится здесь</span><small id="chartDetailMeta">Нажми на элемент, чтобы закрепить его значение.</small></div><button type="button" class="pill" id="chartDetailClear" hidden>Снять выбор</button></div><div id="chart" hidden></div></div>
         </aside>
       </div>
     </div>
@@ -4101,7 +4101,10 @@
       const chartSeries = (base, w, selected) => {
         const by = {};
         base.forEach((o) => (by[o.date] ??= []).push(o));
-        return chartDateList(base, w).map((d) => ({ d, ...(({ profit, sales }) => ({ p: profit, s: sales }))(agg(by[d] || [])), selected: !selected.size || selected.has(d) }));
+        return chartDateList(base, w).map((d) => {
+          const day = agg(by[d] || []);
+          return { d, p: day.profit, s: day.sales, purch: day.purch, comm: day.comm, other: day.oth, wd: day.wd, spent: day.spent, selected: !selected.size || selected.has(d) };
+        });
       };
       function renderChartFilters(base, w) {
         const labels = { week: "Последние 7 дней", fortnight: "Последние 14 дней", month: "Последние 30 дней", all: "Всё время", custom: "Свой диапазон" };
@@ -4110,19 +4113,11 @@
         $("#chartDateEnd").value = w.end;
         $("#chartDateStart").max = today();
         $("#chartDateEnd").max = today();
-        $("#chartPickToggle").classList.toggle("on", chartRange.pickDays);
-        $("#chart2").classList.toggle("chart-picking", chartRange.pickDays);
-        $("#chartPickToggle").setAttribute("aria-pressed", String(chartRange.pickDays));
-        $("#chartPickToggle").textContent = chartRange.pickDays ? "Выбирай дни на графике" : "Выбрать несколько дней";
+        $("#chart2").classList.add("chart-picking");
         $("#chartClearDays").hidden = chartRange.selectedDates.size === 0;
-        $("#chartRangeSummary").textContent = labels[chartRange.mode] + ": " + w.start.split("-").reverse().join(".") + " — " + w.end.split("-").reverse().join(".") + (chartRange.selectedDates.size ? " · выбрано дней: " + chartRange.selectedDates.size : "");
-        $("#chartDayPicker").hidden = !chartRange.pickerOpen;
-        const days = chartDateList(base, w), visible = days.length > 180 ? days.slice(-180) : days;
-        $("#chartDayPickerHint").textContent = w.span > 90 ? "Показаны последние даты с операциями. Чтобы выбрать более ранние дни, задай свой диапазон." : chartRange.pickDays ? "Нажимай на несколько дат или на столбцы/дни графика. Выбор применяется ко всем диаграммам." : "Можно отметить несколько дней — все графики пересчитаются по выбранным датам.";
-        $("#chartDayChips").innerHTML = visible.slice().reverse().map((d) => {
-          const count = base.filter((o) => o.date === d).length, selected = chartRange.selectedDates.has(d);
-          return `<button type="button" class="chart-day-chip ${selected ? "selected" : ""} ${count ? "has-data" : ""}" data-chart-day="${d}" aria-pressed="${selected}" title="${d.split("-").reverse().join(".")}${count ? " · операций: " + count : ""}"><small>${["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][new Date(d + "T12:00:00").getDay()]}</small><b>${d.slice(8)}</b><small>${d.slice(5, 7)}.${d.slice(2, 4)}</small></button>`;
-        }).join("");
+        const chosen = [...chartRange.selectedDates].sort();
+        const detail = chosen.length ? " · выделено " + chosen[0].split("-").reverse().join(".") + (chosen.length > 1 ? " — " + chosen[chosen.length - 1].split("-").reverse().join(".") : "") + " · дней: " + chosen.length : "";
+        $("#chartRangeSummary").textContent = labels[chartRange.mode] + ": " + w.start.split("-").reverse().join(".") + " — " + w.end.split("-").reverse().join(".") + detail + " · зажми дату, протяни и отпусти для выбора промежутка";
       }
       const cur = () => {
         const inP = allT ? ops : ops.filter((o) => o.date.startsWith(ym));
@@ -4170,8 +4165,7 @@
         if (!L.length && !["cum", "bar"].includes(ch.t)) return (el.innerHTML = '<span class="mut">Нет операций в выбранные дни. Отметь другие даты.</span>');
         const S = chartSeries(allL, w, selectedDates);
         if (ch.t === "cum") {
-          let a = 0;
-          const c = S.map((x) => (a += selectedDates.size && !selectedDates.has(x.d) ? 0 : x.p)), N = S.length, W = 320, H = 170,
+          const c = S.map((x) => (selectedDates.size && !selectedDates.has(x.d) ? 0 : x.p)), N = S.length, W = 320, H = 170,
             mn = Math.min(0, ...c), mx = Math.max(1, ...c),
             X = (i) => 10 + (i / Math.max(N - 1, 1)) * (W - 20), Y = (v) => 12 + ((mx - v) / (mx - mn || 1)) * (H - 34),
             step = (W - 20) / Math.max(N - 1, 1),
@@ -4179,13 +4173,13 @@
           el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%"><defs><linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".5"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><line x1="10" x2="${W - 10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)" stroke-dasharray="4"/><polygon points="${X(0)},${Y(0)} ${pts} ${X(N - 1)},${Y(0)}" fill="url(#gA)"/><polyline points="${pts}" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` +
             c.map((v, i) => {
               const label = `${S[i].d.slice(8)}.${S[i].d.slice(5, 7)}.${S[i].d.slice(0, 4)}`,
-                meta = `Прибыль за день: ${fmt(S[i].p)}`,
-                aria = `${label}: накопленная прибыль ${fmt(v)}, за день ${fmt(S[i].p)}`;
+                meta = "Продажи: " + fmt(S[i].s) + " · закупки: " + fmt(S[i].purch) + " · комиссия: " + fmt(S[i].comm) + " · прочее: " + fmt(S[i].other) + " · итог дня: " + fmt(S[i].p),
+                aria = label + ": чистый результат за день " + fmt(S[i].p);
               const left = i === 0 ? 10 : X(i) - step / 2, right = i === N - 1 ? W - 10 : X(i) + step / 2;
               return `<rect x="${left}" y="12" width="${Math.max(1, right - left)}" height="${H - 34}" fill="${selectedDates.has(S[i].d) ? "var(--acc)" : "transparent"}" fill-opacity="${selectedDates.has(S[i].d) ? 0.14 : 0}" pointer-events="all" tabindex="0" role="button" data-chart-item data-chart-key="${S[i].d}" data-chart-label="${label}" data-chart-value="${v}" data-chart-meta="${esc(meta)}" aria-label="${esc(aria)}"><title>${esc(aria)}</title></rect>` +
                 (S[i].p ? `<circle class="chart-dot" data-chart-key="${S[i].d}" cx="${X(i)}" cy="${Y(v)}" r="4" fill="var(--acc)" pointer-events="none"/>` : "");
             }).join("") +
-            `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Итого ${fmt(c[N - 1])} · пик ${fmt(mx)}</text></svg>`;
+            `<text x="10" y="${H - 6}" font-size="10" fill="var(--mut)">Сумма за период ${fmt(c.reduce((sum, value) => sum + value, 0))} · макс. день ${fmt(Math.max(...c))}</text></svg>`;
         } else if (ch.t === "bar") {
           el.innerHTML = vbars(S.map((x) => ({ l: x.d.slice(8), key: x.d, label: `${x.d.slice(8)}.${x.d.slice(5, 7)}.${x.d.slice(0, 4)}`, v: x.p, selected: x.selected, hasSelection: selectedDates.size > 0, meta: "Прибыль за этот день" }))) + '<small class="mut">Наведи курсор или нажми на столбец — увидишь точную сумму и дату</small>';
         } else if (ch.t === "wk") {
@@ -4298,7 +4292,7 @@
         chartBrush.endDate = end.key;
         chartBrush.moved = end.key !== chartBrush.startDate && Math.abs(e.clientX - chartBrush.startX) >= 3;
         if (!chartBrush.moved) { paintChartBrushPreview(chartBrush.baseSelected); return; }
-        const next = new Set(chartBrush.baseSelected);
+        const next = new Set();
         cells.slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex) + 1).forEach((cell) => next.add(cell.key));
         chartBrush.previewDates = next;
         paintChartBrushPreview(next);
@@ -4308,22 +4302,27 @@
         if (e && !canceled) moveChartBrush(e);
         const brush = chartBrush;
         chartBrush = null;
-        chartBrushSuppressClick = true;
-        setTimeout(() => { chartBrushSuppressClick = false; }, 180);
-        if (canceled) { paintChartBrushPreview(brush.baseSelected); return; }
+        if (canceled) {
+          chartBrushSuppressClick = true;
+          setTimeout(() => { chartBrushSuppressClick = false; }, 180);
+          paintChartBrushPreview(brush.baseSelected);
+          return;
+        }
         if (brush.moved) {
+          chartBrushSuppressClick = true;
+          setTimeout(() => { chartBrushSuppressClick = false; }, 180);
           chartRange.selectedDates = new Set(brush.previewDates);
-          chartRange.pickerOpen = true;
+          chartRange.pickerOpen = false;
           saveChartRange();
           resetChartInteraction();
           drawCh();
         } else {
+          chartBrushSuppressClick = false;
           paintChartBrushPreview(brush.baseSelected);
-          if (brush.startDate) toggleChartDate(brush.startDate);
         }
       };
       $("#chart2").addEventListener("pointerdown", (e) => {
-        if (!chartRange.pickDays || e.button !== 0 || !e.isPrimary) return;
+        if (e.button !== 0 || !e.isPrimary) return;
         const item = e.target.closest?.("[data-chart-item]"), date = item?.dataset.chartKey;
         if (!isoDay.test(date || "")) return;
         const byDate = new Map();

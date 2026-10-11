@@ -2622,7 +2622,7 @@
         <div class="streak-v2-progress-copy" id="streakProgressCopy"></div>
       </section>
       <section class="streak-v2-saver">
-        <div><span aria-hidden="true">🛟</span><div><b>Запас восстановления</b><small>2 попытки в месяц · восстанавливает один пропущенный день, если вернулся вовремя.</small></div></div>
+        <div><span aria-hidden="true">🛟</span><div><b>Запас восстановления</b><small>2 попытки в месяц · верни серию в течение 48 часов после пропуска.</small></div></div>
         <strong id="streakMonthlyCharges">2/2</strong>
       </section>
       <details class="streak-history">
@@ -3787,7 +3787,7 @@
           }
         }
         if(streakPendingRecovery&&LS("streakRecoveryPromptSeen","")!==streakPendingRecovery.detectedAt){
-          localStorage.setItem("streakRecoveryPromptSeen",streakPendingRecovery.detectedAt);
+          localStorage.setItem("streakRecoveryPromptSeen",JSON.stringify(streakPendingRecovery.detectedAt));
           setTimeout(()=>toast("🔥 Пропущен день. У тебя осталось "+streakCharges()+" восстановления — серия ещё спасаема.",{l:"Вернуть",f:()=>{renderStreakDialog();$("#dStreak").showModal();}}),850);
         }
       }
@@ -3809,7 +3809,7 @@
         $("#streakDialogBest").textContent=bestStreakValue+" "+streakPlural(bestStreakValue);
         $("#streakDialogRank").textContent=rank?rank.title:"Новая серия начинается сегодня";
         $("#streakHero").dataset.level=String(rank?rank.days:0);
-        const checkinSet=new Set(streakVisits),restoredSet=new Set(LS("streakRestoredDates",[])),todayKey=today(),weekNames=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+        const checkinSet=new Set(streakVisits),restoredData=LS("streakRestoredDates",[]),restoredSet=new Set(Array.isArray(restoredData)?restoredData:[]),todayKey=today(),weekNames=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
         const weekDates=Array.from({length:7},(_,i)=>shiftStreakDate(todayKey,i-6));
         $("#streakWeekStrip").innerHTML=weekDates.map(d=>{
           const dayIndex=(new Date(d+"T12:00:00").getDay()+6)%7,isMarked=checkinSet.has(d),isRestored=restoredSet.has(d),isToday=d===todayKey;
@@ -3842,7 +3842,7 @@
           return '<div class="streak-milestone-row '+(unlocked?"reached":"")+(upcoming?" upcoming":"")+'"><span class="streak-milestone-icon">'+(unlocked?"✓":x.icon)+'</span><div><b>'+esc(x.days+" дн. · "+x.title)+'</b><small>'+esc(x.benefit)+'</small></div><em>'+(unlocked?"ОТКРЫТО":upcoming?"БЛИЖАЙШЕЕ":"ЗАКРЫТО")+'</em></div>';
         }).join("");
         $("#streakMonthlyCharges").textContent=charges+"/2";
-        $("#streakFlavor").textContent=streakPendingRecovery?"Не всё потеряно: верни один пропущенный день. Восстановления обновляются в начале месяца.":displayCount>=100?"Ты разогнал огонёк до легендарной стадии. Ещё один заход завтра — и серия продолжится.":displayCount>=30?"У тебя уже свой стабильный ритм. Не дай огню остыть.":displayCount>=7?"Неделя в огне. Завтра серия станет ещё длиннее.":"Открой Finzaro завтра — огонёк прибавит ещё один день.";
+        $("#streakFlavor").textContent=streakPendingRecovery?"Не всё потеряно: верни серию в течение 48 часов. Один restore закрывает короткий разрыв. Восстановления обновляются в начале месяца.":displayCount>=100?"Ты разогнал огонёк до легендарной стадии. Ещё один заход завтра — и серия продолжится.":displayCount>=30?"У тебя уже свой стабильный ритм. Не дай огню остыть.":displayCount>=7?"Неделя в огне. Завтра серия станет ещё длиннее.":"Открой Finzaro завтра — огонёк прибавит ещё один день.";
       }
       function restoreStreak(){
         if(!streakPendingRecovery||streakCharges()<=0)return;
@@ -3851,7 +3851,7 @@
         const visits=new Set(streakVisits);
         if(!missedDates.length||missedDates.some(d=>!d||visits.has(d)))return;
         missedDates.forEach(d=>visits.add(d));
-        const restoredDates=new Set(LS("streakRestoredDates",[]));
+        const storedRestoredDates=LS("streakRestoredDates",[]),restoredDates=new Set(Array.isArray(storedRestoredDates)?storedRestoredDates:[]);
         missedDates.forEach(d=>restoredDates.add(d));
         localStorage.setItem("streakRestoredDates",JSON.stringify([...restoredDates].sort().slice(-450)));
         streakRestoreState.used++;

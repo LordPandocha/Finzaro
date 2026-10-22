@@ -41,8 +41,12 @@ function assertBalanced(source, label) {
 
 assertBalanced(css, "CSS");
 
+const structuredData = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+structuredData.forEach((match) => assert.doesNotThrow(() => JSON.parse(match[1]), "Invalid JSON-LD"));
+
 const scriptBlocks = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
   .filter((match) => !/\bsrc\s*=/i.test(match[1]))
+  .filter((match) => !/\btype=["']application\/ld\+json["']/i.test(match[1]))
   .map((match) => match[2]);
 assert.ok(scriptBlocks.length >= 1, "Expected the application JavaScript");
 const tempDir = mkdtempSync(join(tmpdir(), "finzaro-ui-audit-"));

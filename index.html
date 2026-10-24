@@ -2,6 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://yastatic.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://mc.yandex.ru https://cdn.akamai.steamstatic.com https://thumbnails.roblox.com https://cdn.simpleicons.org; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://mc.yandex.ru wss://mc.yandex.ru https://store.steampowered.com https://games.roblox.com https://thumbnails.roblox.com; media-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
     <meta name="yandex-verification" content="824f01e4889eef43" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Finzaro — учёт прибыли и финансовая аналитика</title>
@@ -22,7 +23,6 @@
     <meta name="google-site-verification" content="e-XHxRdrDXNJ0EvfEzdm4AGAMalDm8ONzL6K-7McPIs" />
 <link rel="icon" type="image/svg+xml" href="/assets/finzaro-icon.svg" />
     <link rel="apple-touch-icon" href="/assets/finzaro-icon.svg" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script src="/metrika.js?v=3" defer></script>
     <style>
       :root {
@@ -2672,7 +2672,7 @@
           ><button class="ic" id="bCalc" data-i="calc" title="Калькулятор цены" aria-label="Калькулятор цены"></button
           ><button class="ic" id="bSet" data-i="set" title="Настройки" aria-label="Настройки"></button
           ><button class="ic" id="bCsv" data-i="dl" title="Скачать JSON-копию для переноса" aria-label="Скачать JSON-копию для переноса"></button
-          ><button class="ic" id="bOut" data-i="out" title="Выйти" hidden></button>
+          
         </div>
       </div>
 
@@ -2753,6 +2753,7 @@
         </div>
       </div>
     </div>
+    <footer style="color:var(--mut);font-size:12px;text-align:center;padding:12px 16px;">Данные хранятся локально в вашем браузере и не отправляются на сервер. Владелец сервиса: [укажи имя/ником] · [укажи email для связи]</footer>
     <button type="button" class="undo-fab" id="bUndo" hidden aria-label="Вернуть последнее действие" aria-keyshortcuts="Control+Z Meta+Z"><span aria-hidden="true">↶</span><b>Вернуть действие</b><small id="undoMeta">Ctrl+Z</small></button>
     <button type="button" class="fab" id="bAdd" aria-label="Добавить операцию"><span data-i="plus"></span><b>Добавить</b></button>
     <div id="toast" role="alert"></div>
@@ -3034,21 +3035,6 @@
       <label class="chk"><input type="checkbox" id="shHide" />Скрыть суммы</label>
       <div class="row shb"><button type="button" class="pill on" id="shDl">Скачать PNG</button><button type="button" class="pill" id="shSh">Поделиться</button></div>
     </dialog>
-    <dialog id="dAuth">
-      <form id="fa">
-        <div class="sh"><b>Вход в Finzaro</b></div>
-        <div class="lab">Email</div>
-        <input name="e" type="email" required />
-        <div class="lab">Пароль (от 6 символов)</div>
-        <input name="p" type="password" minlength="6" required />
-        <div class="row" style="margin-top: 16px">
-          <button type="button" class="pill" id="bReg">Создать аккаунт</button
-          ><button class="pill on">Войти</button>
-        </div>
-        <div class="mut" id="aerr" style="margin-top: 8px"></div>
-      </form>
-    </dialog>
-
     <dialog id="dAsk">
       <form method="dialog" id="askF">
         <div class="sh"><b id="askT"></b></div>
@@ -3061,9 +3047,6 @@
       </form>
     </dialog>
     <script>
-      /* Supabase: Project Settings → API. Пусто = демо-режим (данные только в этом браузере) */
-      const SUPABASE_URL = "",
-        SUPABASE_KEY = "";
       const LS = (k, d) => {
         try {
           return JSON.parse(localStorage.getItem(k)) ?? d;
@@ -3372,7 +3355,6 @@
         clearTimeout(toast.t);
         toast.t = setTimeout(() => (t.style.display = "none"), 7000);
       };
-      const sb = SUPABASE_URL && window.supabase ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
       const today = () => {
         const d = new Date();
         return (
@@ -3393,7 +3375,6 @@
         tf = "all",
         so = "new",
         ops = [],
-        user = null,
         view = "all",
         allT = false,
         ym = today().slice(0, 7),
@@ -3665,7 +3646,7 @@
           } else if (action.type === "delete") {
             const rows = (action.rows || []).filter((o) => !ops.some((cur) => undoRowsMatch(cur, o)));
             if (!rows.length) throw new Error("Эти записи уже восстановлены. Дубликаты не созданы.");
-            const L = rows.map((o) => { const { id, user_id, created_at, updated_at, ...rest } = o; return user ? { ...rest, user_id: user.id } : rest; });
+            const L = rows.map((o) => { const { id, user_id, created_at, updated_at, ...rest } = o; return rest; });
             success = !!(await add(L));
             if (success && action.trashIds?.length) {
               localStorage.setItem("trash2", JSON.stringify(LS("trash2", []).filter((x) => !action.trashIds.includes(x.tid))));
@@ -3701,39 +3682,20 @@
         e.preventDefault(); e.stopPropagation(); void undoLastAction();
       }, true);
             async function load() {
-        if (sb) {
-          if (!user) { ops = []; render(); return []; }
-          const { data, error } = await sb.from("operations").select("*").eq("user_id", user.id).order("date", { ascending: false });
-          if (error) { toast("Не удалось загрузить: " + error.message); return null; }
-          ops = Array.isArray(data) ? data : [];
-        } else ops = LS("ops", []);
+        ops = LS("ops", []);
         render();
         return ops;
       }
       async function add(L) {
         if (!Array.isArray(L) || !L.length) return null;
-        if (sb) {
-          if (!user) {
-            pendingFocusOperation = null;
-            toast("Войдите в аккаунт, чтобы сохранить запись.");
-            return null;
-          }
-          const payload = L.map((o) => ({ ...o, user_id: user.id }));
-          const { data, error } = await sb.from("operations").insert(payload).select();
-          if (error) {
-            toast(
-              error.message.includes("game")
-                ? "В Supabase нет колонки game. Выполните: alter table operations add column game text;"
-                : "Не сохранилось: " + error.message,
-            );
-            pendingFocusOperation = null;
-            return null;
-          }
-          L = Array.isArray(data) ? data : payload;
-        } else {
+        try {
           L.forEach((o, i) => (o.id = Date.now() + i));
           ops.push(...L);
           localStorage.setItem("ops", JSON.stringify(ops));
+        } catch (_) {
+          pendingFocusOperation = null;
+          toast("Не сохранилось. Попробуйте ещё раз.");
+          return null;
         }
         if (L.every((o) => o.id != null)) trackUndo({
           type: "add", ids: L.map((o) => o.id), rows: L.map((o) => ({ ...o })),
@@ -3752,15 +3714,10 @@
           const clean = visibleNote(patch.note ?? before.note);
           patch = { ...patch, note: [clean, ...markers, ...qtyMarker].filter(Boolean).join(" ") };
         }
-        if (sb) {
-          if (!user) return toast("Войдите в аккаунт, чтобы изменить запись.");
-          const { data, error } = await sb.from("operations").update(patch).eq("id", id).eq("user_id", user.id).select();
-          if (error) return toast("Не сохранилось: " + error.message);
-          if (!data || !data.length) return toast("Не удалось сохранить. Проверьте RLS UPDATE для таблицы operations.");
-        } else {
+        try {
           ops = ops.map((o) => (o.id == id ? { ...o, ...patch } : o));
           localStorage.setItem("ops", JSON.stringify(ops));
-        }
+        } catch (_) { return toast("Не сохранилось. Попробуйте ещё раз."); }
         if (before) trackUndo({ type: "update", row: { ...before }, after: { ...before, ...patch }, label: "изменение · " + typeLabel(before.type) });
         applyPendingOperationFocus();
         await load();
@@ -3770,13 +3727,8 @@
       async function delMany(ids, silent) {
         const idSet = new Set(ids.map(String));
         const rows = ops.filter((o) => idSet.has(String(o.id)));
-        if (sb) {
-          if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
-          const { error } = await sb.from("operations").delete().in("id", ids).eq("user_id", user.id);
-          if (error) return toast("Не удалось удалить: " + error.message);
-        }
         ops = ops.filter((o) => !idSet.has(String(o.id)));
-        if (!sb) localStorage.setItem("ops", JSON.stringify(ops));
+        localStorage.setItem("ops", JSON.stringify(ops));
         const trashIds = !silent && rows.length ? toTrash(rows) : [];
         if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
         // Optimistically refresh every dependent table/chart before attempting a re-fetch.
@@ -3786,13 +3738,8 @@
       }
       async function del(id, silent) {
         const rows = ops.filter((o) => String(o.id) === String(id));
-        if (sb) {
-          if (!user) return toast("Войдите в аккаунт, чтобы удалить запись.");
-          const { error } = await sb.from("operations").delete().eq("id", id).eq("user_id", user.id);
-          if (error) return toast("Не удалось удалить: " + error.message);
-        }
         ops = ops.filter((o) => String(o.id) !== String(id));
-        if (!sb) localStorage.setItem("ops", JSON.stringify(ops));
+        localStorage.setItem("ops", JSON.stringify(ops));
         const trashIds = !silent && rows.length ? toTrash(rows) : [];
         if (!silent && rows.length) trackUndo({ type: "delete", rows: rows.map((o) => ({ ...o })), trashIds, label: "удаление" });
         // Render immediately after the successful delete; don't leave stale tables if refresh fails.
@@ -3822,7 +3769,6 @@
         const t = trashGet(), items = t.filter((x) => tids.includes(x.tid));
         if (!items.length) return;
         const L = items.map((x) => ({ ...x.op }));
-        if (user) L.forEach((o) => (o.user_id = user.id));
         const saved = await add(L);
         if (!saved) return;
         trashSave(t.filter((x) => !tids.includes(x.tid)));
@@ -4735,7 +4681,7 @@
         const dp = profitDates
             .map((d) => [d, agg(byD[d] || []).profit])
             .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-        const best = dp[0] || [t.slice(0, 10), 0];
+        const best = dp[0] || ["", 0];
         $("#kpi").innerHTML = list.length
           ? `<b>Коротко</b><div class="kpi"><div><small>Продаж</small><b>${sl.length}</b></div><div><small>Средний чек</small><b>${fmt(sl.length ? T.sales / sl.length : 0)}</b></div><div><small>Прибыль за активный день</small><b>${fmt(T.profit / dp.length)}</b></div><div><small>Лучший день</small><b>${dm(best[0])} · ${fmt(best[1])}</b></div></div>`
           : "";
@@ -5048,7 +4994,6 @@
             fee: r2(fee),
             note: t.note || (t.type === "withdraw" && t.wm ? WM[t.wm] : ""),
           };
-        if (user) o.user_id = user.id;
         requestOperationFocus(o);
         const rows = await add([o]);
         if (rows)
@@ -5265,7 +5210,6 @@
         }
         if (t === "sale" && mp === "Playerok" && pr > 0)
           L.push({ ...b, type: "ad", amount: r2(pr), fee: 0, note: "Поднятие лота" });
-        if (user) L.forEach((o) => (o.user_id = user.id));
         if (game) opened.add("g|" + game);
         const dup = ops.some((o) => o.type === t && o.marketplace === mp && o.date === f.date.value && (o.game || null) === game && Math.abs(+o.amount - r2(amt)) < 0.005);
         requestOperationFocus(L[0]);
@@ -5295,26 +5239,8 @@
         $("#dAdd").close();
       };
 
-      async function readAllCloudOperations() {
-        if (!sb || !user) return [];
-        const rows = [], pageSize = 1000;
-        for (let offset = 0; ; offset += pageSize) {
-          const { data, error } = await sb.from("operations").select("*").eq("user_id", user.id)
-            .order("date", { ascending: false }).order("id", { ascending: true }).range(offset, offset + pageSize - 1);
-          if (error) throw new Error(error.message);
-          const page = Array.isArray(data) ? data : [];
-          rows.push(...page);
-          if (page.length < pageSize) break;
-        }
-        return rows;
-      }
       async function downloadBackupCopy() {
-        if (sb && !user) { toast("Войдите в аккаунт, чтобы скачать все облачные данные."); return; }
-        let backupOps = ops;
-        if (sb) {
-          try { backupOps = await readAllCloudOperations(); }
-          catch (err) { toast("Не удалось собрать копию: " + (err?.message || "ошибка загрузки")); return; }
-        }
+        const backupOps = ops;
         const payload = {
           format: "finzaro-backup", v: 2, createdAt: new Date().toISOString(),
           ops: backupOps.map((o) => ({ date: o.date, marketplace: o.marketplace, game: o.game || "", type: o.type, amount: Number(o.amount), fee: Number(o.fee) || 0, note: String(o.note || "") })),
@@ -5388,7 +5314,6 @@
         render();
       };
 
-      $("#bk").hidden = !!sb;
       $("#bkOut").onclick = downloadBackupCopy;
       const BACKUP_TYPES = new Set(["sale", "purchase", "other", "refund", "withdraw", "ad"]);
       function normalizeBackupOperation(o) {
@@ -5406,35 +5331,8 @@
         return { date, marketplace, game: String(o.game || ""), type, amount: r2(amount), fee: r2(fee), note };
       }
       async function replaceOperationsFromBackup(rows) {
-        if (!sb) {
-          ops = rows.map((o, i) => ({ ...o, id: Date.now() + i }));
-          localStorage.setItem("ops", JSON.stringify(ops));
-          return;
-        }
-        if (!user) throw new Error("Сначала войди в аккаунт, чтобы заменить облачные данные.");
-        let oldRows;
-        try { oldRows = (await readAllCloudOperations()).map(normalizeBackupOperation); }
-        catch (err) { throw new Error("Не удалось прочитать текущие операции для безопасной замены: " + (err?.message || "ошибка загрузки")); }
-        const { error: deleteError } = await sb.from("operations").delete().eq("user_id", user.id);
-        if (deleteError) throw new Error("Не удалось заменить облачные записи: " + deleteError.message);
-        const insertBatches = async (items) => {
-          for (let i = 0; i < items.length; i += 200) {
-            const { error } = await sb.from("operations").insert(items.slice(i, i + 200).map((o) => ({ ...o, user_id: user.id })));
-            if (error) throw new Error(error.message);
-          }
-        };
-        try {
-          await insertBatches(rows);
-        } catch (err) {
-          let restored = false;
-          try {
-            const { error: rollbackDeleteError } = await sb.from("operations").delete().eq("user_id", user.id);
-            if (rollbackDeleteError) throw new Error(rollbackDeleteError.message);
-            await insertBatches(oldRows);
-            restored = true;
-          } catch (_) {}
-          throw new Error("Не удалось загрузить копию в облако: " + (err?.message || "ошибка записи") + (restored ? " Предыдущие операции восстановлены." : " Автоматический возврат старых операций не подтвердился."));
-        }
+        ops = rows.map((o, i) => ({ ...o, id: Date.now() + i }));
+        localStorage.setItem("ops", JSON.stringify(ops));
       }
       $("#bkIn").onchange = async (e) => {
         const file = e.target.files?.[0];
@@ -5443,7 +5341,7 @@
           const d = JSON.parse(await file.text());
           if (!d || !Array.isArray(d.ops) || d.ops.length > 100000) throw new Error("Это не копия Finzaro в формате JSON.");
           const rows = d.ops.map(normalizeBackupOperation);
-          const yes = await ask({ title: "Заменить данные?", text: "Будет загружено операций: " + rows.length + ". Все текущие операции на этом устройстве/в облаке будут заменены данными из JSON-копии." });
+          const yes = await ask({ title: "Заменить данные?", text: "Будет загружено операций: " + rows.length + ". Все текущие операции на этом устройстве будут заменены данными из JSON-копии." });
           if (!yes) return;
           await replaceOperationsFromBackup(rows);
           if (d.fees && typeof d.fees === "object") localStorage.setItem("fees2", JSON.stringify(d.fees));
@@ -6465,19 +6363,19 @@
 
       /* ---- звуки (Web Audio) и вибрация ---- */
       const SOUND_ASSETS = {
-        "button-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-1.m4a", "button-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-2.m4a",
-        "button-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-3.m4a", "button-4": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-4.m4a",
-        "button-5": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-5.m4a", "button-6": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-6.m4a",
-        "button-7": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/button-7.m4a", "tab-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/tab-1.m4a",
-        "tab-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/tab-2.m4a", "tab-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/tab-3.m4a",
-        expand: "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/expand.m4a", collapse: "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/buttons-and-navigation/collapse.m4a",
-        "success-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/success-1.m4a", "success-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/success-2.m4a",
-        "success-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/success-3.m4a", "complete-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/complete-and-success/complete-1.m4a",
-        "error-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/error-1.m4a", "error-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/error-2.m4a",
-        "error-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/error-3.m4a", "cancel-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/cancel-1.m4a",
-        "cancel-2": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/errors-and-cancel/cancel-2.m4a", "notification-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/notification-1.m4a",
-        "notification-4": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/notification-4.m4a", "alert-1": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/alert-1.m4a",
-        "alert-3": "https://cdn.jsdelivr.net/gh/thisuxhq/soundkit@main/low-volume-20db/notifications-and-alerts/alert-3.m4a"
+        "button-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/button-1.m4a", "button-2": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/button-2.m4a",
+        "button-3": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/button-3.m4a", "button-4": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/button-4.m4a",
+        "button-5": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/button-5.m4a", "button-6": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/button-6.m4a",
+        "button-7": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/button-7.m4a", "tab-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/tab-1.m4a",
+        "tab-2": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/tab-2.m4a", "tab-3": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/tab-3.m4a",
+        expand: "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/expand.m4a", collapse: "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/buttons-and-navigation/collapse.m4a",
+        "success-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/complete-and-success/success-1.m4a", "success-2": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/complete-and-success/success-2.m4a",
+        "success-3": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/complete-and-success/success-3.m4a", "complete-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/complete-and-success/complete-1.m4a",
+        "error-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/errors-and-cancel/error-1.m4a", "error-2": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/errors-and-cancel/error-2.m4a",
+        "error-3": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/errors-and-cancel/error-3.m4a", "cancel-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/errors-and-cancel/cancel-1.m4a",
+        "cancel-2": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/errors-and-cancel/cancel-2.m4a", "notification-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/notifications-and-alerts/notification-1.m4a",
+        "notification-4": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/notifications-and-alerts/notification-4.m4a", "alert-1": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/notifications-and-alerts/alert-1.m4a",
+        "alert-3": "https://raw.githubusercontent.com/thisuxhq/soundkit/main/low-volume-20db/notifications-and-alerts/alert-3.m4a"
       };
       const SOUND_PRESETS = {
         standard: { label: "Классика", click: "button-1", tab: "tab-1", success: "success-1", complete: "complete-1", error: "error-1", cancel: "cancel-1", notification: "notification-1", alert: "alert-1", expand: "expand", collapse: "collapse" },
@@ -6655,43 +6553,8 @@
         try { if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: "Мой итог" }); else if (navigator.share) await navigator.share({ title: "Мой итог", text: "Мой итог в Finzaro" }); else $("#shDl").click(); } catch (e) {}
       });
       applyPref();
-      (async () => {
-        if (!sb) {
-          $("#mode").textContent = "Данные хранятся только в этом браузере";
-          return load();
-        }
-        const auth = async () => {
-          const { data } = await sb.auth.getSession();
-          user = data.session?.user;
-          if (user) {
-            $("#dAuth").close();
-            $("#bOut").hidden = false;
-            $("#mode").textContent = user.email;
-            load();
-          } else $("#dAuth").showModal();
-        };
-        $("#fa").onsubmit = async (e) => {
-          e.preventDefault();
-          const { error } = await sb.auth.signInWithPassword({
-            email: e.target.e.value,
-            password: e.target.p.value,
-          });
-          if (error) $("#aerr").textContent = "Ошибка: " + error.message;
-          else auth();
-        };
-        $("#bReg").onclick = async () => {
-          const f = $("#fa");
-          const { error } = await sb.auth.signUp({ email: f.e.value, password: f.p.value });
-          $("#aerr").textContent = error
-            ? error.message
-            : "Аккаунт создан. Если пришло письмо, подтвердите email и войдите.";
-        };
-        $("#bOut").onclick = async () => {
-          await sb.auth.signOut();
-          location.reload();
-        };
-        auth();
-      })();
+      $("#mode").textContent = "Данные хранятся только в этом браузере";
+      load();
     </script>
   </body>
 </html>
